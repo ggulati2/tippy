@@ -68,6 +68,7 @@ function renderKeyboard(layout = settings.keyboard_layout) {
   return {
     node,
     has: (name) => name in keys,
+    element: (name) => keys[name], // the dashboard heat map colours keys directly
     // The glowing key the child should find. Only one at a time.
     highlight(name) {
       Object.values(keys).forEach((k) => k.classList.remove("goal"));

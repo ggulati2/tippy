@@ -164,3 +164,30 @@ def test_free_play_pictures_are_sane():
     import re
     for lang, pictures in bank.FREE_PLAY.items():
         assert all(re.fullmatch(r"[a-zäöüß]+", word) and emoji for word, emoji in pictures.items()), lang
+
+
+def test_ask_answers_come_from_the_cache_then_the_built_in_bank(settings):
+    svc, llm = service(settings, json.dumps({"answers": ["Wi-Fi sends the internet through the air. It needs no cable."]}))
+    first = svc.ask_answer("wifi")                    # cache empty: built-in answer, and a refill runs
+    assert first["source"] == "builtin" and llm.calls == 1
+    assert svc.ask_answer("wifi") == {"text": "Wi-Fi sends the internet through the air. It needs no cable.", "source": "cache"}
+
+
+def test_unsafe_or_long_ask_answers_are_rejected(settings):
+    for bad in ('{"answers": ["<b>hi</b> there friend."]}', '{"answers": ["One. Two. Three. Four sentences here."]}',
+                '{"answers": ["This sentence is far too long because it just keeps going and going and going on and on."]}',
+                '{"answers": ["You can kill it."]}'):
+        svc, _ = service(settings, bad)
+        svc.ask_answer("computer")
+        assert svc._unused("ask:en:computer", 0) == 0
+
+
+def test_every_ask_topic_has_question_icon_and_both_answers():
+    from backend.validators import clean_answers
+    for topic in bank.ASK["questions"]:
+        assert topic in bank.ASK["icons"]
+        for lang in ("en", "de"):
+            answer = bank.ASK["answers"][lang][topic]
+            # Built-in answers are trusted. Most also pass the LLM filter. The "password" answers do not, because
+            # the blocklist rejects that word in LLM output, so LLM answers for that topic always fall back to these.
+            assert clean_answers([answer], lang) == [answer] or topic == "password", (lang, topic)

@@ -6,6 +6,7 @@ really struggling (under 50%), we quietly take the newest letter away again so
 he can get back to feeling successful. No message, no penalty.
 """
 import re
+from datetime import date
 from pathlib import Path
 
 from backend import db
@@ -79,6 +80,11 @@ def record_keystrokes(db_path: Path, events: list[dict], adaptive: bool = False)
                 "INSERT INTO keystroke_stats (key, attempts, correct, avg_ms) VALUES (?, ?, ?, ?) "
                 "ON CONFLICT(key) DO UPDATE SET attempts = excluded.attempts, correct = excluded.correct, avg_ms = excluded.avg_ms",
                 (key, attempts + 1, right + (1 if correct else 0), new_avg),
+            )
+            conn.execute(
+                "INSERT INTO daily_stats (day, attempts, correct) VALUES (?, 1, ?) "
+                "ON CONFLICT(day) DO UPDATE SET attempts = attempts + 1, correct = correct + excluded.correct",
+                (date.today().isoformat(), 1 if correct else 0),
             )
             if adaptive and _LETTER.match(key):
                 conn.execute("INSERT INTO keystroke_log (key, correct, ms) VALUES (?, ?, ?)", (key, int(correct), ms))

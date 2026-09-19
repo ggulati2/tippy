@@ -18,6 +18,7 @@ def _load(name: str) -> dict:
 WORDS = _load("fallback_words.json")          # {"en": {"animals": [...], ...}, "de": {...}}
 SENTENCES = _load("fallback_sentences.json")
 FREE_PLAY = _load("free_play.json")           # more word pictures, only for the Free Play Studio
+ASK = _load("ask_tippy.json")                 # topics, questions, built-in answers for "Ask Tippy"
 PICTURES = _load("word_pictures.json")        # {"en": {"cat": "🐱", ...}, "de": {...}} for Word Woods
 
 # Short warm lines per moment. "{child}" is replaced by the browser with the
@@ -36,6 +37,9 @@ MASCOT_LINES = {
         "streak": ["Du bist wieder da! Hurra!", "Wieder ein schöner Tag!"],
     },
 }
+
+
+ASK_REDIRECT = {"en": "That is a great question for a grown-up!", "de": "Das ist eine tolle Frage für einen Erwachsenen!"}
 
 
 def letters_outside(text: str, allowed: set[str]) -> int:

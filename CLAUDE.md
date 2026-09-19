@@ -148,7 +148,7 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - [x] 4 OpenRouter integration
 - [x] 5 Word Woods + Sentence Sky
 - [x] 6 Computer Basics Cove + Free Play
-- [ ] 7 Parent dashboard
+- [x] 7 Parent dashboard
 - [ ] 8 Polish
 
 ## Milestone 3 notes
@@ -183,3 +183,12 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - `frontend/js/freeplay.js`: typed text is never sent anywhere (no LLM, no server). Word to emoji comes from `/api/pictures` = `content/free_play.json` plus `content/word_pictures.json`. Free Play has one "level": the first time the child makes 3 scenes it earns the Painter sticker.
 - Basics unlocks after Sentence Sky is complete, Free Play after Basics is complete (parent can unlock all).
 - Screens with the on-screen keyboard are tight at 720 px height: check new screens at 1280x720 (see the screenshot approach in the Milestone 3 notes).
+
+## Milestone 7 notes
+
+- Parent area is `frontend/js/dashboard.js` (tabs: progress, settings, helper, data). Charts follow the dataviz skill: one blue (#2a78d6), thin marks, quiet grid, no legend for one series, a "Show as table" `<details>` under each chart, heat map = share of mistakes on the blue ramp (grey = no data). Light theme only.
+- `backend/dashboard.py` holds the numbers (key report, accuracy trend, play minutes, limits, export, reset) and the template summary. `backend/summary.py` asks the LLM for the weekly summary (cached per ISO week and language in the `weekly_summary` setting, validated, falls back to the template). The summary uses anonymous statistics only.
+- `/api/settings` returns only `db.CHILD_SETTINGS`. Anything private (summary text, model override, letter counters) must stay out of that list.
+- Play time: `frontend/js/limits.js` counts active seconds (visible window, input within 30 s, no modal open) and reports every 15 s to `/api/session/heartbeat` (max 60 s per call). Break suggestion after `session_minutes`; daily stop at `daily_limit_minutes` (0 = off). `closeModal()` re-shows the goodnight screen while `limitReached`; the parent gear has z-index above overlays.
+- Ask Tippy is picture-only by design (`content/ask_tippy.json` has topics, icons, built-in answers). The topic list must match `ASK_TOPICS` in `frontend/js/ask.js`. The LLM never sees anything the child typed. LLM answers for "password" are always rejected by the blocklist, so that topic always uses the built-in answer.
+- The parent can override the main model in the parent area (`openrouter_model` setting, read by `LLMClient.model`).

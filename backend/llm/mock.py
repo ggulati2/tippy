@@ -20,4 +20,10 @@ def mock_generate(task: dict) -> str:
     if kind == "mascot":
         lines = bank.MASCOT_LINES.get(lang, bank.MASCOT_LINES["en"]).get(task["event"], [])
         return json.dumps({"lines": lines})
+    if kind == "ask":
+        answers = bank.ASK["answers"].get(lang, bank.ASK["answers"]["en"])
+        return json.dumps({"answers": [answers[task["topic"]]]})
+    if kind == "summary":
+        from backend import dashboard
+        return json.dumps(dashboard.local_summary(task["stats"], lang))
     raise ValueError(f"unknown task kind: {kind}")

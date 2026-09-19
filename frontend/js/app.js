@@ -198,6 +198,7 @@ async function mapScreen() {
     el("span", { class: "chip" }, `⭐ ${progress.total_stars}`),
     el("button", { class: "chip", onclick: () => { sfx("tap"); albumScreen(); } }, `📖 ${progress.stickers.length}`));
   if (progress.streak >= 2) chips.append(el("span", { class: "chip" }, `🔥 ${progress.streak}`));
+  if (settings.ask_tippy) chips.append(el("button", { class: "chip", onclick: () => { sfx("tap"); askTippy(); } }, "💬 " + t("ask.chip")));
   setScreen("map", chips, el("div", { class: "bubble" }, t("chooseWorld")), grid);
   speak(t("chooseWorld"));
 }
@@ -231,7 +232,10 @@ window.addEventListener("error", (e) => errorScreen(e.error));
 window.addEventListener("unhandledrejection", (e) => errorScreen(e.reason));
 
 // ---------- Parent area ----------
-function closeModal() { $("#modal-root").replaceChildren(); }
+function closeModal() {
+  $("#modal-root").replaceChildren();
+  if (limitReached) showLimit(); // the daily limit screen comes back when a parent screen is closed
+}
 function openModal(panel) {
   $("#modal-root").replaceChildren(el("div", { class: "overlay" }, panel));
 }
@@ -292,56 +296,6 @@ async function saveSetting(patch) {
   parentPanel();
 }
 
-async function parentPanel() {
-  const { body: status } = await api("/api/parent/status");
-  const panel = el("div", { class: "panel" },
-    el("h2", {}, "🔓 " + t("parentArea")),
-    toggleRow(t("language"), [["en", "English"], ["de", "Deutsch"]], settings.language, (v) => saveSetting({ language: v })),
-    toggleRow(t("keyboardLayout"), [["qwerty", "QWERTY"], ["qwertz", "QWERTZ"]], settings.keyboard_layout, (v) => saveSetting({ keyboard_layout: v })),
-    textRow(t("childName"), "child_name", settings.child_name, 20),
-    textRow(t("favoriteWord"), "favorite_word", settings.favorite_word, 15),
-    toggleRow(t("letterCase"), [["upper", "ABC"], ["lower", "abc"]], settings.letter_case, (v) => saveSetting({ letter_case: v })),
-    toggleRow(t("voice"), [[true, t("on")], [false, t("off")]], settings.voice_on, (v) => saveSetting({ voice_on: v })),
-    toggleRow(t("sound"), [[true, t("on")], [false, t("off")]], settings.sound_on, (v) => saveSetting({ sound_on: v })),
-    llmSection(status),
-    el("button", { class: "big-btn blue", onclick: unlockAllWorlds }, "🔓 " + t("unlockAll")),
-    // Exit and Back stay visible at the bottom even when the panel scrolls.
-    el("div", { class: "panel-actions" },
-      el("button", { class: "big-btn exit-btn", onclick: exitApp }, t("exitApp")),
-      el("button", { class: "big-btn blue", onclick: () => { parentToken = null; closeModal(); welcomeScreen(); } }, t("back"))));
-  openModal(panel);
-}
-
-// The online helper's status, cost and a "Test connection" button. Parent area only.
-function llmSection(status) {
-  let line;
-  if (status.mode === "mock") line = "🧪 " + t("llmMock");
-  else if (!status.key_set) line = "🔑 " + t("llmNoKey");
-  else if (status.online === false) line = "🟡 " + t("llmOffline");
-  else line = "🟢 " + t("llmLive");
-
-  const result = el("span", { class: "llm-result" }, "");
-  const testButton = el("button", { class: "chip", onclick: async () => {
-    result.textContent = "…";
-    const { body } = await api("/api/parent/llm/test", { method: "POST" });
-    result.textContent = body.ok
-      ? `✓ ${t("llmOk")} (${body.model}${body.latency_ms ? ", " + body.latency_ms + " ms" : ""})`
-      : `✗ ${t("llmFail")}: ${body.error}`;
-  } }, "🔌 " + t("llmTest"));
-
-  const details = [`${t("llmModel")}: ${status.model}`, `${t("llmToday")}: ${status.requests}/${status.cap}`,
-                   `${t("llmCost")}: $${Number(status.cost_usd).toFixed(4)}`].join("  ·  ");
-  return el("div", { class: "llm-box" },
-    el("div", { class: "row" }, el("span", {}, t("status")), el("span", {}, line)),
-    status.mode === "live" ? el("div", { class: "llm-details" }, details) : "",
-    el("div", { class: "row" }, testButton, result));
-}
-
-async function unlockAllWorlds() {
-  await api("/api/parent/unlock", { method: "POST", body: JSON.stringify({ world: "all" }) });
-  sfx("success");
-}
-
 async function exitApp() {
   await api("/api/parent/exit", { method: "POST" });
   closeModal();
@@ -388,6 +342,7 @@ $("#parent-btn").addEventListener("click", () => openModal(pinPad()));
     settings = { ...settings, ...body };
     document.documentElement.lang = settings.language;
     api("/api/visit", { method: "POST" }); // counts today for the streak
+    startLimits();
     await welcomeScreen();
   } catch (e) {
     errorScreen(e);

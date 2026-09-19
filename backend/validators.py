@@ -85,3 +85,31 @@ def clean_mascot_lines(items, lang: str | None = None) -> list[str]:
         if line and item.strip() not in good:
             good.append(" ".join(item.split()))
     return good
+
+
+# ---------- Ask Tippy answers and the parent summary ----------
+
+_PARAGRAPH = re.compile(r"^[A-Za-zÄÖÜäöüß0-9 .,!?'’\-:;()%/&]+$")
+
+
+def clean_paragraph(text, max_chars: int = 500) -> str | None:
+    """A short paragraph for the parent (never shown to the child)."""
+    if not isinstance(text, str):
+        return None
+    text = " ".join(text.split())
+    if not 10 <= len(text) <= max_chars or not _PARAGRAPH.match(text):
+        return None
+    return text
+
+
+def clean_answers(items, lang: str | None = None) -> list[str]:
+    """Answers for a child: at most 3 short sentences, safe characters, no blocklisted words."""
+    good: list[str] = []
+    for item in items if isinstance(items, list) else []:
+        text = " ".join(item.split()) if isinstance(item, str) else ""
+        sentences = [s for s in re.split(r"(?<=[.!?])\s+", text) if s]
+        if not text or len(sentences) > 3 or any(len(s.split()) > 14 for s in sentences):
+            continue
+        if clean_line(text, max_words=42, max_chars=220, lang=lang) and text not in good:
+            good.append(text)
+    return good

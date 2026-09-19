@@ -24,9 +24,9 @@ from backend.llm.schemas import SCHEMAS
 
 log = logging.getLogger("tippy.content")
 
-LOW_WATER = {"words": 10, "sentences": 6, "mascot": 4}   # refill when fewer unused items remain
-BATCH = {"words": 20, "sentences": 10, "mascot": 8}      # how many to ask for at once
-MIN_GOOD = 3                                             # a batch with fewer valid items is thrown away
+LOW_WATER = {"words": 10, "sentences": 6, "mascot": 4, "ask": 2}   # refill when fewer unused items remain
+BATCH = {"words": 20, "sentences": 10, "mascot": 8, "ask": 4}      # how many to ask for at once
+MIN_GOOD = {"words": 3, "sentences": 3, "mascot": 3, "ask": 1}   # a batch with fewer valid items is thrown away
 COOLDOWN_SECONDS = 600  # after a failed refill, wait before asking again (free accounts have a small daily limit)
 MIN_PRACTICE_LETTERS = 16  # Word Woods and Sentence Sky draw from at least this many letters (A to N in our order),
                            # or there would hardly be any real words; the on-screen keyboard guides each new key
@@ -110,9 +110,11 @@ class ContentService:
             good = validators.clean_words(items, allowed, lang)
         elif kind == "sentences":
             good = validators.clean_sentences(items, allowed, lang)
+        elif kind == "ask":
+            good = validators.clean_answers(items, lang)
         else:
             good = validators.clean_mascot_lines(items, lang)
-        if len(good) < MIN_GOOD:
+        if len(good) < MIN_GOOD[kind]:
             log.warning("LLM %s reply rejected: only %d of %d items were safe", kind, len(good), len(items))
             return []
         return good
@@ -191,3 +193,16 @@ class ContentService:
         taken = self._take(cache_type, 0, 1)
         self._maybe_refill("mascot", cache_type, 0, {"lang": lang, "event": event})
         return taken[0] if taken else bank.local_mascot_line(lang, event)
+
+    def ask_answer(self, topic: str) -> dict:
+        """Answer for an "Ask Tippy" picture topic. The child never types a question:
+        the topic comes from a fixed list, so no personal text can ever reach the LLM."""
+        lang = self.language()
+        if topic not in bank.ASK["questions"]:
+            return {"text": bank.ASK_REDIRECT.get(lang, bank.ASK_REDIRECT["en"]), "source": "redirect"}
+        cache_type = f"ask:{lang}:{topic}"
+        taken = self._take(cache_type, 0, 1)
+        self._maybe_refill("ask", cache_type, 0, {"lang": lang, "topic": topic})
+        if taken:
+            return {"text": taken[0], "source": "cache"}
+        return {"text": bank.ASK["answers"].get(lang, bank.ASK["answers"]["en"])[topic], "source": "builtin"}

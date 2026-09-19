@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from datetime import date
 
-from backend import bank, db, difficulty, progress
+from backend import bank, dashboard, db, difficulty, progress, summary
 from backend.config import FRONTEND_DIR, LOG_DIR, PORT, load_settings
 from backend.content import ContentService
 from backend.llm.client import LLMClient
@@ -69,9 +69,14 @@ def create_app() -> FastAPI:
 
     @app.get("/api/settings")
     def read_settings():
-        """Settings the child's screen needs. Contains no secrets."""
+        """Settings the child's screen needs. Contains no secrets and nothing from the parent's private data."""
         stored = db.get_settings(settings.db_path)
-        return {**stored, "voice_on": stored["voice_on"] == "1", "sound_on": stored["sound_on"] == "1"}
+        out = {key: stored.get(key, "") for key in db.CHILD_SETTINGS}
+        for flag in ("voice_on", "sound_on", "ask_tippy"):
+            out[flag] = stored.get(flag) == "1"
+        for number in ("session_minutes", "daily_limit_minutes"):
+            out[number] = int(stored.get(number) or 0)
+        return out
 
     @app.get("/api/mascot/line")
     def mascot_line(event: str = "welcome"):
@@ -91,6 +96,26 @@ def create_app() -> FastAPI:
     @app.get("/api/content/sentences")
     def practice_sentences(count: int = Query(default=4, ge=1, le=10)):
         return content.sentences(count)
+
+    class HeartbeatBody(BaseModel):
+        seconds: int = Field(ge=0, le=dashboard.MAX_HEARTBEAT_SECONDS)
+
+    @app.post("/api/session/heartbeat")
+    def heartbeat(body: HeartbeatBody):
+        """The browser reports active play time every 15 seconds (used for break and daily limits)."""
+        dashboard.add_play_seconds(settings.db_path, body.seconds)
+        return dashboard.limits_state(settings.db_path)
+
+    @app.get("/api/limits")
+    def limits():
+        return dashboard.limits_state(settings.db_path)
+
+    @app.get("/api/ask")
+    def ask_tippy(topic: str = Query(max_length=20)):
+        """Picture questions only. Off unless the parent has switched Ask Tippy on."""
+        if db.get_settings(settings.db_path).get("ask_tippy") != "1":
+            raise HTTPException(status_code=403, detail="ask tippy is off")
+        return content.ask_answer(topic)
 
     @app.post("/api/visit")
     def visit():
@@ -159,12 +184,24 @@ def create_app() -> FastAPI:
         # Typed by the child in Sentence Sky. Stored only on this computer, never sent to the LLM.
         child_name: str | None = Field(default=None, pattern="^[A-Za-zÄÖÜäöüß \\-]{0,20}$")
         favorite_word: str | None = Field(default=None, pattern="^[A-Za-zÄÖÜäöüß]{0,15}$")
+        session_minutes: int | None = Field(default=None, ge=0, le=60)
+        daily_limit_minutes: int | None = Field(default=None, ge=0, le=480)
+        ask_tippy: bool | None = None
+        openrouter_model: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._:/\-]{0,80}$")
+        interests: list[str] | None = Field(default=None, max_length=4)
 
     @app.post("/api/parent/settings")
     def update_settings(body: SettingsBody, x_parent_token: str | None = Header(default=None)):
         require_parent(x_parent_token)
-        for key, value in body.model_dump(exclude_none=True).items():
-            db.set_setting(settings.db_path, key, ("1" if value else "0") if isinstance(value, bool) else value)
+        data = body.model_dump(exclude_none=True)
+        interests = data.pop("interests", None)
+        if interests is not None:
+            if not interests or any(topic not in bank.THEMES for topic in interests):
+                raise HTTPException(status_code=422, detail="pick at least one known interest")
+            with db.connect(settings.db_path) as conn:
+                conn.execute("UPDATE child_profile SET interests = ? WHERE id = 1", (",".join(dict.fromkeys(interests)),))
+        for key, value in data.items():
+            db.set_setting(settings.db_path, key, "1" if value is True else "0" if value is False else str(value))
         return read_settings()
 
     class UnlockBody(BaseModel):
@@ -189,6 +226,34 @@ def create_app() -> FastAPI:
         """The "Test connection" button: one tiny real request."""
         require_parent(x_parent_token)
         return llm.test_connection()
+
+    @app.get("/api/parent/dashboard")
+    def parent_dashboard(x_parent_token: str | None = Header(default=None)):
+        require_parent(x_parent_token)
+        return dashboard.dashboard(settings.db_path)
+
+    @app.get("/api/parent/summary")
+    def parent_summary(refresh: bool = False, x_parent_token: str | None = Header(default=None)):
+        """The weekly summary. May take a few seconds when it has to ask the LLM; parent area only."""
+        require_parent(x_parent_token)
+        return summary.get_summary(settings.db_path, llm, refresh=refresh)
+
+    @app.get("/api/parent/export")
+    def parent_export(x_parent_token: str | None = Header(default=None)):
+        require_parent(x_parent_token)
+        return dashboard.export_data(settings.db_path)
+
+    class ResetBody(BaseModel):
+        confirm: str
+
+    @app.post("/api/parent/reset")
+    def parent_reset(body: ResetBody, x_parent_token: str | None = Header(default=None)):
+        require_parent(x_parent_token)
+        if body.confirm != "RESET":
+            raise HTTPException(status_code=400, detail="confirmation missing")
+        dashboard.reset_progress(settings.db_path)
+        log.info("Progress reset from parent area")
+        return {"ok": True}
 
     @app.post("/api/parent/exit")
     def exit_app(x_parent_token: str | None = Header(default=None)):

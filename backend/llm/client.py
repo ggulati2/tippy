@@ -42,6 +42,11 @@ class LLMClient:
         """True if generate() can produce anything (mock always; live needs a key)."""
         return self.mode == "mock" or bool(self.settings.openrouter_api_key)
 
+    @property
+    def model(self) -> str:
+        """The main model: the parent's choice in the parent area, otherwise the one from .env."""
+        return db.get_settings(self.settings.db_path).get("openrouter_model") or self.settings.openrouter_model
+
     # ---------- Usage and cost ----------
 
     def usage_today(self) -> dict:
@@ -71,7 +76,7 @@ class LLMClient:
             return None
 
         messages = prompts.build_messages(task)
-        models = [self.settings.openrouter_model, self.settings.openrouter_fallback_model]
+        models = [self.model, self.settings.openrouter_fallback_model]
         for model in models:
             if self.usage_today()["requests"] >= self.settings.daily_request_cap:
                 self.last_error = "daily request cap reached"
@@ -137,7 +142,7 @@ class LLMClient:
             except (ValueError, AttributeError):
                 ok = False
         return {
-            "ok": ok, "mode": "live", "model": self.settings.openrouter_model,
+            "ok": ok, "mode": "live", "model": self.model,
             "latency_ms": int((time.monotonic() - started) * 1000),
             "error": "" if ok else (self.last_error or "unexpected answer"),
         }
@@ -145,6 +150,6 @@ class LLMClient:
     def status(self) -> dict:
         return {
             "mode": self.mode, "key_set": bool(self.settings.openrouter_api_key),
-            "model": self.settings.openrouter_model, "fallback_model": self.settings.openrouter_fallback_model,
+            "model": self.model, "fallback_model": self.settings.openrouter_fallback_model,
             "online": self.online, "last_error": self.last_error, **self.usage_today(),
         }
