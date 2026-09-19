@@ -87,6 +87,8 @@ DEFAULT_SETTINGS = {
     "favorite_word": "",
     "session_minutes": "10",       # Tippy suggests a break after this many minutes (0 = never)
     "daily_limit_minutes": "0",    # 0 = no daily limit
+    "font_scale": "1",             # text size: 1, 1.125 or 1.25
+    "reduce_motion": "0",          # 1 = no animations
     "ask_tippy": "0",              # the picture Q&A is off unless the parent turns it on
     "openrouter_model": "",        # parent override; empty = use the model from .env
     "weekly_summary": "",          # cached weekly summary (JSON), parent area only
@@ -133,4 +135,5 @@ def set_setting(db_path: Path, key: str, value: str) -> None:
 # Settings the child's browser may see. Everything else (summary text, model,
 # progress counters...) stays on the server and is only shown in the parent area.
 CHILD_SETTINGS = ("language", "keyboard_layout", "voice_on", "sound_on", "letter_case", "child_name",
-                  "favorite_word", "session_minutes", "daily_limit_minutes", "ask_tippy")
+                  "favorite_word", "session_minutes", "daily_limit_minutes", "ask_tippy",
+                  "font_scale", "reduce_motion")

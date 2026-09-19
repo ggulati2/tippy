@@ -229,6 +229,8 @@ async function settingsTab(body) {
     toggleRow(t("letterCase"), [["upper", "ABC"], ["lower", "abc"]], settings.letter_case, (v) => saveSetting({ letter_case: v })),
     toggleRow(t("voice"), [[true, t("on")], [false, t("off")]], settings.voice_on, (v) => saveSetting({ voice_on: v })),
     toggleRow(t("sound"), [[true, t("on")], [false, t("off")]], settings.sound_on, (v) => saveSetting({ sound_on: v })),
+    toggleRow(t("setFont"), [[1, "A"], [1.125, "A+"], [1.25, "A++"]], settings.font_scale || 1, (v) => saveSetting({ font_scale: v })),
+    toggleRow(t("setMotion"), [[false, t("on")], [true, t("off")]], !!settings.reduce_motion, (v) => saveSetting({ reduce_motion: v })),
     textRow(t("childName"), "child_name", settings.child_name, 20),
     textRow(t("favoriteWord"), "favorite_word", settings.favorite_word, 15),
     el("div", { class: "row" }, el("span", {}, t("setInterests")), el("div", { class: "seg wrap" }, ...interestButtons)),

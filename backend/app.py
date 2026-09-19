@@ -72,7 +72,8 @@ def create_app() -> FastAPI:
         """Settings the child's screen needs. Contains no secrets and nothing from the parent's private data."""
         stored = db.get_settings(settings.db_path)
         out = {key: stored.get(key, "") for key in db.CHILD_SETTINGS}
-        for flag in ("voice_on", "sound_on", "ask_tippy"):
+        out["font_scale"] = float(stored.get("font_scale") or 1)
+        for flag in ("voice_on", "sound_on", "ask_tippy", "reduce_motion"):
             out[flag] = stored.get(flag) == "1"
         for number in ("session_minutes", "daily_limit_minutes"):
             out[number] = int(stored.get(number) or 0)
@@ -187,6 +188,8 @@ def create_app() -> FastAPI:
         session_minutes: int | None = Field(default=None, ge=0, le=60)
         daily_limit_minutes: int | None = Field(default=None, ge=0, le=480)
         ask_tippy: bool | None = None
+        font_scale: float | None = Field(default=None, ge=1, le=1.25)
+        reduce_motion: bool | None = None
         openrouter_model: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._:/\-]{0,80}$")
         interests: list[str] | None = Field(default=None, max_length=4)
 

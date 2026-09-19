@@ -4,6 +4,7 @@
 // ---------- Helpers ----------
 const $ = (sel) => document.querySelector(sel);
 let settings = { language: "en", keyboard_layout: "qwerty", voice_on: true, sound_on: true, child_name: "", favorite_word: "" };
+let muted = false; // the child's quick mute button; lasts until the app is closed
 let parentToken = null; // set after the correct PIN, kept only in memory
 // The game that is running sets this to receive key presses. It is cleared
 // whenever the screen changes, so a finished game can never react to keys.
@@ -74,7 +75,7 @@ const SFX = {
 
 // Usage: sfx("tap"), or sfx("note", 3). Silent when the parent has turned sounds off.
 function sfx(name, arg) {
-  if (!settings.sound_on) return;
+  if (!settings.sound_on || muted) return;
   try {
     audio = audio || new AudioContext();
     if (audio.state === "suspended") audio.resume();
@@ -99,7 +100,7 @@ function pickVoice(lang) {
 }
 
 function speak(text) {
-  if (!settings.voice_on || !("speechSynthesis" in window)) return;
+  if (!settings.voice_on || muted || !("speechSynthesis" in window)) return;
   if (speechSynthesis.getVoices().length === 0) { // list not loaded yet: try again when it is
     speechSynthesis.addEventListener("voiceschanged", () => speak(text), { once: true });
     return;
@@ -289,10 +290,17 @@ function textRow(label, key, value, maxLength) {
   return el("div", { class: "row" }, el("span", {}, label), input);
 }
 
+// Language, text size and reduced motion are applied to the page here.
+function applyLook() {
+  document.documentElement.lang = settings.language;
+  document.documentElement.style.setProperty("--font-scale", settings.font_scale || 1);
+  document.body.classList.toggle("reduce-motion", !!settings.reduce_motion);
+}
+
 async function saveSetting(patch) {
   const { body } = await api("/api/parent/settings", { method: "POST", body: JSON.stringify(patch) });
   settings = { ...settings, ...body };
-  document.documentElement.lang = settings.language;
+  applyLook();
   parentPanel();
 }
 
@@ -334,13 +342,19 @@ document.addEventListener("contextmenu", (e) => e.preventDefault());
 
 // ---------- Start-up ----------
 $("#home-btn").addEventListener("click", () => { sfx("home"); welcomeScreen(); });
+$("#mute-btn").addEventListener("click", () => {
+  muted = !muted;
+  if (muted && "speechSynthesis" in window) speechSynthesis.cancel();
+  $("#mute-btn").textContent = muted ? "🔇" : "🔊";
+  sfx("tap");
+});
 $("#parent-btn").addEventListener("click", () => openModal(pinPad()));
 
 (async function start() {
   try {
     const { body } = await api("/api/settings");
     settings = { ...settings, ...body };
-    document.documentElement.lang = settings.language;
+    applyLook();
     api("/api/visit", { method: "POST" }); // counts today for the streak
     startLimits();
     await welcomeScreen();

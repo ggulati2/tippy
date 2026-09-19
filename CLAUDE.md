@@ -149,7 +149,7 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - [x] 5 Word Woods + Sentence Sky
 - [x] 6 Computer Basics Cove + Free Play
 - [x] 7 Parent dashboard
-- [ ] 8 Polish
+- [x] 8 Polish
 
 ## Milestone 3 notes
 
@@ -192,3 +192,9 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - Play time: `frontend/js/limits.js` counts active seconds (visible window, input within 30 s, no modal open) and reports every 15 s to `/api/session/heartbeat` (max 60 s per call). Break suggestion after `session_minutes`; daily stop at `daily_limit_minutes` (0 = off). `closeModal()` re-shows the goodnight screen while `limitReached`; the parent gear has z-index above overlays.
 - Ask Tippy is picture-only by design (`content/ask_tippy.json` has topics, icons, built-in answers). The topic list must match `ASK_TOPICS` in `frontend/js/ask.js`. The LLM never sees anything the child typed. LLM answers for "password" are always rejected by the blocklist, so that topic always uses the built-in answer.
 - The parent can override the main model in the parent area (`openrouter_model` setting, read by `LLMClient.model`).
+
+## Milestone 8 notes
+
+- Accessibility: settings `font_scale` (1, 1.125, 1.25; drives the CSS variable `--font-scale`, capped at 1.25 because larger sizes push the world map and Free Play off a 720 px screen) and `reduce_motion` (adds the class `reduce-motion` to `body`). Both are applied by `applyLook()` in `app.js`. The child's 🔊 button (`muted` in `app.js`) is per-run and silences `sfx` and `speak`.
+- `#screen` scrolls (`overflow-y: auto`, `justify-content: safe center`) as a safety net. Welcome and world-map sizes are capped with `vh` so they fit 1280x720 even at the biggest text size. Check new screens at 1280x720 with font_scale 1.25.
+- Localisation review: en and de have the same 162 keys and every `t("...")` key exists. Keep it that way (a small node script that loads `i18n.js` and diffs the keys is enough).

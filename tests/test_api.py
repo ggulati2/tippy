@@ -180,3 +180,11 @@ def test_dashboard_summary_export_reset_need_pin(client):
     assert client.post("/api/parent/reset", json={"confirm": "yes"}, headers=headers).status_code == 400
     assert client.post("/api/parent/reset", json={"confirm": "RESET"}, headers=headers).json()["ok"] is True
     assert client.get("/api/parent/dashboard", headers=headers).json()["total_stars"] == 0
+
+
+def test_accessibility_settings(client):
+    headers = parent_headers(client)
+    assert client.get("/api/settings").json()["font_scale"] == 1
+    out = client.post("/api/parent/settings", json={"font_scale": 1.125, "reduce_motion": True}, headers=headers).json()
+    assert out["font_scale"] == 1.125 and out["reduce_motion"] is True
+    assert client.post("/api/parent/settings", json={"font_scale": 1.5}, headers=headers).status_code == 422
