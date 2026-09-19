@@ -74,6 +74,8 @@ DEFAULT_SETTINGS = {
     "voice_on": "1",
     "sound_on": "1",
     "letter_case": "upper",  # or "lower"
+    "child_name": "",       # set by the parent; used only in the browser
+    "favorite_word": "",
 }
 
 

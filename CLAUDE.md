@@ -146,7 +146,7 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - [x] 2 Mouse Meadow + stickers
 - [x] 3 Keyboard Kingdom + Letter Land
 - [x] 4 OpenRouter integration
-- [ ] 5 Word Woods + Sentence Sky
+- [x] 5 Word Woods + Sentence Sky
 - [ ] 6 Computer Basics Cove + Free Play
 - [ ] 7 Parent dashboard
 - [ ] 8 Polish
@@ -168,3 +168,11 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - Not built yet (later milestones): mascot lines from richer stats, Ask Tippy, weekly summary, a model picker and interests editor in the parent area, Word Woods and Sentence Sky which will use `/api/content/words` and `/api/content/sentences`.
 - Never run anything that uses the parent's real OpenRouter key (the shell may already contain `OPENROUTER_API_KEY`) without asking first; test with `LLM_MODE=mock` or `httpx.MockTransport`.
 - API tests force `LLM_MODE=mock` and an empty key in the `client` fixture (`tests/test_api.py`), because the real `.env` may be live. Keep it that way.
+
+## Milestone 5 notes
+
+- `frontend/js/typing.js` (`typingRound`) is the shared typing engine (ghost letters, next key glows, sound per letter, read aloud on success). `words.js` and `sentences.js` only prepare the items. Punctuation is removed from what the child types (`typingText`); text with characters the keyboard cannot produce is skipped (`isTypable`). Ä, Ö, Ü count only with the QWERTZ layout; ß is never asked for.
+- Word Woods needs pictures: `content/word_pictures.json` (word to emoji, en and de). `ContentService.pictured_words()` returns only words with a picture. Add a picture there when adding a word to the bank.
+- Word Woods and Sentence Sky draw from at least the first 16 letters (`MIN_PRACTICE_LETTERS` in `content.py`), otherwise there would be almost no real words. They use the cache and the bank like everything else; cache level key is `max(unlocked, 16)`.
+- Child name and favourite word are settings (`child_name`, `favorite_word`) set in the parent area, used only in the browser (`settings.child_name` replaces `{child}` in mascot lines). Never add them to a prompt.
+- `sfx(name, arg)` now takes an argument (`sfx("note", i)` plays step i of the scale).

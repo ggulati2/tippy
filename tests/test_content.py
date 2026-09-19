@@ -35,11 +35,11 @@ def service(settings, text):
     return ContentService(settings.db_path, llm, background=False), llm
 
 
-def test_fallback_words_fit_the_unlocked_letters(settings):
-    unlock(settings, 12)  # A S D F J K L E I R U T
+def test_fallback_words_fit_the_practice_letters(settings):
+    unlock(settings, 12)  # fewer than the practice minimum, so 16 letters are used
     svc, _ = service(settings, None)
     result = svc.words(8)
-    allowed = set(difficulty.letters_for(12))
+    allowed = set(difficulty.letters_for(16))
     assert result["source"] == "fallback" and len(result["items"]) == 8
     assert all(bank.letters_outside(w, allowed) == 0 for w in result["items"])
 
@@ -50,7 +50,7 @@ def test_very_early_levels_still_get_something(settings):
 
 
 def test_good_llm_batch_is_cached_then_served(settings):
-    unlock(settings, 12)
+    unlock(settings, 16)
     batch = json.dumps({"words": ["sad", "fed", "led", "sit", "sir", "kid", "ask"]})
     svc, llm = service(settings, batch)
     svc.words(1)                                   # first call triggers a refill (cache was empty)
@@ -60,23 +60,21 @@ def test_good_llm_batch_is_cached_then_served(settings):
 
 
 def test_bad_llm_output_is_ignored_silently(settings):
-    unlock(settings, 12)
+    unlock(settings, 16)
     for bad in ("not json at all", '{"words": "cat"}', '{"words": ["<b>x</b>", "zzz", "qqq"]}', '{"other": []}', None):
         svc, _ = service(settings, bad)
         result = svc.words(4)
         assert result["source"] == "fallback" and len(result["items"]) == 4
-        assert svc._unused("words:en", 12) == 0     # nothing bad was stored
+        assert svc._unused("words:en", 16) == 0     # nothing bad was stored
 
 
 def test_words_using_locked_letters_are_rejected(settings):
-    unlock(settings, 3)   # A S D only
     svc, _ = service(settings, json.dumps({"words": ["sad", "dad", "add", "cat", "dog", "zoo"]}))
-    svc.words(1)
-    assert svc._unused("words:en", 3) == 3          # sad, dad, add only
+    svc.words(1)                                     # practice letters: A to N in our order (16 letters)
+    assert svc._unused("words:en", 16) == 4          # sad, dad, add, dog. "cat" (C) and "zoo" (Z) are not allowed yet
 
 
 def test_used_cache_items_are_reused_before_fallback(settings):
-    unlock(settings, 3)
     svc, llm = service(settings, json.dumps({"words": ["sad", "dad", "add"]}))
     svc.words(3)
     llm.text = None                                  # now "offline"
@@ -98,10 +96,9 @@ def test_mascot_falls_back_and_unknown_event_is_safe(settings):
 def test_mock_mode_exercises_the_whole_pipeline(tmp_path):
     s = Settings("", "a", "b", "en", "1234", "mock", 50, tmp_path / "m.db")
     db.init_db(s.db_path)
-    unlock(s, 14)
     svc = ContentService(s.db_path, LLMClient(s), background=False)
     svc.words(2)
-    assert svc._unused("words:en", 14) > 0            # the fake LLM's answer passed validation and was cached
+    assert svc._unused("words:en", 16) > 0            # the fake LLM's answer passed validation and was cached
 
 
 def test_german_uses_german_bank(settings):
@@ -129,8 +126,35 @@ def test_banks_have_only_safe_typable_content():
 
 
 def test_failed_refill_backs_off(settings):
-    unlock(settings, 12)
+    unlock(settings, 16)
     svc, llm = service(settings, "garbage")
     for _ in range(4):
         svc.words(2)
     assert llm.calls == 1          # after one failure we stop asking for a while
+
+
+def test_pictured_words_all_have_pictures_and_fit_length(settings):
+    svc, _ = service(settings, None)
+    for max_len in (3, 4):
+        result = svc.pictured_words(5, max_len)
+        assert len(result["items"]) == 5
+        assert all(w in result["pictures"] and len(w) <= max_len for w in result["items"])
+
+
+def test_pictured_words_ignore_cached_words_without_pictures(settings):
+    svc, _ = service(settings, json.dumps({"words": ["sad", "dad", "add", "dog", "hen", "sun"]}))
+    result = svc.pictured_words(3, 3)
+    assert set(result["items"]) <= set(bank.PICTURES["en"])
+
+
+def test_german_pictured_words(settings):
+    db.set_setting(settings.db_path, "language", "de")
+    svc, _ = service(settings, None)
+    result = svc.pictured_words(4, 4)
+    assert set(result["items"]) <= set(bank.PICTURES["de"]) and len(result["items"]) == 4
+
+
+def test_every_picture_belongs_to_a_bank_word():
+    for lang, pictures in bank.PICTURES.items():
+        bank_words = {w for words in bank.WORDS[lang].values() for w in words}
+        assert set(pictures) <= bank_words and all(pictures.values()), lang

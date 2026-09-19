@@ -3,7 +3,7 @@
 
 // ---------- Helpers ----------
 const $ = (sel) => document.querySelector(sel);
-let settings = { language: "en", keyboard_layout: "qwerty", voice_on: true, sound_on: true };
+let settings = { language: "en", keyboard_layout: "qwerty", voice_on: true, sound_on: true, child_name: "", favorite_word: "" };
 let parentToken = null; // set after the correct PIN, kept only in memory
 // The game that is running sets this to receive key presses. It is cleared
 // whenever the screen changes, so a finished game can never react to keys.
@@ -67,17 +67,18 @@ const SFX = {
   home:    () => [G5, E5, C5].forEach((f, i) => tone(f, i * 0.09, 0.4)),               // coming down
   boing:   () => { tone(260, 0, 0.32, { bell: false, glideTo: 620, gain: 0.14 });      // springy jump
                    tone(1200, 0.28, 0.15, { glideTo: 1800, gain: 0.06 }); },
+  note:    (i) => tone(PENTATONIC[i % PENTATONIC.length] * (i >= PENTATONIC.length ? 2 : 1), 0, 0.3, { gain: 0.1 }), // step up the scale
   success: () => [C5, E5, G5, C6, E6].forEach((f, i) => tone(f, i * 0.09, 0.5)),       // for later worlds
   sparkle: () => [C6, E6, G5 * 2, C6 * 2].forEach((f, i) => tone(f, i * 0.06, 0.3, { gain: 0.07 })),
 };
 
-// Usage: sfx("tap"). Silent when the parent has turned sounds off.
-function sfx(name) {
+// Usage: sfx("tap"), or sfx("note", 3). Silent when the parent has turned sounds off.
+function sfx(name, arg) {
   if (!settings.sound_on) return;
   try {
     audio = audio || new AudioContext();
     if (audio.state === "suspended") audio.resume();
-    SFX[name]();
+    SFX[name](arg);
   } catch (e) { /* no sound available: the app still works */ }
 }
 
@@ -145,7 +146,7 @@ function mascotSVG() {
 async function mascotLine(event) {
   try {
     const { body } = await api(`/api/mascot/line?event=${encodeURIComponent(event)}`);
-    return (body.text || "").replaceAll("{child}", t("friend"));
+    return (body.text || "").replaceAll("{child}", settings.child_name || t("friend"));
   } catch (e) {
     return "";
   }
@@ -207,6 +208,8 @@ function openWorld(id) {
   if (id === "mouse") mouseMeadow();
   else if (id === "keyboard") kingdom();
   else if (id === "letters") letterLand();
+  else if (id === "words") wordWoods();
+  else if (id === "sentences") sentenceSky();
   else comingSoonScreen(id);
 }
 
@@ -272,6 +275,14 @@ function toggleRow(label, options, current, onPick) {
   return el("div", { class: "row" }, el("span", {}, label), seg);
 }
 
+// A text box for the parent (name, favourite word). Saved when the parent leaves the box.
+// These stay on this computer: they are used to show the child their own name and are never sent to the LLM.
+function textRow(label, key, value, maxLength) {
+  const input = el("input", { class: "text-input", type: "text", maxlength: String(maxLength), value: value || "",
+    onchange: () => saveSetting({ [key]: input.value.trim() }) });
+  return el("div", { class: "row" }, el("span", {}, label), input);
+}
+
 async function saveSetting(patch) {
   const { body } = await api("/api/parent/settings", { method: "POST", body: JSON.stringify(patch) });
   settings = { ...settings, ...body };
@@ -285,13 +296,17 @@ async function parentPanel() {
     el("h2", {}, "🔓 " + t("parentArea")),
     toggleRow(t("language"), [["en", "English"], ["de", "Deutsch"]], settings.language, (v) => saveSetting({ language: v })),
     toggleRow(t("keyboardLayout"), [["qwerty", "QWERTY"], ["qwertz", "QWERTZ"]], settings.keyboard_layout, (v) => saveSetting({ keyboard_layout: v })),
+    textRow(t("childName"), "child_name", settings.child_name, 20),
+    textRow(t("favoriteWord"), "favorite_word", settings.favorite_word, 15),
     toggleRow(t("letterCase"), [["upper", "ABC"], ["lower", "abc"]], settings.letter_case, (v) => saveSetting({ letter_case: v })),
     toggleRow(t("voice"), [[true, t("on")], [false, t("off")]], settings.voice_on, (v) => saveSetting({ voice_on: v })),
     toggleRow(t("sound"), [[true, t("on")], [false, t("off")]], settings.sound_on, (v) => saveSetting({ sound_on: v })),
     llmSection(status),
     el("button", { class: "big-btn blue", onclick: unlockAllWorlds }, "🔓 " + t("unlockAll")),
-    el("button", { class: "big-btn exit-btn", onclick: exitApp }, t("exitApp")),
-    el("button", { class: "big-btn blue", onclick: () => { parentToken = null; closeModal(); welcomeScreen(); } }, t("back")));
+    // Exit and Back stay visible at the bottom even when the panel scrolls.
+    el("div", { class: "panel-actions" },
+      el("button", { class: "big-btn exit-btn", onclick: exitApp }, t("exitApp")),
+      el("button", { class: "big-btn blue", onclick: () => { parentToken = null; closeModal(); welcomeScreen(); } }, t("back"))));
   openModal(panel);
 }
 

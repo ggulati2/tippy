@@ -95,3 +95,18 @@ def test_llm_status_and_test_button_need_pin(client):
     status = client.get("/api/parent/status", headers=headers).json()
     assert status["mode"] == "mock" and "api_key" not in json.dumps(status).lower()
     assert client.post("/api/parent/llm/test", headers=headers).json()["ok"] is True
+
+
+def test_pictured_words_endpoint_and_name_settings(client):
+    data = client.get("/api/content/words?count=4&pictured=true&max_len=3").json()
+    assert len(data["items"]) == 4 and set(data["items"]) == set(data["pictures"])
+    token = client.post("/api/parent/verify", json={"pin": "4321"}).json()["token"]
+    headers = {"X-Parent-Token": token}
+    saved = client.post("/api/parent/settings", json={"child_name": "Mia", "favorite_word": "dino"}, headers=headers).json()
+    assert saved["child_name"] == "Mia" and saved["favorite_word"] == "dino"
+    assert client.post("/api/parent/settings", json={"child_name": "<script>"}, headers=headers).status_code == 422
+    assert client.post("/api/parent/settings", json={"favorite_word": "two words"}, headers=headers).status_code == 422
+
+
+def test_typing_key_events_accept_space(client):
+    assert client.post("/api/keystrokes", json={"events": [{"key": "SPACE", "correct": True, "ms": 300}]}).status_code == 200

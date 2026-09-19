@@ -281,3 +281,29 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .llm-box { width: 100%; display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; background: #f1f8ff; border-radius: 20px; }
 .llm-details { font-size: .8rem; font-weight: 700; color: #4a6078; }
 .llm-result { font-size: .9rem; font-weight: 800; text-align: right; flex: 1; }
+
+/* ================= Milestone 5: Word Woods and Sentence Sky ================= */
+
+.picture { border: none; background: none; font-size: min(11rem, 20vh); line-height: 1.1; min-height: 1.1em; cursor: pointer; padding: 0; }
+.typing-line { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: min(1000px, 94vw); }
+.slot {
+  min-width: clamp(38px, 4.4vw, 62px); height: clamp(48px, 7.5vh, 74px); padding: 0 4px; border-radius: 14px;
+  background: rgba(255,255,255,.7); border-bottom: 6px solid #cfe6fa;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(1.6rem, 5vh, 2.8rem); font-weight: 900; color: rgba(35,57,91,.28);   /* faded "ghost" letter */
+}
+.slot.gap { min-width: clamp(20px, 2.4vw, 34px); background: transparent; border-bottom-color: transparent; font-size: 1.2rem; }
+.slot.now { border-bottom-color: var(--primary); animation: pulse .9s ease-in-out infinite; background: #fff; }
+.slot.typed { color: var(--ink); border-bottom-color: transparent; }
+#screen[data-name="words"] , #screen[data-name="sentences"] { gap: 10px; padding-top: 12px; padding-bottom: 12px; }
+#screen[data-name="words"] .instruction, #screen[data-name="sentences"] .instruction { margin-top: 44px; font-size: 1.5rem; padding: 10px 24px; }
+
+.text-input { font: inherit; font-weight: 800; width: 12em; max-width: 50%; min-height: 56px; padding: 0 16px; border-radius: 16px;
+  border: 3px solid #cfe6fa; color: var(--ink); user-select: text; -webkit-user-select: text; }
+.panel-actions { position: sticky; bottom: -32px; display: flex; gap: 16px; justify-content: center; padding: 12px 0 4px; background: var(--card); width: 100%; }
+
+/* Album: more stickers now, so more columns and smaller slots. */
+.album { grid-template-columns: repeat(7, 1fr); gap: 10px; }
+.album-slot { padding: 8px 4px; font-size: .8rem; }
+.album-slot .sticker-emoji { font-size: 2.6rem; }
+.word { display: flex; gap: 8px; }

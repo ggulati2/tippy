@@ -17,6 +17,7 @@ def _load(name: str) -> dict:
 
 WORDS = _load("fallback_words.json")          # {"en": {"animals": [...], ...}, "de": {...}}
 SENTENCES = _load("fallback_sentences.json")
+PICTURES = _load("word_pictures.json")        # {"en": {"cat": "🐱", ...}, "de": {...}} for Word Woods
 
 # Short warm lines per moment. "{child}" is replaced by the browser with the
 # child's name, so the name never leaves this computer.
@@ -41,16 +42,18 @@ def letters_outside(text: str, allowed: set[str]) -> int:
     return len({c.upper() for c in text if c.isalpha()} - allowed)
 
 
-def pick(pool: dict, lang: str, allowed: set[str], interests: list[str], count: int, exclude=()) -> list[str]:
+def pick(pool: dict, lang: str, allowed: set[str], interests: list[str], count: int, exclude=(), only=None) -> list[str]:
     """Choose `count` items from a bank, using only the allowed letters where possible.
 
+    `only` limits the choice to a given set (Word Woods uses it to get words that have a picture).
     Items that fit the letters come first, favouring the child's interests.
     If there are not enough (very early levels), we take the items that need
     the fewest extra letters, so the caller always gets something.
     """
     themes = pool.get(lang) or pool["en"]
     liked = [t for t in interests if t in THEMES]
-    items = [(text, theme) for theme, texts in themes.items() for text in texts if text not in set(exclude)]
+    items = [(text, theme) for theme, texts in themes.items() for text in texts
+             if text not in set(exclude) and (only is None or text in only)]
     fitting = [(text, theme) for text, theme in items if letters_outside(text, allowed) == 0]
     random.shuffle(fitting)
     fitting.sort(key=lambda x: x[1] not in liked and x[1] != "general")  # liked themes first (stable sort)

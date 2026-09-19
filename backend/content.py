@@ -28,7 +28,8 @@ LOW_WATER = {"words": 10, "sentences": 6, "mascot": 4}   # refill when fewer unu
 BATCH = {"words": 20, "sentences": 10, "mascot": 8}      # how many to ask for at once
 MIN_GOOD = 3                                             # a batch with fewer valid items is thrown away
 COOLDOWN_SECONDS = 600  # after a failed refill, wait before asking again (free accounts have a small daily limit)
-SENTENCE_MIN_LETTERS = 12  # sentences need more letters than words to be possible at all
+MIN_PRACTICE_LETTERS = 16  # Word Woods and Sentence Sky draw from at least this many letters (A to N in our order),
+                           # or there would hardly be any real words; the on-screen keyboard guides each new key
 
 
 class ContentService:
@@ -165,10 +166,22 @@ class ContentService:
         return {"items": items, "letters": letters, "source": source}
 
     def words(self, count: int = 8) -> dict:
-        return self._practice("words", count)
+        return self._practice("words", count, min_letters=MIN_PRACTICE_LETTERS)
+
+    def pictured_words(self, count: int = 5, max_len: int = 4) -> dict:
+        """Words for Word Woods: only words we have a picture for, up to `max_len` letters."""
+        lang = self.language()
+        pictures = bank.PICTURES.get(lang, bank.PICTURES["en"])
+        result = self._practice("words", count * 3, min_letters=MIN_PRACTICE_LETTERS)  # ask wide, then keep the drawable ones
+        chosen = [w for w in result["items"] if w in pictures and len(w) <= max_len][:count]
+        if len(chosen) < count:  # top up from the built-in bank
+            usable = {w for w in pictures if len(w) <= max_len}
+            chosen += bank.pick(bank.WORDS, lang, set(result["letters"]), self.interests(), count - len(chosen),
+                                exclude=chosen, only=usable)
+        return {"items": chosen, "pictures": {w: pictures[w] for w in chosen}, "source": result["source"]}
 
     def sentences(self, count: int = 4) -> dict:
-        return self._practice("sentences", count, min_letters=SENTENCE_MIN_LETTERS)
+        return self._practice("sentences", count, min_letters=MIN_PRACTICE_LETTERS)
 
     def mascot_line(self, event: str) -> str:
         if event not in bank.MASCOT_LINES["en"]:

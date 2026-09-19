@@ -78,8 +78,9 @@ def create_app() -> FastAPI:
         return {"text": content.mascot_line(event)}
 
     @app.get("/api/content/words")
-    def practice_words(count: int = Query(default=8, ge=1, le=20)):
-        return content.words(count)
+    def practice_words(count: int = Query(default=8, ge=1, le=20), pictured: bool = False,
+                       max_len: int = Query(default=4, ge=2, le=6)):
+        return content.pictured_words(count, max_len) if pictured else content.words(count)
 
     @app.get("/api/content/sentences")
     def practice_sentences(count: int = Query(default=4, ge=1, le=10)):
@@ -149,6 +150,9 @@ def create_app() -> FastAPI:
         voice_on: bool | None = None
         sound_on: bool | None = None
         letter_case: str | None = Field(default=None, pattern="^(upper|lower)$")
+        # Typed by the child in Sentence Sky. Stored only on this computer, never sent to the LLM.
+        child_name: str | None = Field(default=None, pattern="^[A-Za-zÄÖÜäöüß \\-]{0,20}$")
+        favorite_word: str | None = Field(default=None, pattern="^[A-Za-zÄÖÜäöüß]{0,15}$")
 
     @app.post("/api/parent/settings")
     def update_settings(body: SettingsBody, x_parent_token: str | None = Header(default=None)):

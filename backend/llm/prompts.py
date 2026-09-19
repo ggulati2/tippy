@@ -37,7 +37,7 @@ def user_prompt(task: dict) -> str:
         return (
             f"Give {task['count']} different simple {language} words for a child to type. "
             f"Each word has 2 to 4 letters and uses ONLY these letters: {' '.join(task['letters'])}. "
-            f"Themes: {', '.join(task['themes'])}. Lowercase letters only, no spaces. "
+            f"Themes: {', '.join(task['themes'])}. Prefer things that are easy to draw (animals, objects, food). Lowercase letters only, no spaces. "
             'Return JSON like {"words": ["cat", "sun"]}.'
         )
     if kind == "sentences":
