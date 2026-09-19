@@ -17,6 +17,12 @@ These checks need a person. Tick them off on the computer Tippy will really be u
 - [ ] Word Woods and Sentence Sky: type a whole sentence. The keys feel instant.
 - [ ] Free Play: type `cat`, press Enter. Try a word that is not known: the letters dance.
 
+## Spanish (5 minutes, ideally with a Spanish speaker)
+- [ ] Parent area, Settings: choose Español. The screens, the spoken instructions and the mascot speak Spanish. If the voice sounds English, install a Spanish voice (macOS: Spoken Content, Manage Voices, Mónica or Jorge).
+- [ ] Word Woods and Sentence Sky: words and sentences are correct, natural Spanish for a 6-year-old. Note anything that sounds odd or unfriendly.
+- [ ] The Ñ key sits next to L. Words with accents (león, camión) are typed with the plain vowel key.
+- [ ] Free Play: type "leon", "avion", "piña": the pictures appear.
+
 ## Number Land (3 minutes)
 - [ ] Play Number Land with the row of digits above the letters: it works.
 - [ ] On a computer with a real number pad: switch on *This computer has a number pad* in Settings. The digit row now gets a hint and the pad keys count. Try all six games (count the animals, add up, the rocket countdown).

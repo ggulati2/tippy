@@ -47,6 +47,18 @@
    "app": "Eine App ist ein kleines Programm. Jede App hat eine besondere Aufgabe, zum Beispiel Malen.",
    "email": "Eine E-Mail ist ein Brief, der durchs Internet fliegt. Er kommt in ein paar Sekunden an.",
    "cloud": "Die Cloud ist ein großer Computer weit weg. Dort sind unsere Dateien sicher gespeichert."
+  },
+  "es": {
+   "computer": "Un ordenador es una máquina muy lista. Nos ayuda a jugar, dibujar y aprender.",
+   "internet": "Internet une ordenadores de todo el mundo. Así podemos ver cosas y hablar con otras personas.",
+   "wifi": "El wifi lleva internet por el aire, sin cables. ¡Es como magia invisible!",
+   "mouse": "El ratón mueve la flecha por la pantalla. Haces clic para elegir algo.",
+   "keyboard": "El teclado sirve para escribir letras, números y palabras.",
+   "screen": "La pantalla muestra dibujos, letras y vídeos. Es como una ventana al ordenador.",
+   "password": "Una contraseña es una palabra secreta que protege tus cosas. Solo se la cuentas a un adulto de confianza.",
+   "app": "Una app es un programa pequeño. Cada app sirve para algo, como jugar o dibujar.",
+   "email": "Un correo es como una carta que viaja por internet. Llega en un segundo.",
+   "cloud": "La nube son ordenadores grandes que están en otro sitio. Guardan tus cosas para que no se pierdan."
   }
  }
 }

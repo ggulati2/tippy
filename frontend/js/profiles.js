@@ -111,7 +111,7 @@ async function childrenTab(body) {
   const newName = el("input", { class: "text-input", type: "text", maxlength: "20", placeholder: t("children.name"), "aria-label": t("children.name") });
   let newAvatar = profileList.avatars[profileList.profiles.length % profileList.avatars.length];
   let newLanguage = settings.language;
-  const languagePick = toggleRow(t("language"), [["en", "English"], ["de", "Deutsch"]], newLanguage, (v) => { newLanguage = v; });
+  const languagePick = toggleRow(t("language"), languageOptions(), newLanguage, (v) => { newLanguage = v; });
   languagePick.querySelector(".seg").addEventListener("click", (e) => {
     if (e.target.tagName !== "BUTTON") return;
     [...e.currentTarget.children].forEach((b) => b.classList.toggle("on", b === e.target));   // this form does not re-draw the page

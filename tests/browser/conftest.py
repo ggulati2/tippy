@@ -55,6 +55,16 @@ class Server:
 @pytest.fixture()
 def server(tmp_path):
     """A fresh Tippy (offline mode, empty database, first-run setup done with PIN 2468)."""
+    yield from _start_server(tmp_path, do_setup=True)
+
+
+@pytest.fixture()
+def fresh_server(tmp_path):
+    """A brand-new install: nothing set up yet, so the first-run wizard appears."""
+    yield from _start_server(tmp_path, do_setup=False)
+
+
+def _start_server(tmp_path, do_setup: bool):
     if find_chrome() is None:
         pytest.skip("Chrome, Chromium or Edge is needed for the browser tests (or set CHROME_PATH)")
     frontend = tmp_path / "frontend"
@@ -76,9 +86,10 @@ def server(tmp_path):
                 time.sleep(0.2)
         else:
             raise RuntimeError("the test server did not start")
-        request = urllib.request.Request(srv.url + "/api/setup", method="POST", headers={"Content-Type": "application/json"},
-                                         data=json.dumps({"pin": "2468", "language": "en", "daily_limit_minutes": 0}).encode())
-        urllib.request.urlopen(request, timeout=5).read()
+        if do_setup:
+            request = urllib.request.Request(srv.url + "/api/setup", method="POST", headers={"Content-Type": "application/json"},
+                                             data=json.dumps({"pin": "2468", "language": "en", "daily_limit_minutes": 0}).encode())
+            urllib.request.urlopen(request, timeout=5).read()
         yield srv
     finally:
         process.terminate()

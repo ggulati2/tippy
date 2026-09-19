@@ -100,5 +100,61 @@
    "Ich lese ein Buch.",
    "Die Maus ist klein."
   ]
+ },
+ "es": {
+  "animals": [
+   "El perro corre mucho.",
+   "El gato duerme en casa.",
+   "La vaca dice mu.",
+   "El pato nada en el lago.",
+   "El pez vive en el agua.",
+   "La rana salta alto.",
+   "El oso come miel.",
+   "Mi loro habla mucho.",
+   "El conejo come zanahorias.",
+   "La abeja vuela rápido.",
+   "El caballo es fuerte.",
+   "La tortuga camina despacio."
+  ],
+  "space": [
+   "El sol es muy grande.",
+   "La luna brilla de noche.",
+   "El cohete vuela alto.",
+   "Veo una estrella.",
+   "La Tierra es redonda.",
+   "Marte es un planeta rojo.",
+   "El cielo está lleno de estrellas.",
+   "Voy al espacio en un cohete."
+  ],
+  "dinosaurs": [
+   "El dino tiene una cola.",
+   "El dino ruge fuerte.",
+   "El dino puso un huevo.",
+   "Un dino come hojas.",
+   "El dino es enorme."
+  ],
+  "vehicles": [
+   "El bus es grande.",
+   "El coche va rápido.",
+   "El tren pita muy fuerte.",
+   "Voy en bici al parque.",
+   "El barco flota en el mar.",
+   "El avión vuela alto.",
+   "La moto hace ruido."
+  ],
+  "general": [
+   "Me gusta escribir.",
+   "Escribir es divertido.",
+   "Hoy hace sol.",
+   "Mi mamá me quiere.",
+   "Todos somos amigos.",
+   "Quiero jugar contigo.",
+   "La casa es bonita.",
+   "Hola, me llamo Tippy.",
+   "Vamos a jugar.",
+   "Tengo un amigo nuevo.",
+   "Me gusta la tarta.",
+   "Leo un libro."
+  ]
  }
 }

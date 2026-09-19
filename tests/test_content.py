@@ -163,7 +163,7 @@ def test_every_picture_belongs_to_a_bank_word():
 def test_free_play_pictures_are_sane():
     import re
     for lang, pictures in bank.FREE_PLAY.items():
-        assert all(re.fullmatch(r"[a-zäöüß]+", word) and emoji for word, emoji in pictures.items()), lang
+        assert all(re.fullmatch(r"[a-zäöüßñáéíóú]+", word) and emoji for word, emoji in pictures.items()), lang
 
 
 def test_ask_answers_come_from_the_cache_then_the_built_in_bank(settings):

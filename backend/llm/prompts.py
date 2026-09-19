@@ -8,6 +8,8 @@ the browser fills that in locally.
 """
 import json
 
+from backend import languages
+
 SYSTEM_PROMPT = (
     "You are Tippy, a kind, playful helper for a 6-year-old learning to use a computer. "
     "Use only very simple words and very short sentences. Be positive and patient; never criticise. "
@@ -26,7 +28,7 @@ SUMMARY_SYSTEM = (
     "Return only valid JSON matching the requested schema, with no extra text."
 )
 
-LANGUAGE_NAMES = {"en": "English", "de": "German"}
+LANGUAGE_NAMES = {code: info["prompt_name"] for code, info in languages.LANGUAGES.items()}
 
 MOMENTS = {
     "welcome": "the child just opened the app to play",

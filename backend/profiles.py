@@ -16,7 +16,7 @@ from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 
-from backend import db
+from backend import db, languages
 
 log = logging.getLogger("tippy.profiles")
 
@@ -149,8 +149,7 @@ class Family:
         path = self.path_for(profile_id)
         db.init_db(path, language or self.default_language)
         db.set_setting(path, "child_name", name)
-        if (language or self.default_language) == "de":
-            db.set_setting(path, "keyboard_layout", "qwertz")
+        db.set_setting(path, "keyboard_layout", languages.default_keyboard(language or self.default_language))
         return self.get(profile_id)
 
     def update(self, profile_id: int, name: str | None = None, avatar: str | None = None) -> dict:

@@ -6,6 +6,7 @@ when the LLM's answer fails our checks. The app is fully usable with only this.
 import json
 import random
 
+from backend import languages
 from backend.config import CONTENT_DIR
 
 THEMES = ("animals", "space", "dinosaurs", "vehicles")  # the only interests the parent can pick
@@ -36,15 +37,22 @@ MASCOT_LINES = {
         "oops": ["Huch! Probier diese Taste.", "Fast! Schau auf die leuchtende Taste."],
         "streak": ["Du bist wieder da! Hurra!", "Wieder ein schöner Tag!"],
     },
+    "es": {
+        "welcome": ["¡Hola {child}! ¡A jugar!", "¡Hola {child}! ¡Te echaba de menos!", "¡Qué bien, ya estás aquí!"],
+        "success": ["¡Muy bien, {child}!", "¡Lo conseguiste!", "¡Guau, qué bien escribes!"],
+        "oops": ["¡Ups! Prueba con esta.", "¡Casi! Mira la tecla que brilla."],
+        "streak": ["¡Has vuelto! ¡Hurra!", "¡Otro día feliz!"],
+    },
 }
 
 
-ASK_REDIRECT = {"en": "That is a great question for a grown-up!", "de": "Das ist eine tolle Frage für einen Erwachsenen!"}
+ASK_REDIRECT = {"en": "That is a great question for a grown-up!", "de": "Das ist eine tolle Frage für einen Erwachsenen!",
+                "es": "¡Esa es una gran pregunta para un adulto!"}
 
 
 def letters_outside(text: str, allowed: set[str]) -> int:
     """How many different letters of `text` are not in the allowed set."""
-    return len({c.upper() for c in text if c.isalpha()} - allowed)
+    return len(languages.base_letters(text) - allowed)
 
 
 def pick(pool: dict, lang: str, allowed: set[str], interests: list[str], count: int, exclude=(), only=None) -> list[str]:

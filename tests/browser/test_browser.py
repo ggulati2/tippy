@@ -12,7 +12,7 @@ from tests.browser.conftest import assert_clean, call, run_script
 pytestmark = pytest.mark.browser
 
 
-@pytest.mark.parametrize("arg", ["en:1", "de:1"])
+@pytest.mark.parametrize("arg", ["en:1", "de:1", "es:1"])
 def test_every_level_can_be_played_and_every_screen_fits(server, arg):
     report = run_script(server, "playthrough.js", arg, budget_ms=1_500_000)
     assert_clean(report)
@@ -54,3 +54,12 @@ def test_backup_and_restore_through_the_screens(server):
 
 def test_number_pad_rule(server):
     assert_clean(run_script(server, "numpad.js", budget_ms=300_000))
+
+
+@pytest.mark.parametrize("lang", ["en", "de", "es"])
+def test_first_run_wizard_offers_every_language(fresh_server, lang):
+    assert_clean(run_script(fresh_server, "wizard.js", lang, budget_ms=300_000))
+
+
+def test_spanish_keyboard_accents_and_free_play(server):
+    assert_clean(run_script(server, "spanish.js", budget_ms=300_000))

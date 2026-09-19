@@ -235,8 +235,8 @@ async function settingsTab(body) {
   const minutes = (label, key, values, current) => toggleRow(label, values.map((v) => [v, v === 0 ? t("setOff") : `${v} ${t("setMinutes")}`]), current, (v) => saveSetting({ [key]: v }));
 
   body.replaceChildren(el("div", { class: "settings-grid" },
-    toggleRow(t("language"), [["en", "English"], ["de", "Deutsch"]], settings.language, (v) => saveSetting({ language: v })),
-    toggleRow(t("keyboardLayout"), [["qwerty", "QWERTY"], ["qwertz", "QWERTZ"]], settings.keyboard_layout, (v) => saveSetting({ keyboard_layout: v })),
+    toggleRow(t("language"), languageOptions(), settings.language, (v) => saveSetting({ language: v })),
+    toggleRow(t("keyboardLayout"), Object.entries(KEYBOARD_NAMES), settings.keyboard_layout, (v) => saveSetting({ keyboard_layout: v })),
     toggleRow(t("letterCase"), [["upper", "ABC"], ["lower", "abc"]], settings.letter_case, (v) => saveSetting({ letter_case: v })),
     toggleRow(t("voice"), [[true, t("on")], [false, t("off")]], settings.voice_on, (v) => saveSetting({ voice_on: v })),
     toggleRow(t("sound"), [[true, t("on")], [false, t("off")]], settings.sound_on, (v) => saveSetting({ sound_on: v })),

@@ -45,9 +45,10 @@ function setupWizard() {
   $("#parent-btn").hidden = true;
 
   function stepLanguage() {
-    openModal(el("div", { class: "panel" }, mascotSVG(), el("h2", {}, "Welcome! · Willkommen!"),
+    // Shown in every language at once, because the parent has not chosen one yet.
+    openModal(el("div", { class: "panel" }, mascotSVG(), el("h2", {}, "Welcome · Willkommen · Bienvenido"),
       el("div", { class: "choices" },
-        ...[["en", "English"], ["de", "Deutsch"]].map(([code, label]) =>
+        ...languageOptions().map(([code, label]) =>
           el("button", { class: "big-btn blue", onclick: () => { data.language = settings.language = code; stepPin(); } }, label)))));
   }
 

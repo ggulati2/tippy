@@ -39,9 +39,12 @@ async function freePlay() {
     drawText();
   }
 
-  // "cats" should still find "cat".
+  // Typed words carry no accents ("leon"), so look them up without accents. "cats" should still find "cat".
+  const plain = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const plainPictures = Object.fromEntries(Object.entries(pictures).map(([word, emoji]) => [plain(word), emoji]));
   function pictureFor(word) {
-    return pictures[word] || (word.endsWith("s") ? pictures[word.slice(0, -1)] : undefined);
+    const w = plain(word);
+    return plainPictures[w] || (w.endsWith("s") ? plainPictures[w.slice(0, -1)] : undefined);
   }
 
   function sprite(emoji) {

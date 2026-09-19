@@ -10,15 +10,18 @@ function keyForChar(ch) {
   if (/^[0-9]$/.test(ch)) return ch;
   const upper = ch.toUpperCase();
   if (/^[A-Z]$/.test(upper)) return upper;
-  // Ä, Ö and Ü are real keys on a German keyboard only.
-  if ("ÄÖÜ".includes(upper) && settings.keyboard_layout === "qwertz") return upper;
-  return null;
+  // Ä Ö Ü on a German keyboard and Ñ on a Spanish one have a key of their own.
+  if (layoutHas(upper)) return upper;
+  // Any other accent is typed with the plain letter (é -> E, ü -> U). That is what a young child can do;
+  // the accents themselves come later.
+  const plain = upper.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return /^[A-Z]$/.test(plain) ? plain : null;
 }
 
 // Remove punctuation and extra spaces: "The cat sat." becomes "The cat sat".
 // Children type the words, not the full stop.
 function typingText(text) {
-  return text.replace(/[.,!?;:"'\-]/g, "").replace(/\s+/g, " ").trim();
+  return text.replace(/[.,!?;:"'\-¡¿]/g, "").replace(/\s+/g, " ").trim();
 }
 
 // A name like "Zoë" or "José" has letters this keyboard may not have. Turn them into the plain

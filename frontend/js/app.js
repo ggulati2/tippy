@@ -4,6 +4,10 @@
 // ---------- Helpers ----------
 const $ = (sel) => document.querySelector(sel);
 let settings = { language: "en", keyboard_layout: "qwerty", voice_on: true, sound_on: true, child_name: "", favorite_word: "" };
+// The languages Tippy speaks: [{code, native, voice, keyboard}], loaded from the server at start-up.
+let LANGUAGES = [{ code: "en", native: "English", voice: "en-US", keyboard: "qwerty" }];
+const languageOptions = () => LANGUAGES.map((l) => [l.code, l.native]);
+
 let muted = false; // the child's quick mute button; lasts until the app is closed
 let parentToken = null; // set after the correct PIN, kept only in memory
 // The game that is running sets this to receive key presses. It is cleared
@@ -86,17 +90,28 @@ function sfx(name, arg) {
 // Voices differ a lot between computers. macOS includes joke voices ("Zarvox",
 // "Bubbles"...) and Chrome may pick a robotic online voice. We choose a natural one.
 const NOVELTY_VOICES = /albert|bad news|bahh|bells|boing|bubbles|cellos|deranged|good news|hysterical|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|ralph|kathy|grandma|grandpa|rocko|flo|eddy|reed|sandy|shelley/i;
-const NICE_VOICES = /samantha|ava|allison|susan|zoe|karen|moira|serena|daniel|anna|petra|marlene|helena|viktor|katja|hedda|amala/i;
+const NICE_VOICES = /samantha|ava|allison|susan|zoe|karen|moira|serena|daniel|anna|petra|marlene|helena|viktor|katja|hedda|amala|m[oó]nica|jorge|paulina|marisol|elvira|[aá]lvaro|lucia|laura|juan/i;
 
-function pickVoice(lang) {
-  const voices = speechSynthesis.getVoices().filter((v) => v.lang.replace("_", "-").toLowerCase().startsWith(lang));
+// `tag` is the voice we want, for example "es-ES" (Spanish as spoken in Spain). Any voice of the same
+// language is fine, but one from the exact region wins.
+function pickVoice(tag) {
+  const language = tag.slice(0, 2).toLowerCase();
+  const region = (v) => v.lang.replace("_", "-").toLowerCase();
+  const voices = speechSynthesis.getVoices().filter((v) => region(v).startsWith(language));
   const score = (v) =>
+    (region(v).startsWith(tag.toLowerCase()) ? 6 : 0) +
     (/premium|enhanced|natural/i.test(v.name) ? 8 : 0) +
     (NICE_VOICES.test(v.name) ? 4 : 0) +
     (v.localService ? 2 : 0) +         // computer's own voices; online ones can crackle or lag
     (/google/i.test(v.name) ? -1 : 0) -
     (NOVELTY_VOICES.test(v.name) ? 100 : 0);
   return voices.sort((a, b) => score(b) - score(a))[0] || null;
+}
+
+// The voice tag of the current language ("en-US", "de-DE", "es-ES"), from the server's language list.
+function voiceTag() {
+  const info = LANGUAGES.find((l) => l.code === settings.language);
+  return info ? info.voice : "en-US";
 }
 
 function speak(text) {
@@ -107,9 +122,9 @@ function speak(text) {
   }
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  const lang = settings.language === "de" ? "de" : "en";
-  u.lang = lang === "de" ? "de-DE" : "en-US";
-  const voice = pickVoice(lang);
+  const tag = voiceTag();
+  u.lang = tag;
+  const voice = pickVoice(tag);
   if (voice) u.voice = voice;
   u.rate = 0.95; // slightly slow; lower values make many voices sound robotic
   u.pitch = 1.1; // a touch brighter and friendlier for a child
@@ -370,6 +385,8 @@ $("#parent-btn").addEventListener("click", () => openModal(pinPad()));
   try {
     const { body } = await api("/api/settings");
     settings = { ...settings, ...body };
+    const languages = await api("/api/languages");
+    if (languages.status === 200) LANGUAGES = languages.body.languages;
     applyLook();
     api("/api/visit", { method: "POST" }); // counts today for the streak
     if (settings.setup_needed) { await welcomeScreen(); setupWizard(); return; }

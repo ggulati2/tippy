@@ -1,5 +1,7 @@
 # Tippy: a computer and typing helper for a 6-year-old
 
+Available in English, German and Spanish.
+
 Runs only on your computer and works fully offline. By default nothing is ever sent anywhere. (Developers can optionally switch on an online helper, see the end of this file.)
 
 ## Start it (macOS)
@@ -103,7 +105,8 @@ Tippy is free software under the [MIT License](LICENSE): you may use, copy and c
 
 ## Limits to know about
 
-- Languages: English and German. Keyboard shapes: QWERTY and QWERTZ (no AZERTY yet).
+- Languages: English, German and Spanish (as spoken in Spain). Keyboard shapes: QWERTY, QWERTZ and QWERTY with Ñ (no AZERTY yet).
+- The Spanish and German texts and words were written for Tippy and have not been checked by a native-speaker teacher yet; please tell us about anything that sounds odd.
 - Tested with Chrome. Without Chrome or Edge Tippy opens your normal browser (not fullscreen; voices differ).
 
 ## Testing

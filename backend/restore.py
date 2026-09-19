@@ -12,7 +12,7 @@ from contextlib import closing
 from datetime import date, datetime
 from pathlib import Path
 
-from backend import bank, db, difficulty, progress
+from backend import bank, db, difficulty, languages, progress
 
 MAX_BACKUP_BYTES = 5 * 1024 * 1024
 MAX_ROWS = 20_000
@@ -49,8 +49,8 @@ def _name_ok(value, longest: int, allow_space: bool) -> bool:
 def _setting(key: str, value):
     text = str(value) if not isinstance(value, bool) else ("1" if value else "0")
     checks = {
-        "language": lambda: text if text in ("en", "de") else None,
-        "keyboard_layout": lambda: text if text in ("qwerty", "qwertz") else None,
+        "language": lambda: text if languages.is_language(text) else None,
+        "keyboard_layout": lambda: text if text in languages.KEYBOARDS else None,
         "letter_case": lambda: text if text in ("upper", "lower") else None,
         "voice_on": lambda: text if text in ("0", "1") else None,
         "sound_on": lambda: text if text in ("0", "1") else None,

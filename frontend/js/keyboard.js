@@ -16,7 +16,20 @@ const KEY_ROWS = {
     ["SHIFT", "Y", "X", "C", "V", "B", "N", "M", "BACKSPACE"],
     ["SPACE", "ENTER"],
   ],
+  // Spanish keyboard: the same as English plus Ñ next to L.
+  qwerty_es: [
+    ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+    ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Ñ"],
+    ["SHIFT", "Z", "X", "C", "V", "B", "N", "M", "BACKSPACE"],
+    ["SPACE", "ENTER"],
+  ],
 };
+// Names for the keyboard picker in the parent area.
+const KEYBOARD_NAMES = { qwerty: "QWERTY", qwertz: "QWERTZ", qwerty_es: "QWERTY Ñ" };
+
+// Does this keyboard have a key of its own for this character (Ä Ö Ü on a German one, Ñ on a Spanish one)?
+const layoutHas = (name, layout = settings.keyboard_layout) => (KEY_ROWS[layout] || []).some((row) => row.includes(name));
+
 const KEY_LABELS = { SHIFT: "⇧", BACKSPACE: "⌫", ENTER: "⏎", SPACE: "␣" };
 
 // The number pad, as on the right of a big keyboard. Number Land draws it on screen.
@@ -38,7 +51,7 @@ function fingerGroups(layout) {
   const rightY = layout === "qwertz" ? "Z" : "Y";
   return [
     ["Q", "A", leftZ, "SHIFT"], ["W", "S", "X"], ["E", "D", "C"], ["R", "F", "V", "T", "G", "B"],
-    [rightY, "H", "N", "U", "J", "M"], ["I", "K"], ["O", "L"], ["P", "Ü", "Ö", "Ä", "BACKSPACE", "ENTER"],
+    [rightY, "H", "N", "U", "J", "M"], ["I", "K"], ["O", "L"], ["P", "Ü", "Ö", "Ä", "Ñ", "BACKSPACE", "ENTER"],
   ];
 }
 

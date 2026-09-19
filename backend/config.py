@@ -7,6 +7,8 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from backend import languages
+
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 LOG_DIR = ROOT / "logs"
@@ -50,7 +52,7 @@ class Settings:
     openrouter_api_key: str
     openrouter_model: str
     openrouter_fallback_model: str
-    app_language: str  # "en" or "de"
+    app_language: str  # a code from backend/languages.py
     parent_pin: str
     llm_mode: str  # "off" (built-in content only), "mock" (fake LLM, for development) or "live"
     daily_request_cap: int  # most OpenRouter requests per day, so a bug can never run up a bill
@@ -65,8 +67,8 @@ def load_settings() -> Settings:
         return os.environ.get(key, file_values.get(key, default))
 
     language = get("APP_LANGUAGE", "en").lower()
-    if language not in ("en", "de"):
-        language = "en"
+    if not languages.is_language(language):
+        language = languages.DEFAULT
     mode = get("LLM_MODE", "off").lower()
     if mode not in ("off", "mock", "live"):
         mode = "off"

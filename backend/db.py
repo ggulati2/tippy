@@ -9,6 +9,8 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
+from backend import languages
+
 log = logging.getLogger("tippy.db")
 
 SCHEMA = """
@@ -139,11 +141,11 @@ def _init_db(db_path: Path, default_language: str = "en") -> None:
         defaults = dict(DEFAULT_SETTINGS, language=default_language)
         for key, value in defaults.items():
             conn.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", (key, value))
-        # A German UI should start with the German keyboard shape.
-        if default_language == "de":
+        # A German or Spanish UI should start with that language's keyboard shape.
+        if languages.default_keyboard(default_language) != "qwerty":
             conn.execute(
-                "UPDATE settings SET value = 'qwertz' WHERE key = 'keyboard_layout' "
-                "AND NOT EXISTS (SELECT 1 FROM sessions)"
+                "UPDATE settings SET value = ? WHERE key = 'keyboard_layout' AND NOT EXISTS (SELECT 1 FROM sessions)",
+                (languages.default_keyboard(default_language),),
             )
 
 

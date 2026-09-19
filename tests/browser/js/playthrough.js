@@ -6,7 +6,8 @@ T.run(async () => {
   const [lang, scale] = (location.hash.slice(1) || "en:1").split(":");
   const H = await T.parentLogin();
   const saved = await fetch("/api/parent/settings", { method: "POST", headers: { "Content-Type": "application/json", ...H }, body: JSON.stringify({
-    language: lang, keyboard_layout: lang === "de" ? "qwertz" : "qwerty", child_name: lang === "de" ? "Jürgen" : "Mia",
+    language: lang, keyboard_layout: LANGUAGES.find((l) => l.code === lang).keyboard,
+    child_name: { en: "Mia", de: "Jürgen", es: "José" }[lang],       // names with accents are typed with the plain letters
     favorite_word: "hund", font_scale: Number(scale || 1), daily_limit_minutes: 0, session_minutes: 0 }) }).then((r) => r.json());
   await T.post("/api/parent/unlock", { world: "all" }, H);
   settings = { ...settings, ...saved }; applyLook(); await loadProgress();

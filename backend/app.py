@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 
 from datetime import date
 
-from backend import bank, dashboard, db, difficulty, progress, restore, summary
+from backend import bank, dashboard, db, difficulty, languages, progress, restore, summary
 from backend.config import FRONTEND_DIR, LOG_DIR, PORT, load_settings
 from backend.content import ContentService
 from backend.llm.client import LLMClient
@@ -96,6 +96,11 @@ def create_app() -> FastAPI:
         for number in ("session_minutes", "daily_limit_minutes"):
             out[number] = int(stored.get(number) or 0)
         return out
+
+    @app.get("/api/languages")
+    def list_languages():
+        """The languages Tippy speaks (for the pickers and the voice)."""
+        return {"languages": languages.public_list(), "keyboards": list(languages.KEYBOARDS)}
 
     @app.get("/api/mascot/line")
     def mascot_line(event: str = "welcome"):
@@ -196,7 +201,7 @@ def create_app() -> FastAPI:
 
     class SetupBody(BaseModel):
         pin: str = Field(pattern=r"^[0-9]{4,8}$")
-        language: str = Field(default="en", pattern="^(en|de)$")
+        language: str = Field(default="en", pattern=languages.LANGUAGE_PATTERN)
         child_name: str = Field(default="", pattern=NAME_PATTERN)
         daily_limit_minutes: int = Field(default=30, ge=0, le=480)
 
@@ -207,7 +212,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=409, detail="already set up")
         db.set_setting(family.family_db, "pin_hash", guard.set_pin(body.pin))
         db.set_setting(family.db_path, "language", body.language)
-        db.set_setting(family.db_path, "keyboard_layout", "qwertz" if body.language == "de" else "qwerty")
+        db.set_setting(family.db_path, "keyboard_layout", languages.default_keyboard(body.language))
         db.set_setting(family.db_path, "child_name", body.child_name)
         family.rename_active(body.child_name)
         db.set_setting(family.db_path, "daily_limit_minutes", str(body.daily_limit_minutes))
@@ -223,8 +228,8 @@ def create_app() -> FastAPI:
         return {"ok": True}  # the old token is revoked: the parent signs in again with the new PIN
 
     class SettingsBody(BaseModel):
-        language: str | None = Field(default=None, pattern="^(en|de)$")
-        keyboard_layout: str | None = Field(default=None, pattern="^(qwerty|qwertz)$")
+        language: str | None = Field(default=None, pattern=languages.LANGUAGE_PATTERN)
+        keyboard_layout: str | None = Field(default=None, pattern=languages.KEYBOARD_PATTERN)
         voice_on: bool | None = None
         sound_on: bool | None = None
         letter_case: str | None = Field(default=None, pattern="^(upper|lower)$")
@@ -280,7 +285,7 @@ def create_app() -> FastAPI:
     class NewProfileBody(BaseModel):
         name: str = Field(min_length=1, pattern=NAME_PATTERN)
         avatar: str = Field(max_length=8)
-        language: str | None = Field(default=None, pattern="^(en|de)$")
+        language: str | None = Field(default=None, pattern=languages.LANGUAGE_PATTERN)
 
     @app.post("/api/parent/profiles")
     def add_profile(body: NewProfileBody, x_parent_token: str | None = Header(default=None)):

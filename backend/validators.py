@@ -5,8 +5,10 @@ If a check fails, the caller silently uses local fallback content instead.
 """
 import re
 
-# Letters (including German umlauts), digits, spaces and simple punctuation only.
-_ALLOWED = re.compile(r"^[A-Za-zÄÖÜäöüß0-9 .,!?'\-]+$")
+from backend import languages
+
+# Letters (with the accents of the supported languages), digits, spaces and simple punctuation only.
+_ALLOWED = re.compile(r"^[" + languages.LETTERS + r"0-9 .,!?¡¿'\-]+$")
 
 # Words we never want to show a 6-year-old. Kept short here; extend it freely.
 # One list per language, because a harmless word in one language can be a bad
@@ -16,8 +18,10 @@ BLOCKLISTS = {
            "god", "war", "password", "address"},
     "de": {"tot", "töten", "blut", "waffe", "messer", "hass", "dumm", "sex", "droge", "bier", "wein", "krieg",
            "passwort", "adresse"},
+    "es": {"matar", "muerto", "muerte", "sangre", "arma", "pistola", "cuchillo", "odio", "tonto", "estúpido", "idiota", "sexo",
+           "droga", "cerveza", "vino", "guerra", "dios", "contraseña", "dirección", "mierda", "puta", "culo", "joder", "coño"},
 }
-BLOCKLIST = BLOCKLISTS["en"] | BLOCKLISTS["de"]
+BLOCKLIST = BLOCKLISTS["en"] | BLOCKLISTS["de"] | BLOCKLISTS["es"]
 
 
 def _blocked(lang: str | None) -> set[str]:
@@ -33,7 +37,7 @@ def clean_line(text, max_words: int = 12, max_chars: int = 80, lang: str | None 
         return None
     if not _ALLOWED.match(text):  # also rejects "<", ">" and emoji, so no HTML can sneak in
         return None
-    words = re.findall(r"[a-zäöüß]+", text.lower())
+    words = re.findall(r"[a-zäöüßñáéíóú]+", text.lower())
     if any(word in _blocked(lang) for word in words):
         return None
     return text
@@ -41,7 +45,7 @@ def clean_line(text, max_words: int = 12, max_chars: int = 80, lang: str | None 
 
 # ---------- Checks for whole batches from the LLM ----------
 
-_WORD = re.compile(r"^[a-z]+$")
+_WORD = re.compile(r"^[a-zäöüßñáéíóú]+$")
 PLACEHOLDER = "{child}"
 
 
@@ -53,7 +57,7 @@ def clean_words(items, allowed_letters: set[str], lang: str | None = None, min_l
         word = item.strip().lower() if isinstance(item, str) else ""
         if not (_WORD.match(word) and min_len <= len(word) <= max_len):
             continue
-        if word in _blocked(lang) or {c.upper() for c in word} - allowed_letters:
+        if word in _blocked(lang) or languages.base_letters(word) - allowed_letters:
             continue
         if word not in good:
             good.append(word)
@@ -67,7 +71,7 @@ def clean_sentences(items, allowed_letters: set[str], lang: str | None = None) -
         line = clean_line(item, max_words=6, max_chars=60, lang=lang)
         if not line or len(line.split()) < 3:
             continue
-        if {c.upper() for c in line if c.isalpha()} - allowed_letters:
+        if languages.base_letters(line) - allowed_letters:
             continue
         if line not in good:
             good.append(line)
@@ -89,7 +93,7 @@ def clean_mascot_lines(items, lang: str | None = None) -> list[str]:
 
 # ---------- Ask Tippy answers and the parent summary ----------
 
-_PARAGRAPH = re.compile(r"^[A-Za-zÄÖÜäöüß0-9 .,!?'’\-:;()%/&]+$")
+_PARAGRAPH = re.compile(r"^[" + languages.LETTERS + r"0-9 .,!?¡¿'’\-:;()%/&]+$")
 
 
 def clean_paragraph(text, max_chars: int = 500) -> str | None:

@@ -134,6 +134,19 @@ def local_summary(stats: dict, lang: str = "en") -> dict:
             "tips": ("Kurze, tägliche Runden im Buchstabenland helfen am meisten. Lobe die Anstrengung, nicht nur die Treffer."
                      if weak else "Es läuft gut. Als Nächstes passen der Wortwald und der Satzhimmel."),
         }
+    if lang == "es":
+        if not stats["keystrokes"]:
+            return {"strengths": "Todavía no se ha registrado práctica de escritura esta semana.",
+                    "practice": "Aún no hay datos sobre teclas concretas.",
+                    "tips": "Empieza por la Tierra de Letras. Diez minutos al día bastan."}
+        return {
+            "strengths": (f"En los últimos 7 días hubo {stats['days_played_last_7']} días de juego y unos "
+                          f"{stats['minutes_last_7']} minutos. El porcentaje de aciertos es del {stats['overall_accuracy_percent']} % y hay "
+                          f"{stats['letters_unlocked']} letras desbloqueadas." + (f" Teclas seguras: {strong}." if strong else "")),
+            "practice": (f"Estas teclas necesitan más práctica: {weak}." if weak else "Todavía no hay teclas problemáticas claras."),
+            "tips": ("Las rondas cortas y diarias en la Tierra de Letras ayudan más. Elogia el esfuerzo, no solo los aciertos."
+                     if weak else "Todo va bien. El Bosque de Palabras y el Cielo de Frases son buenos siguientes pasos."),
+        }
     if not stats["keystrokes"]:
         return {"strengths": "No typing practice has been recorded this week yet.",
                 "practice": "There is no data about single keys yet.",
