@@ -29,6 +29,12 @@ CREATE TABLE IF NOT EXISTS keystroke_stats (
     correct INTEGER NOT NULL DEFAULT 0,
     avg_ms REAL NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS keystroke_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key TEXT NOT NULL,
+    correct INTEGER NOT NULL,
+    ms INTEGER NOT NULL
+);
 CREATE TABLE IF NOT EXISTS progress (
     world TEXT NOT NULL,
     level INTEGER NOT NULL DEFAULT 1,
@@ -67,6 +73,7 @@ DEFAULT_SETTINGS = {
     "keyboard_layout": "qwerty",  # or "qwertz"
     "voice_on": "1",
     "sound_on": "1",
+    "letter_case": "upper",  # or "lower"
 }
 
 

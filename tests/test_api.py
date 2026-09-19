@@ -66,3 +66,11 @@ def test_unlock_needs_pin(client):
     token = client.post("/api/parent/verify", json={"pin": "4321"}).json()["token"]
     state = client.post("/api/parent/unlock", json={"world": "all"}, headers={"X-Parent-Token": token}).json()
     assert state["worlds"]["free"]["unlocked"]
+
+
+def test_keystroke_endpoint_validates_and_adapts(client):
+    good = {"events": [{"key": "A", "correct": True, "ms": 400}] * 20, "adaptive": True}
+    assert client.post("/api/keystrokes", json=good).json()["change"] == "advance"
+    assert client.get("/api/letters").json()["letters"] == ["A", "S", "D"]
+    bad_key = {"events": [{"key": "<script>", "correct": True, "ms": 1}]}
+    assert client.post("/api/keystrokes", json=bad_key).status_code == 422

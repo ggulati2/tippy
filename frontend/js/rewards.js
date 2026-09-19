@@ -67,3 +67,21 @@ function albumScreen() {
   setScreen("album", el("h1", { class: "title" }, "📖 " + t("album")), grid);
   speak(t("album"));
 }
+
+// The row of level cards for a world (used by Keyboard Kingdom and Letter Land).
+// `extra` is an optional element shown under the title.
+async function levelPicker(worldId, icon, levelIcons, run, extra = null) {
+  await loadProgress();
+  const stars = progress.worlds[worldId].levels;
+  const cards = levelIcons.map((levelIcon, i) => {
+    const earned = stars[i + 1] || 0;
+    return el("button", { class: "world level", onclick: () => { sfx("tap"); run(i + 1); } },
+      el("span", { class: "icon" }, levelIcon),
+      el("span", { class: "stars" }, earned ? "⭐".repeat(earned) : "☆☆☆"));
+  });
+  const nodes = [el("h1", { class: "title" }, `${icon} ${t("world." + worldId)}`)];
+  if (extra) nodes.push(extra);
+  nodes.push(el("div", { class: "worlds" }, ...cards));
+  setScreen(worldId, ...nodes);
+  speak(t("world." + worldId));
+}

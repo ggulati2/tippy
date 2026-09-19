@@ -13,10 +13,11 @@ Windows: double-click `start.bat`. Linux: run `./start.sh`.
 
 ## Use it
 
-- The child taps **Play** and sees the world map. **Mouse Meadow** is playable (4 short games: pop balloons, drag shapes into baskets, double-click eggs, scroll to a treasure). Each finished game gives stars and sometimes a sticker. The other worlds say "Coming soon!".
+- The child taps **Play** and sees the world map. **Mouse Meadow** is playable (4 short games: pop balloons, drag shapes into baskets, double-click eggs, scroll to a treasure). Each finished game gives stars and sometimes a sticker. **Keyboard Kingdom** (find the glowing key, then games for Space, Enter, Backspace and Shift) and **Letter Land** (type the big letter, guided by an on-screen keyboard with a colour for each finger) are playable too. The other worlds say "Coming soon!".
 - The map shows total stars, the sticker album (📖) and, after 2 days in a row, a streak (🔥). Missing a day just restarts the streak quietly.
-- Finishing all 4 Mouse Meadow games unlocks the next world. In the parent area, **Unlock all worlds** opens everything.
-- **Parent area:** tap the small pale gear in the top-right corner and enter the PIN (default `1234`, change it in `.env`). There you can switch English/German, the keyboard shape (QWERTY/QWERTZ), voice and sounds, and **Exit Tippy**.
+- Letter Land starts with just A and S. New letters appear by themselves when the child gets about 80% of the last 20 keys right, and the newest letter quietly goes away again if things get hard. Wrong keys only get a friendly hint.
+- Finishing all the games of a world unlocks the next world. In the parent area, **Unlock all worlds** opens everything.
+- **Parent area:** tap the small pale gear in the top-right corner and enter the PIN (default `1234`, change it in `.env`). There you can switch English/German, the keyboard shape (QWERTY/QWERTZ), voice and sounds, uppercase or lowercase letters, and **Exit Tippy**.
 - The app can only be closed with the PIN. If it ever gets stuck: press `Ctrl+C` in the Terminal window that opened.
 
 ## Configure

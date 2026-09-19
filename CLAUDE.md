@@ -144,9 +144,16 @@ Begin with Section 3, step 1: ask your clarifying questions.
 
 - [x] 1 Skeleton
 - [x] 2 Mouse Meadow + stickers
-- [ ] 3 Keyboard Kingdom + Letter Land
+- [x] 3 Keyboard Kingdom + Letter Land
 - [ ] 4 OpenRouter integration
 - [ ] 5 Word Woods + Sentence Sky
 - [ ] 6 Computer Basics Cove + Free Play
 - [ ] 7 Parent dashboard
 - [ ] 8 Polish
+
+## Milestone 3 notes
+
+- Keyboard screens: `keyboard.js` (on-screen keyboard, finger colours, `softMiss`), `kingdom.js`, `letters.js`. A running game sets the global `keyHandler` in `app.js`; `setScreen()` clears it.
+- Adaptive difficulty lives in `backend/difficulty.py` (start with A and S, +1 letter at 80% over the last 20 presses, -1 below 50%, never below 2). Only Letter Land sends `adaptive: true`.
+- CSS class `.target` is the Mouse Meadow click target. The glowing keyboard key is `.goal` (they clashed once).
+- Testing UI without a browser tester: headless Chrome with `--dump-dom` plus a throwaway `sim.js` that dispatches `keydown` events (kept out of the repo).

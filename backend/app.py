@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from datetime import date
 
-from backend import db, progress
+from backend import db, difficulty, progress
 from backend.config import FRONTEND_DIR, LOG_DIR, PORT, load_settings
 from backend.llm.client import get_mascot_line
 from backend.security import PinGuard
@@ -100,6 +100,23 @@ def create_app() -> FastAPI:
         except ValueError:
             raise HTTPException(status_code=400, detail="unknown level")
 
+    class KeyEvent(BaseModel):
+        key: str = Field(pattern=r"^([A-Z]|SPACE|ENTER|BACKSPACE|SHIFT)$")
+        correct: bool
+        ms: int = Field(ge=0, le=600000)
+
+    class KeystrokeBody(BaseModel):
+        events: list[KeyEvent] = Field(max_length=50)
+        adaptive: bool = False  # true only in Letter Land: these presses steer the difficulty
+
+    @app.get("/api/letters")
+    def read_letters():
+        return difficulty.get_letters(settings.db_path)
+
+    @app.post("/api/keystrokes")
+    def save_keystrokes(body: KeystrokeBody):
+        return difficulty.record_keystrokes(settings.db_path, [e.model_dump() for e in body.events], body.adaptive)
+
     # ---------- Parent endpoints ----------
 
     class PinBody(BaseModel):
@@ -120,6 +137,7 @@ def create_app() -> FastAPI:
         keyboard_layout: str | None = Field(default=None, pattern="^(qwerty|qwertz)$")
         voice_on: bool | None = None
         sound_on: bool | None = None
+        letter_case: str | None = Field(default=None, pattern="^(upper|lower)$")
 
     @app.post("/api/parent/settings")
     def update_settings(body: SettingsBody, x_parent_token: str | None = Header(default=None)):

@@ -5,6 +5,9 @@
 const $ = (sel) => document.querySelector(sel);
 let settings = { language: "en", keyboard_layout: "qwerty", voice_on: true, sound_on: true };
 let parentToken = null; // set after the correct PIN, kept only in memory
+// The game that is running sets this to receive key presses. It is cleared
+// whenever the screen changes, so a finished game can never react to keys.
+let keyHandler = null;
 
 const t = (key) => (STRINGS[settings.language] || STRINGS.en)[key] || STRINGS.en[key] || key;
 
@@ -156,6 +159,7 @@ function show(...nodes) {
 }
 
 function setScreen(name, ...nodes) {
+  keyHandler = null;
   $("#screen").dataset.name = name;
   show(...nodes);
 }
@@ -201,6 +205,8 @@ function openWorld(id) {
   if (!progress.worlds[id].unlocked) { sfx("key"); speak(t("lockedWorld")); return; }
   sfx("tap");
   if (id === "mouse") mouseMeadow();
+  else if (id === "keyboard") kingdom();
+  else if (id === "letters") letterLand();
   else comingSoonScreen(id);
 }
 
@@ -279,6 +285,7 @@ async function parentPanel() {
     el("h2", {}, "🔓 " + t("parentArea")),
     toggleRow(t("language"), [["en", "English"], ["de", "Deutsch"]], settings.language, (v) => saveSetting({ language: v })),
     toggleRow(t("keyboardLayout"), [["qwerty", "QWERTY"], ["qwertz", "QWERTZ"]], settings.keyboard_layout, (v) => saveSetting({ keyboard_layout: v })),
+    toggleRow(t("letterCase"), [["upper", "ABC"], ["lower", "abc"]], settings.letter_case, (v) => saveSetting({ letter_case: v })),
     toggleRow(t("voice"), [[true, t("on")], [false, t("off")]], settings.voice_on, (v) => saveSetting({ voice_on: v })),
     toggleRow(t("sound"), [[true, t("on")], [false, t("off")]], settings.sound_on, (v) => saveSetting({ sound_on: v })),
     el("div", { class: "row" }, el("span", {}, t("status")), el("span", {}, status.llm_mode === "live" ? t("llmLive") : t("llmMock"))),
@@ -317,6 +324,14 @@ document.addEventListener("keydown", (e) => {
   }
   const isShortcut = e.ctrlKey || e.metaKey || e.altKey;
   const isFunctionKey = /^F([1-9]|1[0-2])$/.test(e.key);
+  // A game is running: it gets every normal key (and the browser gets none,
+  // so Space does not scroll and Backspace does not go "back").
+  if (keyHandler && !isShortcut && !isFunctionKey && e.key !== "Escape" && e.key !== "Tab"
+      && $("#modal-root").children.length === 0) {
+    e.preventDefault();
+    if (!e.repeat) keyHandler(e); // holding a key down counts once
+    return;
+  }
   if (isShortcut || isFunctionKey || e.key === "Escape" || e.key === "Tab") e.preventDefault();
 }, true);
 document.addEventListener("contextmenu", (e) => e.preventDefault());
