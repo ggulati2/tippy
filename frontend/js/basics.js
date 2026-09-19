@@ -68,7 +68,7 @@ function chooseSteps(screen, steps, done) {
     sfx("success");
     dots.textContent = progressDots(index + 1, steps.length).textContent;
     if (step.fact) speak(step.fact);
-    setTimeout(() => {
+    later(() => {
       index++;
       if (index === steps.length) done(); else show();
     }, step.fact ? 2600 : 1200);
@@ -111,12 +111,13 @@ function lessonWindow(done) {
   }
 
   function closeWindow(win) {
+    if (win.classList.contains("closing")) return; // a double-click on ✖ must count once
     win.classList.add("closing");
     sfx("tap");
     count++;
     dots.textContent = progressDots(count, total).textContent;
-    if (count === total) { speak(t("b2.fact")); return setTimeout(done, 2200); }
-    setTimeout(showIcon, 500);
+    if (count === total) { speak(t("b2.fact")); return later(done, 2200); }
+    later(showIcon, 500);
   }
   showIcon();
 }

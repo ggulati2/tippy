@@ -52,7 +52,25 @@ def wait_until_ready(timeout: float = 15) -> bool:
     return False
 
 
+def already_running() -> bool:
+    """True if Tippy's server already answers (for example the parent double-clicked twice)."""
+    try:
+        urllib.request.urlopen(URL, timeout=1)
+        return True
+    except Exception:
+        return False
+
+
 def main() -> None:
+    if already_running():
+        print("Tippy is already running. Opening it again.")
+        browser = find_browser()
+        if browser:
+            subprocess.Popen([browser, f"--user-data-dir={ROOT / 'data' / 'browser-profile'}", "--kiosk", f"--app={URL}"])
+        else:
+            import webbrowser
+            webbrowser.open(URL)
+        return
     from backend.app import app  # imported here so a bad .env shows a clear error
 
     config = uvicorn.Config(app, host=HOST, port=PORT, log_level="warning")

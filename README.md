@@ -99,5 +99,6 @@ Change the mascot's name and colours in `frontend/js/config.js`.
 
 ```
 source .venv/bin/activate
+pip install -r requirements-dev.txt   # adds pytest
 python -m pytest
 ```

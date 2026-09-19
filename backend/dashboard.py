@@ -158,8 +158,9 @@ def export_data(db_path: Path) -> dict:
     """Everything worth keeping as one JSON-friendly dict (a backup the parent can save)."""
     with db.connect(db_path) as conn:
         data = {t: [dict(r) for r in conn.execute(f"SELECT * FROM {t}")] for t in EXPORT_TABLES}
-    # The cached weekly summary is regenerated on demand, so it is not part of the backup.
-    data["settings"] = [s for s in data["settings"] if s["key"] != "weekly_summary"]
+    # Not part of the backup: the summary is regenerated on demand, and the PIN hash must not travel
+    # in a file that may be emailed around (a 4-digit PIN hash is easy to crack).
+    data["settings"] = [s for s in data["settings"] if s["key"] not in ("weekly_summary", "pin_hash")]
     return {"app": "tippy", "exported_at": date.today().isoformat(), "tables": data}
 
 

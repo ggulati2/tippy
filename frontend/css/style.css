@@ -20,7 +20,8 @@
 html, body {
   margin: 0; height: 100%;
   font-family: "Nunito", "Arial Rounded MT Bold", system-ui, sans-serif;
-  font-size: calc(24px * var(--font-scale));
+  /* Text scales down on short screens (small laptops) so every screen still fits. */
+  font-size: calc(min(24px, 3.6vh) * var(--font-scale));
   color: var(--ink);
   background: linear-gradient(#bfe9ff, #e8f7ff 60%, #d3f9d8);
   overflow: hidden;
@@ -31,7 +32,7 @@ html, body {
 #screen {
   height: 100%;
   display: flex; flex-direction: column; align-items: center; justify-content: safe center;
-  gap: 24px; padding: 24px;
+  gap: min(24px, 2.6vh); padding: min(24px, 2.6vh);
   text-align: center;
   overflow-y: auto; /* safety net: a very big text size can scroll instead of being cut off */
 }
@@ -150,7 +151,7 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 
 /* ================= Milestone 2: Mouse Meadow and rewards ================= */
 
-.instruction { border: none; cursor: pointer; margin-top: 56px; font-family: inherit; color: inherit; }
+.instruction { border: none; cursor: pointer; margin-top: min(56px, 4.5vh); font-family: inherit; color: inherit; }
 .dots { font-size: 1.8rem; letter-spacing: 8px; color: var(--primary); }
 
 /* The play area. Targets are placed inside it by percentages. */
@@ -170,9 +171,9 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .double-hint { font-size: 3.4rem; animation: pulse 1s ease-in-out infinite; }
 
 /* Drag and drop */
-.tray { display: flex; gap: 48px; justify-content: center; align-items: center; min-height: 140px; }
+.tray { display: flex; gap: 48px; justify-content: center; align-items: center; min-height: min(140px, 18vh); }
 .tray.baskets { margin-bottom: 24px; }
-.shape { width: 110px; height: 110px; background: var(--c); }
+.shape { width: min(110px, 14vh); height: min(110px, 14vh); background: var(--c); }
 .shape.circle { border-radius: 50%; }
 .shape.square { border-radius: 18px; }
 .shape.triangle { clip-path: polygon(50% 4%, 96% 96%, 4% 96%); }
@@ -180,7 +181,7 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .shape.dragging { cursor: grabbing; z-index: 20; filter: drop-shadow(0 12px 8px rgba(0,0,0,.25)); }
 .shape.ghost { opacity: .25; }
 .basket {
-  width: 170px; height: 150px; border: 8px dashed; border-radius: 28px 28px 48px 48px;
+  width: min(170px, 22vh); height: min(150px, 19vh); border: 8px dashed; border-radius: 28px 28px 48px 48px;
   background: rgba(255,255,255,.65); display: flex; align-items: center; justify-content: center;
 }
 .basket.hint { animation: pulse .6s ease-in-out 3; background: #fff9db; }
@@ -263,7 +264,7 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 
 /* Little scenes for the special-key games */
 .scene { position: relative; width: min(760px, 90vw); height: min(170px, 20vh); display: flex; align-items: flex-end; justify-content: center; gap: 24px; }
-.scene-item { font-size: 6rem; line-height: 1; display: inline-block; }
+.scene-item { font-size: min(6rem, 12vh); line-height: 1; display: inline-block; }
 .rocket { transform-origin: bottom; }
 .plane { align-self: center; margin-right: 480px; }
 .sun { align-self: center; }
@@ -283,7 +284,7 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 
 /* Game screens with a keyboard are tall, so tighten the spacing. */
 #screen[data-name^="kb-"], #screen[data-name="letters"] { gap: 10px; padding-top: 12px; padding-bottom: 12px; }
-#screen[data-name^="kb-"] .instruction, #screen[data-name="letters"] .instruction { margin-top: 44px; font-size: 1.5rem; padding: 10px 24px; }
+#screen[data-name^="kb-"] .instruction, #screen[data-name="letters"] .instruction { margin-top: min(44px, 3.5vh); font-size: 1.5rem; padding: 10px 24px; }
 .key.space.goal { transform: scale(1.05); }
 
 /* ================= Milestone 4: online helper status (parent area) ================= */
@@ -293,7 +294,7 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 
 /* ================= Milestone 5: Word Woods and Sentence Sky ================= */
 
-.picture { border: none; background: none; font-size: min(11rem, 20vh); line-height: 1.1; min-height: 1.1em; cursor: pointer; padding: 0; }
+.picture { border: none; background: none; font-size: min(9rem, 16vh); line-height: 1.1; min-height: 1.1em; cursor: pointer; padding: 0; }
 .typing-line { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: min(1000px, 94vw); }
 .slot {
   min-width: clamp(38px, 4.4vw, 62px); height: clamp(48px, 7.5vh, 74px); padding: 0 4px; border-radius: 14px;
@@ -305,7 +306,7 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .slot.now { border-bottom-color: var(--primary); animation: pulse .9s ease-in-out infinite; background: #fff; }
 .slot.typed { color: var(--ink); border-bottom-color: transparent; }
 #screen[data-name="words"] , #screen[data-name="sentences"] { gap: 10px; padding-top: 12px; padding-bottom: 12px; }
-#screen[data-name="words"] .instruction, #screen[data-name="sentences"] .instruction { margin-top: 44px; font-size: 1.5rem; padding: 10px 24px; }
+#screen[data-name="words"] .instruction, #screen[data-name="sentences"] .instruction { margin-top: min(44px, 3.5vh); font-size: 1.5rem; padding: 10px 24px; }
 
 .text-input { font: inherit; font-weight: 800; width: 12em; max-width: 50%; min-height: 56px; padding: 0 16px; border-radius: 16px;
   border: 3px solid #cfe6fa; color: var(--ink); user-select: text; -webkit-user-select: text; }
@@ -319,11 +320,11 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 
 /* ================= Milestone 6: Computer Basics Cove and Free Play Studio ================= */
 
-#screen[data-name^="basics-"] .instruction, #screen[data-name="free"] .instruction { margin-top: 44px; }
+#screen[data-name^="basics-"] .instruction, #screen[data-name="free"] .instruction { margin-top: min(44px, 3.5vh); }
 .scene-card { background: #fff; border-radius: 36px; padding: 12px 40px; font-size: min(6.5rem, 14vh); line-height: 1.2;
   box-shadow: 0 8px 0 rgba(0,0,0,.1); }
 .choices { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; }
-.choice { min-width: 190px; min-height: 190px; border: none; border-radius: 40px; background: #fff; font-size: 5.4rem; line-height: 1;
+.choice { min-width: min(190px, 24vh); min-height: min(190px, 24vh); border: none; border-radius: 40px; background: #fff; font-size: min(5.4rem, 11vh); line-height: 1;
   box-shadow: 0 10px 0 rgba(0,0,0,.12); padding: 10px 24px; }
 .choice:hover { transform: scale(1.05); }
 .choice.chosen { background: #d3f9d8; }
@@ -331,7 +332,7 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 /* A pretend desktop with a pretend window, to learn what a window is. */
 .desktop { width: min(820px, 92vw); height: min(400px, 50vh); border-radius: 36px; border: 6px solid #fff; background: linear-gradient(135deg, #74c0fc, #b2f2bb);
   display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 0 rgba(0,0,0,.1); }
-.app-icon { border: none; background: rgba(255,255,255,.75); border-radius: 36px; width: 190px; height: 190px; box-shadow: 0 8px 0 rgba(0,0,0,.12);
+.app-icon { border: none; background: rgba(255,255,255,.75); border-radius: 36px; width: min(190px, 24vh); height: min(190px, 24vh); box-shadow: 0 8px 0 rgba(0,0,0,.12);
   animation: pulse 1.2s ease-in-out infinite; }
 .app-emoji { font-size: 6.5rem; }
 .fake-window { width: min(560px, 80%); height: 82%; background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 12px 0 rgba(0,0,0,.15);
@@ -354,7 +355,7 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .dancers { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap; padding: 0 20px; }
 .dancer { font-size: min(7rem, 15vh); font-weight: 1000; animation: dance 1s ease-in-out infinite; }
 .free-row { display: flex; gap: 16px; align-items: center; justify-content: center; width: min(1000px, 94vw); }
-.free-text { flex: 1; min-height: 76px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; }
+.free-text { flex: 1; min-height: min(76px, 9vh); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; }
 .caret { width: 4px; height: 44px; background: var(--primary); animation: caretblink 1s steps(1) infinite; }
 .big-btn.magic { background: #ffd43b; font-size: 2.6rem; padding: 8px 32px; }
 @keyframes caretblink { 50% { opacity: 0; } }
@@ -366,7 +367,7 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 
 /* Free Play needs room for the canvas, so its instruction and keyboard are more compact. */
 #screen[data-name="free"] { gap: 10px; padding-top: 12px; padding-bottom: 12px; }
-#screen[data-name="free"] .instruction { font-size: 1.3rem; padding: 6px 22px; max-width: 900px; margin-top: 44px; }
+#screen[data-name="free"] .instruction { font-size: 1.3rem; padding: 6px 22px; max-width: 900px; margin-top: min(44px, 3.5vh); }
 #screen[data-name="free"] .key { --size: clamp(40px, min(5.4vw, 6vh), 70px); }
 #screen[data-name="free"] .canvas { min-height: 30vh; }
 
@@ -416,7 +417,7 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .choice-label { font-size: 1.1rem; font-weight: 800; }
 .bubble.answer { min-height: 3.2rem; max-width: min(900px, 94vw); }
 #screen[data-name="ask"] { gap: 14px; }
-#screen[data-name="ask"] .instruction { margin-top: 44px; }
+#screen[data-name="ask"] .instruction { margin-top: min(44px, 3.5vh); }
 
 /* Break and goodnight screens must fit on a small laptop without scrolling. */
 #modal-root .panel .mascot { width: min(22vh, 190px); }

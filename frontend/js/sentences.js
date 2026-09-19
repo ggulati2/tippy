@@ -36,7 +36,7 @@ async function startSkyRound(round) {
 
 // The child types their own name (or favourite word) three times.
 function nameRound(value, promptKey, fallback) {
-  let text = typingText(value || "");
+  let text = foldForKeyboard(typingText(value || ""));
   if (!isTypable(text)) text = typingText(fallback); // not set yet: use a friendly default
   const round = promptKey === "sentences.name" ? 4 : 5;
   typingRound({

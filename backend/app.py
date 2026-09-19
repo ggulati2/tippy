@@ -29,6 +29,13 @@ logging.basicConfig(
 log = logging.getLogger("tippy")
 
 
+# Names may contain any letters (Zoë, José, Åsa, Jürgen), spaces, hyphens and apostrophes. They are only
+# ever shown with textContent and never sent to the LLM. The typing games fold accents to plain
+# keys on the child's side (see foldForKeyboard in typing.js).
+NAME_PATTERN = r"^[\p{L} '\-]{0,20}$"
+WORD_PATTERN = r"^[\p{L}]{0,15}$"
+
+
 def create_app() -> FastAPI:
     settings = load_settings()
     db.init_db(settings.db_path, settings.app_language)
@@ -184,7 +191,7 @@ def create_app() -> FastAPI:
     class SetupBody(BaseModel):
         pin: str = Field(pattern=r"^[0-9]{4,8}$")
         language: str = Field(default="en", pattern="^(en|de)$")
-        child_name: str = Field(default="", pattern="^[A-Za-zÄÖÜäöüß \\-]{0,20}$")
+        child_name: str = Field(default="", pattern=NAME_PATTERN)
         daily_limit_minutes: int = Field(default=30, ge=0, le=480)
 
     @app.post("/api/setup")
@@ -215,8 +222,8 @@ def create_app() -> FastAPI:
         sound_on: bool | None = None
         letter_case: str | None = Field(default=None, pattern="^(upper|lower)$")
         # Typed by the child in Sentence Sky. Stored only on this computer, never sent to the LLM.
-        child_name: str | None = Field(default=None, pattern="^[A-Za-zÄÖÜäöüß \\-]{0,20}$")
-        favorite_word: str | None = Field(default=None, pattern="^[A-Za-zÄÖÜäöüß]{0,15}$")
+        child_name: str | None = Field(default=None, pattern=NAME_PATTERN)
+        favorite_word: str | None = Field(default=None, pattern=WORD_PATTERN)
         session_minutes: int | None = Field(default=None, ge=0, le=60)
         daily_limit_minutes: int | None = Field(default=None, ge=0, le=480)
         ask_tippy: bool | None = None

@@ -82,7 +82,7 @@ async function freePlay() {
     // A little reward the first time: a sticker for making a few scenes.
     if (scenes === SCENES_FOR_STICKER && !progress.worlds.free.levels[1]) {
       keyHandler = null;
-      setTimeout(() => completeLevel("free", 1, freePlay), 3000);
+      later(() => completeLevel("free", 1, freePlay), 3000);
     }
   }
 

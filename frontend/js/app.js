@@ -160,7 +160,18 @@ function show(...nodes) {
   $("#home-btn").hidden = nodes.length === 0 || screen.dataset.name === "welcome";
 }
 
+// Every new screen gets a new number. A game that waits before moving on (a short pause after
+// the last balloon, say) uses later() instead of setTimeout(): if the child pressed Home in the
+// meantime, the screen number has changed and the pending step is quietly dropped. Without this,
+// a "level finished" screen could pop up on top of the home screen.
+let screenSerial = 0;
+function later(fn, ms) {
+  const serial = screenSerial;
+  setTimeout(() => { if (serial === screenSerial) fn(); }, ms);
+}
+
 function setScreen(name, ...nodes) {
+  screenSerial++;
   keyHandler = null;
   $("#screen").dataset.name = name;
   show(...nodes);
@@ -298,8 +309,8 @@ function applyLook() {
 }
 
 async function saveSetting(patch) {
-  const { body } = await api("/api/parent/settings", { method: "POST", body: JSON.stringify(patch) });
-  settings = { ...settings, ...body };
+  const { status, body } = await api("/api/parent/settings", { method: "POST", body: JSON.stringify(patch) });
+  if (status === 200) settings = { ...settings, ...body }; // a refused value just shows the old one again
   applyLook();
   parentPanel();
 }

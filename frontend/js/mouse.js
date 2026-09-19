@@ -20,7 +20,7 @@ function instruction(icon, text) {
 
 // A row of dots showing how far along the game is.
 function progressDots(done, total) {
-  return el("div", { class: "dots" }, "●".repeat(done) + "○".repeat(total - done));
+  return el("div", { class: "dots" }, "●".repeat(Math.min(done, total)) + "○".repeat(Math.max(0, total - done)));
 }
 
 // ---------- Level picker ----------
@@ -54,15 +54,16 @@ function levelPop(done) {
 
   function spawn() {
     const balloon = el("button", { class: "target balloon", "aria-label": "balloon" }, "🎈");
-    balloon.style.left = rand(8, 80) + "%";
-    balloon.style.top = rand(5, 65) + "%";
+    // Anywhere in the play area, but always fully inside it (the balloon is 150px wide and tall).
+    balloon.style.left = `calc((100% - 150px) * ${rand(0.03, 0.97)})`;
+    balloon.style.top = `calc((100% - 150px) * ${rand(0.03, 0.97)})`;
     balloon.style.filter = `hue-rotate(${Math.floor(rand(0, 360))}deg)`;
     balloon.addEventListener("click", () => {
       sfx("tap");
       balloon.classList.add("pop");
       popped++;
       dots.textContent = progressDots(popped, total).textContent;
-      setTimeout(() => (popped === total ? done() : spawn()), 350);
+      later(() => (popped === total ? done() : spawn()), 350);
       balloon.disabled = true;
     });
     arena.replaceChildren(balloon);
@@ -124,7 +125,7 @@ function levelDrag(done) {
         sfx("success");
         placed++;
         dots.textContent = progressDots(placed, shapes.length).textContent;
-        if (placed === shapes.length) setTimeout(done, 700);
+        if (placed === shapes.length) later(done, 700);
         return;
       }
       // Wrong basket, or dropped elsewhere: glide home and point at the right basket. No buzzer.
@@ -164,7 +165,7 @@ function levelDoubleClick(done) {
       sfx("boing");
       hatched++;
       dots.textContent = progressDots(hatched, hatchlings.length).textContent;
-      setTimeout(() => (hatched === hatchlings.length ? done() : nextEgg()), 1100);
+      later(() => (hatched === hatchlings.length ? done() : nextEgg()), 1100);
     });
     arena.replaceChildren(egg, hint);
   }
@@ -184,7 +185,7 @@ function levelScroll(done) {
   }
   tall.append(el("div", { class: "scroll-hint" }, "⬇️"));
   const chest = el("button", { class: "target chest", "aria-label": "treasure" }, "🎁");
-  chest.addEventListener("click", () => { chest.disabled = true; sfx("boing"); setTimeout(done, 700); });
+  chest.addEventListener("click", () => { chest.disabled = true; sfx("boing"); later(done, 700); });
   tall.append(chest);
   scroller.append(tall);
   setScreen("mouse-4", instruction("📜", t("mouse.scroll")), scroller);

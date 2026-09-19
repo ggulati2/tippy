@@ -216,3 +216,21 @@ def test_first_run_setup_and_change_pin(tmp_path, monkeypatch):
     assert c.post("/api/parent/verify", json={"pin": "2468"}).status_code == 401
     again = TestClient(create_app())
     assert again.post("/api/parent/verify", json={"pin": "13579"}).status_code == 200
+
+
+def test_names_may_have_any_letters_but_no_markup(client):
+    headers = parent_headers(client)
+    for name in ["Zoë", "José", "Åsa", "Jürgen", "Anne-Marie", "O'Brien", "Иван", "李"]:
+        out = client.post("/api/parent/settings", json={"child_name": name}, headers=headers)
+        assert out.status_code == 200 and out.json()["child_name"] == name, name
+    for bad in ["<b>x</b>", "a" * 21, "x;drop", "Mia\n", "a/b"]:
+        assert client.post("/api/parent/settings", json={"child_name": bad}, headers=headers).status_code == 422, bad
+    assert client.post("/api/parent/settings", json={"favorite_word": "Drachen"}, headers=headers).status_code == 200
+
+
+def test_backup_never_contains_the_pin_hash(client):
+    headers = parent_headers(client)
+    client.post("/api/parent/pin", json={"pin": "7777"}, headers=headers)
+    token = client.post("/api/parent/verify", json={"pin": "7777"}).json()["token"]
+    backup = client.get("/api/parent/export", headers={"X-Parent-Token": token}).text
+    assert "pin_hash" not in backup and "7777" not in backup

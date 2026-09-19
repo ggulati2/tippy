@@ -41,7 +41,7 @@ function levelFindKeys(done) {
     sfx("tap");
     count++;
     dots.textContent = progressDots(count, total).textContent;
-    if (count === total) { keyHandler = null; return setTimeout(done, 700); }
+    if (count === total) { keyHandler = null; return later(done, 700); }
     next();
   };
 }
@@ -65,7 +65,7 @@ function specialKeyGame(done, { screen, icon, text, key, total, scene, react }) 
     react(count);
     dots.textContent = progressDots(count, total).textContent;
     shownAt = performance.now();
-    if (count === total) { keyHandler = null; setTimeout(done, 1000); }
+    if (count === total) { keyHandler = null; later(done, 1000); }
   };
 }
 

@@ -74,7 +74,7 @@ async function startLetterRound(round) {
         note.textContent = " ";
       }
     }
-    if (count === LETTERS_PER_ROUND) { keyHandler = null; return setTimeout(() => completeLevel("letters", round, letterLand), 600); }
-    setTimeout(next, pause);
+    if (count === LETTERS_PER_ROUND) { keyHandler = null; return later(() => completeLevel("letters", round, letterLand), 600); }
+    later(next, pause);
   };
 }

@@ -20,6 +20,16 @@ function typingText(text) {
   return text.replace(/[.,!?;:"'\-]/g, "").replace(/\s+/g, " ").trim();
 }
 
+// A name like "Zoë" or "José" has letters this keyboard may not have. Turn them into the plain
+// letters that are on the keyboard (ë -> e, é -> e, ß -> ss); Ä, Ö and Ü stay on a German keyboard.
+function foldForKeyboard(text) {
+  return [...text].map((ch) => {
+    if (keyForChar(ch) !== null) return ch;
+    if (ch === "ß") return "ss";
+    return ch.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }).join("");
+}
+
 // True if every character of the text can be typed.
 const isTypable = (text) => text.length > 0 && [...text].every((ch) => keyForChar(ch) !== null);
 
@@ -101,7 +111,7 @@ function typingRound({ screen, icon, text, items, onDone }) {
     sfx("success");
     replayAnimation(picture, "jump-up");
     speak(item.speak); // read it aloud after success
-    setTimeout(() => {
+    later(() => {
       index++;
       if (index === items.length) { keyHandler = null; onDone(); } else load();
     }, 1800);

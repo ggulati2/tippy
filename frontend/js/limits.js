@@ -12,6 +12,8 @@ let sessionSeconds = 0;
 let pendingSeconds = 0;
 let lastActivity = Date.now();
 let breakShown = false;
+let limitShown = false;   // the goodnight screen is up
+let limitPoll = 0;
 
 const IDLE_AFTER_MS = 30000;
 const HEARTBEAT_EVERY = 15;   // seconds of play between reports to the server
@@ -38,11 +40,18 @@ function applyLimits(state) {
   settings.daily_limit_minutes = state.daily_limit_minutes;
   limitReached = state.daily_reached;
   if (limitReached) showLimit();
+  else if (limitShown) { // the limit no longer applies (a new day, or the parent raised it)
+    limitShown = false;
+    if (!parentToken) { closeModal(); welcomeScreen(); }
+  }
 }
 
 function limitTick() {
   const modalOpen = $("#modal-root").children.length > 0;
-  if (document.hidden || parentToken || limitReached || modalOpen) return;
+  // While the goodnight screen is up, look every 30 seconds whether the limit still applies
+  // (it stops applying at midnight), so Tippy is usable again without a restart.
+  if (limitReached) { if (!parentToken && ++limitPoll % 30 === 0) refreshLimits(); return; }
+  if (document.hidden || parentToken || modalOpen) return;
   if (Date.now() - lastActivity > IDLE_AFTER_MS) return; // walked away: not counted
   sessionSeconds++;
   pendingSeconds++;
@@ -86,8 +95,10 @@ function keepPlaying() {
 
 // The daily limit: a calm goodnight screen. The parent's gear stays reachable.
 function showLimit() {
+  const first = !limitShown; // only announce it once, not on every re-check
+  limitShown = true;
   keyHandler = null;
   const panel = el("div", { class: "panel" }, mascotSVG(), el("h2", {}, "😴 " + t("limitDone")));
   openModal(panel);
-  speak(t("limitDone"));
+  if (first) speak(t("limitDone"));
 }
