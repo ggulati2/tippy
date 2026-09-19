@@ -5,6 +5,7 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 ## [Unreleased]
 
 ### Changed
+- Release pipeline: a version tag builds and checks the zip and creates a draft GitHub release; zip checks live in `scripts/check_zip.sh`.
 - Python packages are pinned to exact tested versions (Dependabot proposes bumps, CI must pass).
 
 ### Added

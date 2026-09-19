@@ -228,3 +228,8 @@ Begin with Section 3, step 1: ask your clarifying questions.
 
 - `main` is protected on GitHub: pull request required (0 approvals, solo project), the four CI job names as required checks (strict, so the branch must be up to date), linear history, no force-push or deletion, enforced for admins too, conversations must be resolved. Only squash merge is allowed; head branches auto-delete. If a CI job is renamed, update the required check names (`gh api -X PUT repos/ggulati2/tippy/branches/main/protection`), otherwise merges will wait forever.
 - Work flow: `git switch -c type/topic`, commit, `git push -u origin`, `gh pr create`, wait for checks (`gh pr checks --watch`), `gh pr merge --squash`. Emergency lever: the owner can lower "enforce admins" in the repository settings (or `gh api -X DELETE repos/ggulati2/tippy/branches/main/protection/enforce_admins`) and must switch it back on afterwards.
+
+## Release notes
+
+- Release flow is in `CONTRIBUTING.md`. `.github/workflows/release.yml` runs on tags `vX.Y.Z` (and manually as a dry run), verifies tag == `VERSION` and commit on main, runs `scripts/check.sh`, builds and checks the zip (`scripts/check_zip.sh`), and creates a DRAFT release (pre-release while < 1.0.0) that the owner publishes by hand. Release text comes from the matching `CHANGELOG.md` section (`scripts/release_notes.sh`).
+- Anything developer-only must be listed in `LEFT_OUT` in `scripts/make_zip.py`; `check_zip.sh` fails the build if private or developer files slip into the zip.

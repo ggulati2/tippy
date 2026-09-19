@@ -58,22 +58,7 @@ jobs:
       - name: Build Tippy-<version>.zip
         run: python scripts/make_zip.py
       - name: Check the zip contents
-        run: |
-          zip=$(ls Tippy-*.zip)
-          echo "Built $zip"
-          list=$(unzip -Z1 "$zip")
-          # Must contain the app and the double-click starters ...
-          for f in Tippy/VERSION Tippy/start.command Tippy/start.bat Tippy/start.sh Tippy/backend/app.py Tippy/frontend/index.html Tippy/.env.example; do
-            echo "$list" | grep -qx "$f" || { echo "MISSING from zip: $f"; exit 1; }
-          done
-          # ... and nothing private or developer-only.
-          if echo "$list" | grep -Eq '(^|/)\.env$|\.db|/data/|/logs/|/tests/|\.githooks|check\.sh'; then
-            echo "Something private or developer-only is in the zip:"
-            echo "$list" | grep -E '(^|/)\.env$|\.db|/data/|/logs/|/tests/|\.githooks|check\.sh'
-            exit 1
-          fi
-          # The start scripts must stay double-clickable.
-          unzip -Z "$zip" Tippy/start.command | grep -q '^-rwx' || { echo "start.command lost its execute bit"; exit 1; }
+        run: scripts/check_zip.sh
       - uses: actions/upload-artifact@v7
         with:
           name: tippy-zip

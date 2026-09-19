@@ -78,8 +78,13 @@ If a hook stops you, read its message: it says what to fix. Do not bypass with `
 
 - Version numbers follow [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. The current one is in the `VERSION` file.
   - PATCH (0.9.1): bug fixes only. MINOR (0.10.0): new features that keep saved data working. MAJOR (1.0.0): changes that break saved data or settings.
-- To release: update `VERSION` and `CHANGELOG.md`, commit as `chore(release): 0.9.1`, then tag it:
-  `git tag -a v0.9.1 -m "Tippy 0.9.1" && git push --tags`
+- **To release** (the pipeline does the building; you only prepare the version and publish):
+  1. Branch `chore/release-0.9.1`. Set `VERSION` to `0.9.1`. In `CHANGELOG.md` rename *Unreleased* to `[0.9.1] - <date>` and add a fresh empty *Unreleased* above it.
+  2. Pull request `chore(release): 0.9.1`, wait for green checks, squash-merge.
+  3. Tag the merge commit on `main` and push the tag: `git switch main && git pull && git tag -a v0.9.1 -m "Tippy 0.9.1" && git push origin v0.9.1`
+  4. The **Release** workflow runs all checks, builds `Tippy-0.9.1.zip`, checks its contents and creates a **draft** GitHub release with the zip, a `SHA256SUMS.txt` file and the changelog text.
+  5. Open the draft on GitHub (Releases), read it, and click **Publish release**. Nothing is public before that click. Versions below 1.0.0 are marked as pre-releases.
+  - Dry run any time: Actions tab, *Release*, *Run workflow*. It builds everything and publishes nothing.
 - `python scripts/make_zip.py` builds `Tippy-<version>.zip` from what git tracks.
 
 ## Where things are
