@@ -7,6 +7,7 @@
 // Which on-screen key does this character need? (null = we cannot ask a child to type it)
 function keyForChar(ch) {
   if (ch === " ") return "SPACE";
+  if (ch === "ß") return layoutHas("ß") ? "ß" : null;   // only the German keyboard has it ("ß".toUpperCase() is "SS")
   if (/^[0-9]$/.test(ch)) return ch;
   const upper = ch.toUpperCase();
   if (/^[A-Z]$/.test(upper)) return upper;
@@ -40,7 +41,10 @@ const isTypable = (text) => text.length > 0 && [...text].every((ch) => keyForCha
 // Only these key names are accepted by the server's statistics.
 const STAT_KEY = /^([A-Z]|[0-9]|SPACE)$/;
 
-const showLetter = (ch) => (settings.letter_case === "lower" ? ch.toLowerCase() : ch.toUpperCase());
+const showLetter = (ch) => (ch === "ß" ? "ß" : settings.letter_case === "lower" ? ch.toLowerCase() : ch.toUpperCase());
+
+// Capital letters for the typing games, but keeping ß as ß (a plain toUpperCase would turn it into SS).
+const shout = (text) => text.replace(/ß/g, "\u0001").toUpperCase().replace(/\u0001/g, "ß");
 
 // items: [{ text: "cat", speak: "cat", picture: "🐱" (optional) }, ...]
 // Plays them one after another, then calls onDone().

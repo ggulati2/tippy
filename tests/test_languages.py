@@ -13,7 +13,7 @@ from backend.llm import prompts
 from backend.llm.client import LLMClient
 
 CODES = languages.CODES
-EXTRA_KEYS = {"qwerty": "", "qwertz": "ÄÖÜ", "qwerty_es": "Ñ"}     # letters with a key of their own on each layout
+EXTRA_KEYS = {"qwerty": "", "qwertz": "ÄÖÜß", "qwerty_es": "Ñ"}     # letters with a key of their own on each layout
 PUNCTUATION = ".,!?;:\"'-¡¿"
 
 
@@ -26,6 +26,10 @@ def typable(text: str, layout: str) -> bool:
     for char in text:
         if char == " " or char in PUNCTUATION:
             continue
+        if char == "ß":                                  # "ß".upper() is "SS", so it is checked on its own
+            if "ß" in EXTRA_KEYS[layout]:
+                continue
+            return False
         upper = char.upper()
         if upper in EXTRA_KEYS[layout] or fold(upper).isascii() and fold(upper).isalpha():
             continue
@@ -113,7 +117,8 @@ def _settings(tmp_path):
 @pytest.mark.parametrize("code", CODES)
 def test_sticker_names_exist_in_every_language(code):
     for sticker in progress.CATALOG:
-        assert sticker["name"].get(code), f"sticker {sticker['id']} has no {code} name"
+        if code in (sticker.get("langs") or CODES):          # a language-specific sticker only needs names in its languages
+            assert sticker["name"].get(code), f"sticker {sticker['id']} has no {code} name"
 
 
 @pytest.mark.parametrize("code", CODES)

@@ -12,7 +12,10 @@ async function loadProgress() {
 }
 
 const stickerById = (id) => stickerCatalog.find((s) => s.id === id);
-const stickerName = (s) => s.name[settings.language] || s.name.en;
+const stickerName = (s) => s.name[settings.language] || s.name.en || Object.values(s.name)[0];
+
+// A sticker made for some languages only (the German ones) is shown in those languages, or if it was already earned.
+const stickerVisible = (s, earned) => !s.langs || s.langs.includes(settings.language) || earned.has(s.id);
 
 // Save a finished level, then show the celebration. `next` runs when the child taps ▶.
 async function completeLevel(world, level, next) {
@@ -63,7 +66,7 @@ function celebrate(newStickerIds, next) {
 function albumScreen() {
   const earned = new Set(progress.stickers);
   const grid = el("div", { class: "album" });
-  for (const s of stickerCatalog) {
+  for (const s of stickerCatalog.filter((sticker) => stickerVisible(sticker, earned))) {
     const got = earned.has(s.id);
     grid.append(el("div", { class: "album-slot" + (got ? " got" : "") },
       el("span", { class: "sticker-emoji" }, got ? s.emoji : "❔"),
@@ -79,10 +82,14 @@ function albumScreen() {
 // The numbers must match BONUS_LEVELS in backend/progress.py.
 const BONUS = {
   keyboard: [{ level: 6, icon: "🐰" }, { level: 7, icon: "🔠" }],
-  basics: [{ level: 7, icon: "🌐" }, { level: 8, icon: "💾" }, { level: 9, icon: "💛" }, { level: 10, icon: "☝️" }],
-  letters: [{ level: 6, icon: "🔝" }, { level: 7, icon: "⬇️" }, { level: 8, icon: "🔠" }],
-  words: [{ level: 6, icon: "🐘" }, { level: 7, icon: "🐾" }, { level: 8, icon: "🚀" }, { level: 9, icon: "🦖" }, { level: 10, icon: "🚗" }],
-  sentences: [{ level: 6, icon: "🦜" }, { level: 7, icon: "❓" }, { level: 8, icon: "💛" }],
+  basics: [{ level: 7, icon: "🌐" }, { level: 8, icon: "💾" }, { level: 9, icon: "💛" }, { level: 10, icon: "☝️" },
+    { level: 11, icon: "🚒", langs: ["de"] }, { level: 12, icon: "🚦", langs: ["de"] }],
+  letters: [{ level: 6, icon: "🔝" }, { level: 7, icon: "⬇️" }, { level: 8, icon: "🔠" },
+    { level: 9, icon: "Ä", langs: ["de"], when: () => layoutHas("ß") }],          // umlauts and ß need the German keyboard
+  words: [{ level: 6, icon: "🐘" }, { level: 7, icon: "🐾" }, { level: 8, icon: "🚀" }, { level: 9, icon: "🦖" }, { level: 10, icon: "🚗" },
+    { level: 11, icon: "🥨", langs: ["de"] }, { level: 12, icon: "🎄", langs: ["de"] }],
+  sentences: [{ level: 6, icon: "🦜" }, { level: 7, icon: "❓" }, { level: 8, icon: "💛" },
+    { level: 9, icon: "🏰", langs: ["de"] }, { level: 10, icon: "🎃", langs: ["de"] }],
 };
 const bonusLevels = (world) => (BONUS[world] || []).filter((b) => (!b.langs || b.langs.includes(settings.language)) && (!b.when || b.when()));
 

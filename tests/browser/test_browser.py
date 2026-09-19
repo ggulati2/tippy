@@ -67,3 +67,7 @@ def test_spanish_keyboard_accents_and_free_play(server):
 
 def test_arrow_keys_and_caps_lock_games(server):
     assert_clean(run_script(server, "keygames.js", budget_ms=300_000))
+
+
+def test_germany_specific_levels_ss_key_and_stickers(server):
+    assert_clean(run_script(server, "germany.js", budget_ms=600_000))

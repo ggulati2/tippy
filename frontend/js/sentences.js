@@ -9,6 +9,9 @@ const SENTENCE_BONUS = {
   6: { kind: "long", text: "sentences.long", icon: "🦜" },
   7: { kind: "question", text: "sentences.question", icon: "❓" },
   8: { kind: "themed", text: "sentences.themed", icon: "💛" },
+  // German only (content/special.json)
+  9: { special: "culture_sentences", text: "de.sentences.culture", icon: "🏰" },
+  10: { special: "festival_sentences", text: "de.sentences.festivals", icon: "🎃" },
 };
 
 // Three sentences, shortest first, for one of the bonus levels.
@@ -17,7 +20,7 @@ function bonusSentences(round, bonus, sentences) {
   if (!chosen.length) throw new Error("no typable sentences");
   typingRound({
     screen: "sentences", icon: bonus.icon, text: t(bonus.text),
-    items: chosen.map((entry) => ({ text: entry.text.toUpperCase(), speak: entry.original })),
+    items: chosen.map((entry) => ({ text: shout(entry.text), speak: entry.original })),
     onDone: () => completeLevel("sentences", round, sentenceSky),
   });
 }
@@ -39,7 +42,8 @@ async function startSkyRound(round) {
 
   // Bonus levels: longer sentences, questions, and sentences about what the child likes.
   const bonus = SENTENCE_BONUS[round];
-  const { status, body } = await api(bonus ? `/api/content/sentences?count=6&kind=${bonus.kind}` : "/api/content/sentences?count=10");
+  const { status, body } = await api(!bonus ? "/api/content/sentences?count=10"
+    : bonus.special ? `/api/content/special?set=${bonus.special}&count=6` : `/api/content/sentences?count=6&kind=${bonus.kind}`);
   if (status !== 200) throw new Error("no sentences available");
   if (bonus) return bonusSentences(round, bonus, body.items);
   // Shortest first, so round 1 is easiest. Rounds 1, 2 and 3 take the short, middle and long ones.

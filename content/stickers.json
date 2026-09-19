@@ -32,5 +32,12 @@
   {"id": "peacock", "emoji": "🦚", "award": "sentences:8", "name": {"en": "Peacock", "de": "Pfau", "es": "Pavo real"}},
   {"id": "fish", "emoji": "🐠", "award": "letters:8", "name": {"en": "Fish", "de": "Fisch", "es": "Pez"}},
   {"id": "crocodile", "emoji": "🐊", "award": "keyboard:7", "name": {"en": "Crocodile", "de": "Krokodil", "es": "Cocodrilo"}},
-  {"id": "sloth", "emoji": "🦥", "award": "basics:10", "name": {"en": "Sloth", "de": "Faultier", "es": "Perezoso"}}
+  {"id": "sloth", "emoji": "🦥", "award": "basics:10", "name": {"en": "Sloth", "de": "Faultier", "es": "Perezoso"}},
+  {"id": "pretzel", "emoji": "🥨", "award": "words:11", "langs": ["de"], "name": {"de": "Brezel"}},
+  {"id": "xmastree", "emoji": "🎄", "award": "words:12", "langs": ["de"], "name": {"de": "Tannenbaum"}},
+  {"id": "castle", "emoji": "🏰", "award": "sentences:9", "langs": ["de"], "name": {"de": "Burg"}},
+  {"id": "pumpkin", "emoji": "🎃", "award": "sentences:10", "langs": ["de"], "name": {"de": "Kürbis"}},
+  {"id": "bear", "emoji": "🐻", "award": "letters:9", "langs": ["de"], "name": {"de": "Bär"}},
+  {"id": "firetruck", "emoji": "🚒", "award": "basics:11", "langs": ["de"], "name": {"de": "Feuerwehr"}},
+  {"id": "trafficlight", "emoji": "🚦", "award": "basics:12", "langs": ["de"], "name": {"de": "Ampel"}}
 ]

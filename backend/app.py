@@ -112,6 +112,14 @@ def create_app() -> FastAPI:
                        theme: str | None = Query(default=None, pattern="^(" + "|".join(bank.THEMES) + ")$")):
         return content.pictured_words(count, max_len, min_len, theme) if pictured else content.words(count)
 
+    @app.get("/api/content/special")
+    def special_content(set: str = Query(pattern="^[a-z_]{3,30}$"), count: int = Query(default=5, ge=1, le=10)):
+        """Words or sentences that exist for one language only, such as Germany-specific content."""
+        found = content.special(set, count)
+        if found is None:
+            raise HTTPException(status_code=404, detail="no such set for this language")
+        return found
+
     @app.get("/api/pictures")
     def pictures():
         """Word to emoji for the Free Play Studio (Word Woods pictures plus extras)."""

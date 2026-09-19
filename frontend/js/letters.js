@@ -66,7 +66,19 @@ function startLetterGroupRound(round) {
   };
 }
 
+// German only: words with Ä, Ö, Ü and ß, typed with those keys (QWERTZ keyboard).
+async function startUmlautRound() {
+  const { status, body } = await api("/api/content/special?set=umlaut_words&count=5");
+  if (status !== 200 || !body.items.length) throw new Error("no umlaut words available");
+  typingRound({
+    screen: "words", icon: "Ä", text: t("de.umlauts"),
+    items: body.items.map((word) => ({ text: shout(word), speak: word, picture: body.pictures[word] })),
+    onDone: () => completeLevel("letters", 9, letterLand),
+  });
+}
+
 async function startLetterRound(round) {
+  if (round === 9) return startUmlautRound();
   if (LETTER_BONUS[round]) return startLetterGroupRound(round);
   let { body: info } = await api("/api/letters");
   let letters = info.letters;

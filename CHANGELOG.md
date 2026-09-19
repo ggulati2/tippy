@@ -5,6 +5,10 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 ## [Unreleased]
 
 ### Added
+- Germany-specific content (German only): culture and festival words and sentences, an Ä Ö Ü ß typing level, and Computer Cove lessons on the emergency numbers (112, 110) and on traffic. The German keyboard has an ß key. Seven German-only stickers, shown in the German album (an earned one stays visible in any language).
+- Language-specific content is supported in general: `content/special.json` (per-language sets served by `/api/content/special`), stickers with `langs`, and screen texts prefixed with the language code (`de.…`), which the i18n check requires only in that language.
+
+### Added
 - Keyboard Kingdom bonus games: arrow keys (a bunny hops to the carrot) and Caps Lock. Computer Cove bonus lessons: what the internet is, saving a picture, being kind online, and using the touchpad. Two new stickers; arrow and Caps Lock keys are valid statistics keys.
 
 ### Added

@@ -30,6 +30,11 @@ These checks need a person. Tick them off on the computer Tippy will really be u
 - [ ] Keyboard Kingdom bonus: the arrow keys move the bunny. The Caps Lock game works with the real Caps Lock key (its light on the keyboard switches on and off; press it a last time to leave it off).
 - [ ] Computer Cove bonus lessons: the touchpad lesson matches how his trackpad or mouse really works.
 
+## German (with a German speaker, 5 minutes)
+- [ ] German, QWERTZ keyboard: the Bonus rows show extra levels (Word Woods 11 and 12, Sentence Sky 9 and 10, Letter Land 9, Computer Cove 11 and 12). Play the umlaut level with the real Ä, Ö, Ü and ß keys.
+- [ ] The words and sentences about Germany and the festivals are correct and natural. The 112 / 110 lesson matches what you want your child to learn.
+- [ ] In English or Spanish these levels do not appear.
+
 ## Number Land (3 minutes)
 - [ ] Play Number Land with the row of digits above the letters: it works.
 - [ ] On a computer with a real number pad: switch on *This computer has a number pad* in Settings. The digit row now gets a hint and the pad keys count. Try all six games (count the animals, add up, the rocket countdown).

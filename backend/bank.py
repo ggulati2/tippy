@@ -21,6 +21,7 @@ WORDS = _load("fallback_words.json")          # {"en": {"animals": [...], ...}, 
 SENTENCES = _load("fallback_sentences.json")
 FREE_PLAY = _load("free_play.json")           # more word pictures, only for the Free Play Studio
 ASK = _load("ask_tippy.json")                 # topics, questions, built-in answers for "Ask Tippy"
+SPECIAL = _load("special.json")               # {"de": {"culture_words": {"type": "words", "items": {...}}, ...}}: sets for one language only
 PICTURES = _load("word_pictures.json")        # {"en": {"cat": "🐱", ...}, "de": {...}} for Word Woods
 
 # Short warm lines per moment. "{child}" is replaced by the browser with the

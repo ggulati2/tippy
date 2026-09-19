@@ -11,7 +11,7 @@ const KEY_ROWS = {
     ["SPACE", "ENTER"],
   ],
   qwertz: [
-    ["Q", "W", "E", "R", "T", "Z", "U", "I", "O", "P", "Ü"],
+    ["Q", "W", "E", "R", "T", "Z", "U", "I", "O", "P", "Ü", "ß"],
     ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Ö", "Ä"],
     ["SHIFT", "Y", "X", "C", "V", "B", "N", "M", "BACKSPACE"],
     ["SPACE", "ENTER"],
@@ -56,7 +56,7 @@ function fingerGroups(layout) {
   const rightY = layout === "qwertz" ? "Z" : "Y";
   return [
     ["Q", "A", leftZ, "SHIFT"], ["W", "S", "X"], ["E", "D", "C"], ["R", "F", "V", "T", "G", "B"],
-    [rightY, "H", "N", "U", "J", "M"], ["I", "K"], ["O", "L"], ["P", "Ü", "Ö", "Ä", "Ñ", "BACKSPACE", "ENTER"],
+    [rightY, "H", "N", "U", "J", "M"], ["I", "K"], ["O", "L"], ["P", "Ü", "Ö", "Ä", "ß", "Ñ", "BACKSPACE", "ENTER"],
   ];
 }
 
@@ -73,6 +73,7 @@ const SPECIAL_KEYS = { ArrowUp: "UP", ArrowDown: "DOWN", ArrowLeft: "LEFT", Arro
 
 function keyName(e) {
   if (e.key in SPECIAL_KEYS) return SPECIAL_KEYS[e.key];
+  if (e.key === "ß") return "ß";        // "ß".toUpperCase() is "SS", so it must not go through the upper-casing below
   if (padOnlyScreen && settings.has_numpad && /^[0-9]$/.test(e.key) && e.code && e.code.startsWith("Digit")) return "NOPAD";
   if (e.key === " ") return "SPACE";
   if (e.key === "Enter") return "ENTER";

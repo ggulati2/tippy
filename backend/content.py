@@ -210,6 +210,17 @@ class ContentService:
                           min_words=5 if kind == "long" else 0)
         return {"items": items, "letters": list(difficulty.LETTER_ORDER), "source": "fallback"}
 
+    def special(self, name: str, count: int) -> dict | None:
+        """A set that exists for one language only (Germany-specific words and sentences). None if this
+        language has no such set."""
+        spec = bank.SPECIAL.get(self.language(), {}).get(name)
+        if not spec:
+            return None
+        if spec["type"] == "words":
+            words = random.sample(list(spec["items"]), min(count, len(spec["items"])))
+            return {"items": words, "pictures": {w: spec["items"][w] for w in words}, "source": "special"}
+        return {"items": random.sample(spec["items"], min(count, len(spec["items"]))), "source": "special"}
+
     def mascot_line(self, event: str) -> str:
         if event not in bank.MASCOT_LINES["en"]:
             event = "welcome"

@@ -7,7 +7,7 @@ const BASICS_ICONS = ["🖥️", "🪟", "📁", "⏰", "🙋", "🤐"];
 function computerCove() {
   levelPicker("basics", "🐚", BASICS_ICONS, (n) => {
     [lessonParts, lessonWindow, lessonFolders, lessonBreak, lessonAsk, lessonSecrets,
-      lessonInternet, lessonSave, lessonKind, lessonPad][n - 1](
+      lessonInternet, lessonSave, lessonKind, lessonPad, lessonEmergency, lessonTraffic][n - 1](
       () => completeLevel("basics", n, computerCove));
   });
 }
@@ -189,5 +189,25 @@ function lessonPad(done) {
     { icon: "☝️", prompt: t("b10.move"), scene: "➡️ 🖱️", options: [{ emoji: "☝️" }, { emoji: "🖐️" }, { emoji: "🦶" }], answer: 0, fact: t("b10.move.fact") },
     { icon: "👇", prompt: t("b10.click"), options: [{ emoji: "👇" }, { emoji: "🖐️" }], answer: 0 },
     { icon: "✌️", prompt: t("b10.scroll"), scene: "⬆️ ⬇️", options: [{ emoji: "✌️" }, { emoji: "☝️" }, { emoji: "🖐️" }], answer: 0, fact: t("b10.fact") },
+  ], done);
+}
+
+// ---------- Bonus 11 (German). The emergency number ----------
+// In Germany the fire brigade and the ambulance are reached on 112, the police on 110. A grown-up calls.
+function lessonEmergency(done) {
+  const services = [{ emoji: "🚒" }, { emoji: "🚑" }, { emoji: "🚓" }];
+  chooseSteps("basics-11", [
+    { icon: "🚒", prompt: t("de.b11.fire"), scene: "🔥", options: services, answer: 0, fact: t("de.b11.fire.fact") },
+    { icon: "🚑", prompt: t("de.b11.hurt"), scene: "🤕", options: services, answer: 1, fact: t("de.b11.hurt.fact") },
+    { icon: "🚓", prompt: t("de.b11.thief"), scene: "🦹", options: services, answer: 2, fact: t("de.b11.thief.fact") },
+  ], done);
+}
+
+// ---------- Bonus 12 (German). Traffic lights and the zebra crossing ----------
+function lessonTraffic(done) {
+  chooseSteps("basics-12", [
+    { icon: "🔴", prompt: t("de.b12.red"), scene: "🚦 🔴", options: [{ emoji: "✋" }, { emoji: "🚶" }], answer: 0, fact: t("de.b12.red.fact") },
+    { icon: "🟢", prompt: t("de.b12.green"), scene: "🚦 🟢", options: [{ emoji: "👀" }, { emoji: "🏃" }], answer: 0, fact: t("de.b12.green.fact") },
+    { icon: "🦓", prompt: t("de.b12.cross"), scene: "🛣️", options: [{ emoji: "🦓" }, { emoji: "🏃" }, { emoji: "🚗" }], answer: 0, fact: t("de.b12.cross.fact") },
   ], done);
 }
