@@ -37,23 +37,54 @@ function beep(freq = 660, ms = 120) {
     audio = audio || new AudioContext();
     const osc = audio.createOscillator();
     const gain = audio.createGain();
+    const now = audio.currentTime;
+    const end = now + ms / 1000;
+    osc.type = "sine"; // the softest tone: no harsh buzz
     osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.15, audio.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + ms / 1000);
+    // Fade in and out quickly. Starting or stopping a tone abruptly makes
+    // a "click" that sounds like a broken speaker.
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(0.06, now + 0.01);
+    gain.gain.linearRampToValueAtTime(0.0001, end);
     osc.connect(gain).connect(audio.destination);
-    osc.start();
-    osc.stop(audio.currentTime + ms / 1000);
+    osc.start(now);
+    osc.stop(end + 0.02);
   } catch (e) { /* no sound available: the app still works */ }
+}
+
+// Voices differ a lot between computers. macOS includes joke voices ("Zarvox",
+// "Bubbles"...) and Chrome may pick a robotic online voice. We choose a natural one.
+const NOVELTY_VOICES = /albert|bad news|bahh|bells|boing|bubbles|cellos|deranged|good news|hysterical|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|ralph|kathy|grandma|grandpa|rocko|flo|eddy|reed|sandy|shelley/i;
+const NICE_VOICES = /samantha|ava|allison|susan|zoe|karen|moira|serena|daniel|anna|petra|marlene|helena|viktor|katja|hedda|amala/i;
+
+function pickVoice(lang) {
+  const voices = speechSynthesis.getVoices().filter((v) => v.lang.replace("_", "-").toLowerCase().startsWith(lang));
+  const score = (v) =>
+    (/premium|enhanced|natural/i.test(v.name) ? 8 : 0) +
+    (NICE_VOICES.test(v.name) ? 4 : 0) +
+    (v.localService ? 2 : 0) +         // computer's own voices; online ones can crackle or lag
+    (/google/i.test(v.name) ? -1 : 0) -
+    (NOVELTY_VOICES.test(v.name) ? 100 : 0);
+  return voices.sort((a, b) => score(b) - score(a))[0] || null;
 }
 
 function speak(text) {
   if (!settings.voice_on || !("speechSynthesis" in window)) return;
+  if (speechSynthesis.getVoices().length === 0) { // list not loaded yet: try again when it is
+    speechSynthesis.addEventListener("voiceschanged", () => speak(text), { once: true });
+    return;
+  }
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = settings.language === "de" ? "de-DE" : "en-US";
-  u.rate = 0.85; // a little slower for a young listener
+  const lang = settings.language === "de" ? "de" : "en";
+  u.lang = lang === "de" ? "de-DE" : "en-US";
+  const voice = pickVoice(lang);
+  if (voice) u.voice = voice;
+  u.rate = 0.95; // slightly slow; lower values make many voices sound robotic
   speechSynthesis.speak(u);
 }
+// The voice list loads a moment after the page opens; touching it early wakes it up.
+if ("speechSynthesis" in window) speechSynthesis.getVoices();
 
 // ---------- Mascot ----------
 function mascotSVG() {
