@@ -223,3 +223,8 @@ Begin with Section 3, step 1: ask your clarifying questions.
 
 - `.github/workflows/ci.yml` runs `scripts/check.sh` (Python 3.11 and 3.13 on Ubuntu, 3.13 on macOS) and a `package` job that builds the zip and asserts its contents. Do not duplicate check steps in the workflow: add them to `scripts/check.sh` so hooks and CI stay identical. Dependabot (`.github/dependabot.yml`) opens monthly update PRs.
 - The repo is public, so Actions minutes are free. Never put secrets in workflow files; if the pipeline ever needs a key, use GitHub repository secrets.
+
+## Branch protection
+
+- `main` is protected on GitHub: pull request required (0 approvals, solo project), the four CI job names as required checks (strict, so the branch must be up to date), linear history, no force-push or deletion, enforced for admins too, conversations must be resolved. Only squash merge is allowed; head branches auto-delete. If a CI job is renamed, update the required check names (`gh api -X PUT repos/ggulati2/tippy/branches/main/protection`), otherwise merges will wait forever.
+- Work flow: `git switch -c type/topic`, commit, `git push -u origin`, `gh pr create`, wait for checks (`gh pr checks --watch`), `gh pr merge --squash`. Emergency lever: the owner can lower "enforce admins" in the repository settings (or `gh api -X DELETE repos/ggulati2/tippy/branches/main/protection/enforce_admins`) and must switch it back on afterwards.

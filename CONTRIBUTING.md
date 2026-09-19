@@ -19,7 +19,7 @@ scripts/setup-dev.sh          # turns on the git hooks
 3. **Work in small steps and commit often.** Each commit does one thing and leaves the app working.
 4. **Check before you push:** `scripts/check.sh` (about 15 seconds; the hooks run it for you).
 5. **Push the branch and open a pull request** into `main`. Fill in the checklist. Merge with *squash*, so `main` gets one clean commit per change.
-6. **Never commit straight to `main`** once the repository is on a server (branch protection will enforce it).
+6. **You cannot commit straight to `main`.** GitHub branch protection on `main` requires a pull request, four green CI checks (Python 3.11 and 3.13 on Linux, 3.13 on macOS, and the zip build), an up-to-date branch and a linear history. Force-pushes and deleting `main` are blocked, and the rules apply to the repository owner too. Only squash merging is enabled, and merged branches are deleted automatically.
 
 ## Commit messages (Conventional Commits)
 
