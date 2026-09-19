@@ -4,6 +4,9 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+### Changed
+- Python packages are pinned to exact tested versions (Dependabot proposes bumps, CI must pass).
+
 ### Added
 - CI pipeline (GitHub Actions): checks on Linux and macOS, zip build and content check, Dependabot, pull request template.
 

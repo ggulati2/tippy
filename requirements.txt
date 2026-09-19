@@ -1,4 +1,9 @@
-fastapi>=0.110
-uvicorn>=0.29
-pydantic>=2.6
-httpx>=0.27
+# Exact versions that the automatic tests pass with (Python 3.11 to 3.13).
+# Pinned on purpose: every family gets the same versions we tested, and a surprise upstream
+# release cannot break a fresh install. Dependabot proposes bumps as pull requests, and the
+# CI pipeline has to pass before one is merged. (Their own dependencies, such as starlette,
+# are chosen by pip within the ranges these packages allow.)
+fastapi==0.141.1
+uvicorn==0.53.0
+pydantic==2.13.5
+httpx==0.28.1

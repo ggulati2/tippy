@@ -70,6 +70,10 @@ If a hook stops you, read its message: it says what to fix. Do not bypass with `
 - The server listens on `127.0.0.1` only. `.env`, databases and logs are never committed.
 - Anything a game does after a delay uses `later()` (see `frontend/js/app.js`), so leaving a game cancels it.
 
+## Dependencies
+
+`requirements.txt` (what Tippy needs) and `requirements-dev.txt` (plus test tools) use **exact versions** (`==`). Dependabot opens a monthly pull request with newer versions; CI runs the tests on it. Merge it when green and, for big jumps (a new major version), also click through the app once. To update a pin by hand: change the number, run `pip install -r requirements-dev.txt` and `scripts/check.sh`.
+
 ## Versions and releases
 
 - Version numbers follow [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. The current one is in the `VERSION` file.
