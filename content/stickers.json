@@ -1,0 +1,15 @@
+[
+  {"id": "puppy",    "emoji": "🐶", "award": "mouse:1",         "name": {"en": "Puppy",        "de": "Hündchen"}},
+  {"id": "kitten",   "emoji": "🐱", "award": "mouse:2",         "name": {"en": "Kitten",       "de": "Kätzchen"}},
+  {"id": "chick",    "emoji": "🐥", "award": "mouse:3",         "name": {"en": "Chick",        "de": "Küken"}},
+  {"id": "fox",      "emoji": "🦊", "award": "mouse:4",         "name": {"en": "Fox",          "de": "Fuchs"}},
+  {"id": "medal",    "emoji": "🏅", "award": "mouse:done",      "name": {"en": "Mouse Master", "de": "Mausmeister"}},
+  {"id": "rainbow",  "emoji": "🌈", "award": "streak:3",        "name": {"en": "Rainbow",      "de": "Regenbogen"}},
+  {"id": "unicorn",  "emoji": "🦄", "award": "streak:7",        "name": {"en": "Unicorn",      "de": "Einhorn"}},
+  {"id": "rocket",   "emoji": "🚀", "award": "keyboard:done",   "name": {"en": "Rocket",       "de": "Rakete"}},
+  {"id": "lion",     "emoji": "🦁", "award": "letters:done",    "name": {"en": "Lion",         "de": "Löwe"}},
+  {"id": "dino",     "emoji": "🦖", "award": "words:done",      "name": {"en": "Dino",         "de": "Dino"}},
+  {"id": "whale",    "emoji": "🐳", "award": "sentences:done",  "name": {"en": "Whale",        "de": "Wal"}},
+  {"id": "octopus",  "emoji": "🐙", "award": "basics:done",     "name": {"en": "Octopus",      "de": "Krake"}},
+  {"id": "painter",  "emoji": "🎨", "award": "free:done",       "name": {"en": "Painter",      "de": "Maler"}}
+]

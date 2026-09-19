@@ -36,6 +36,9 @@ CREATE TABLE IF NOT EXISTS progress (
     stars INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (world, level)
 );
+CREATE TABLE IF NOT EXISTS play_days (
+    day TEXT PRIMARY KEY
+);
 CREATE TABLE IF NOT EXISTS stickers (
     id TEXT PRIMARY KEY,
     earned_at TEXT NOT NULL

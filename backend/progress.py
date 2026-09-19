@@ -1,0 +1,141 @@
+"""Progress, stars, stickers and the daily streak.
+
+The rules live here (not in the browser) so they are easy to test and the
+browser cannot cheat by accident. Nothing here ever punishes the child:
+stars and stickers only go up, and a missed day just means the streak starts over quietly.
+"""
+import json
+from datetime import date, timedelta
+from pathlib import Path
+
+from backend import db
+from backend.config import CONTENT_DIR
+
+# Worlds in the order they unlock. A world unlocks when the one before it is complete.
+WORLD_ORDER = ["mouse", "keyboard", "letters", "words", "sentences", "basics", "free"]
+
+# How many levels each *built* world has. Add a world here when it is built.
+LEVEL_COUNTS = {"mouse": 4}
+
+MAX_STARS_PER_LEVEL = 3
+
+
+def load_catalog(path: Path = CONTENT_DIR / "stickers.json") -> list[dict]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+CATALOG = load_catalog()
+
+
+def public_catalog() -> list[dict]:
+    """What the browser needs to draw the album (no internal award keys)."""
+    return [{"id": s["id"], "emoji": s["emoji"], "name": s["name"]} for s in CATALOG]
+
+
+# ---------- Play days and streak ----------
+
+def record_visit(db_path: Path, today: date) -> None:
+    with db.connect(db_path) as conn:
+        conn.execute("INSERT OR IGNORE INTO play_days (day) VALUES (?)", (today.isoformat(),))
+
+
+def compute_streak(days: set[date], today: date) -> int:
+    """Days in a row. If today is not played yet, yesterday still counts,
+    so the child is never shown a zero first thing in the morning."""
+    day = today if today in days else today - timedelta(days=1)
+    count = 0
+    while day in days:
+        count += 1
+        day -= timedelta(days=1)
+    return count
+
+
+def _streak(conn, today: date) -> int:
+    rows = conn.execute("SELECT day FROM play_days").fetchall()
+    return compute_streak({date.fromisoformat(r["day"]) for r in rows}, today)
+
+
+# ---------- Stickers ----------
+
+def _award(conn, key: str, now: str) -> str | None:
+    """Give the sticker tied to `key` if it exists and is not owned yet."""
+    for sticker in CATALOG:
+        if sticker["award"] == key:
+            cur = conn.execute("INSERT OR IGNORE INTO stickers (id, earned_at) VALUES (?, ?)", (sticker["id"], now))
+            return sticker["id"] if cur.rowcount else None
+    return None
+
+
+# ---------- Worlds ----------
+
+def _manual_unlocks(conn) -> set[str]:
+    row = conn.execute("SELECT value FROM settings WHERE key = 'unlocked_worlds'").fetchone()
+    value = row["value"] if row else ""
+    return set(WORLD_ORDER) if value == "all" else {w for w in value.split(",") if w}
+
+
+def unlock_world(db_path: Path, world: str) -> None:
+    """Parent action: open one world (or "all") without finishing the earlier ones."""
+    if world != "all" and world not in WORLD_ORDER:
+        raise ValueError("unknown world")
+    with db.connect(db_path) as conn:
+        current = _manual_unlocks(conn)
+        value = "all" if world == "all" else ",".join(sorted(current | {world}))
+    db.set_setting(db_path, "unlocked_worlds", value)
+
+
+def record_completion(db_path: Path, world: str, level: int, stars: int, today: date | None = None) -> dict:
+    """Save a finished level. Returns the ids of any newly earned stickers."""
+    today = today or date.today()
+    if world not in LEVEL_COUNTS or not 1 <= level <= LEVEL_COUNTS[world]:
+        raise ValueError("unknown level")
+    if not 0 <= stars <= MAX_STARS_PER_LEVEL:
+        raise ValueError("bad star count")
+    now = today.isoformat()
+    new_stickers: list[str] = []
+    with db.connect(db_path) as conn:
+        conn.execute("INSERT OR IGNORE INTO play_days (day) VALUES (?)", (now,))
+        # Stars only ever go up, so replaying can never lose anything.
+        conn.execute(
+            "INSERT INTO progress (world, level, status, stars) VALUES (?, ?, 'done', ?) "
+            "ON CONFLICT(world, level) DO UPDATE SET status = 'done', stars = MAX(stars, excluded.stars)",
+            (world, level, stars),
+        )
+        done = conn.execute("SELECT COUNT(*) FROM progress WHERE world = ? AND status = 'done'", (world,)).fetchone()[0]
+        keys = [f"{world}:{level}"]
+        if done >= LEVEL_COUNTS[world]:
+            keys.append(f"{world}:done")
+        streak = _streak(conn, today)
+        keys += [f"streak:{n}" for n in (3, 7) if streak >= n]
+        for key in keys:
+            sticker_id = _award(conn, key, now)
+            if sticker_id:
+                new_stickers.append(sticker_id)
+    return {"new_stickers": new_stickers}
+
+
+def get_progress(db_path: Path, today: date | None = None) -> dict:
+    today = today or date.today()
+    with db.connect(db_path) as conn:
+        rows = conn.execute("SELECT world, level, stars FROM progress WHERE status = 'done'").fetchall()
+        manual = _manual_unlocks(conn)
+        streak = _streak(conn, today)
+        stickers = [r["id"] for r in conn.execute("SELECT id FROM stickers ORDER BY earned_at, rowid")]
+    levels: dict[str, dict[str, int]] = {w: {} for w in WORLD_ORDER}
+    for row in rows:
+        levels[row["world"]][str(row["level"])] = row["stars"]
+
+    def complete(world: str) -> bool:
+        return world in LEVEL_COUNTS and len(levels[world]) >= LEVEL_COUNTS[world]
+
+    worlds = {}
+    for i, world in enumerate(WORLD_ORDER):
+        unlocked = i == 0 or world in manual or complete(WORLD_ORDER[i - 1])
+        worlds[world] = {"unlocked": unlocked, "complete": complete(world), "built": world in LEVEL_COUNTS,
+                         "levels": levels[world]}
+    return {
+        "worlds": worlds,
+        "total_stars": sum(r["stars"] for r in rows),
+        "streak": streak,
+        "stickers": stickers,
+    }

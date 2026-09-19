@@ -138,3 +138,81 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 }
 
 @media (max-width: 800px) { .worlds { grid-template-columns: repeat(2, 1fr); } }
+
+/* ================= Milestone 2: Mouse Meadow and rewards ================= */
+
+.instruction { border: none; cursor: pointer; margin-top: 56px; font-family: inherit; color: inherit; }
+.dots { font-size: 1.8rem; letter-spacing: 8px; color: var(--primary); }
+
+/* The play area. Targets are placed inside it by percentages. */
+.arena { position: relative; width: 100%; flex: 1; min-height: 0; }
+.arena.center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+
+.target {
+  position: absolute; width: 150px; height: 150px; border: none; background: none;
+  font-size: 7rem; line-height: 1; padding: 0; cursor: pointer;
+  animation: bob 2s ease-in-out infinite;
+}
+.target:hover { transform: scale(1.1); }
+.arena.center .target { position: static; }
+.target.pop { animation: pop .35s ease-out forwards; }
+.target.hatched { animation: jump .6s ease-out; }
+.target.wobble { animation: wobble .5s; }
+.double-hint { font-size: 3.4rem; animation: pulse 1s ease-in-out infinite; }
+
+/* Drag and drop */
+.tray { display: flex; gap: 48px; justify-content: center; align-items: center; min-height: 140px; }
+.tray.baskets { margin-bottom: 24px; }
+.shape { width: 110px; height: 110px; background: var(--c); }
+.shape.circle { border-radius: 50%; }
+.shape.square { border-radius: 18px; }
+.shape.triangle { clip-path: polygon(50% 4%, 96% 96%, 4% 96%); }
+.shape.draggable { cursor: grab; touch-action: none; position: relative; z-index: 3; }
+.shape.dragging { cursor: grabbing; z-index: 20; filter: drop-shadow(0 12px 8px rgba(0,0,0,.25)); }
+.shape.ghost { opacity: .25; }
+.basket {
+  width: 170px; height: 150px; border: 8px dashed; border-radius: 28px 28px 48px 48px;
+  background: rgba(255,255,255,.65); display: flex; align-items: center; justify-content: center;
+}
+.basket.hint { animation: pulse .6s ease-in-out 3; background: #fff9db; }
+
+/* Scrolling meadow */
+.scroller {
+  width: min(900px, 100%); flex: 1; min-height: 0; overflow-y: scroll; border-radius: 32px;
+  border: 6px solid #fff; box-shadow: 0 8px 0 rgba(0,0,0,.1);
+}
+.scroller::-webkit-scrollbar { width: 28px; }
+.scroller::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 14px; border: 6px solid #e7f5ff; }
+.scroller::-webkit-scrollbar-track { background: #e7f5ff; }
+.tall { position: relative; height: 320vh; background: linear-gradient(#a5d8ff, #d3f9d8 45%, #8ce99a); }
+.deco { position: absolute; font-size: 3.4rem; }
+.scroll-hint { position: absolute; top: 24px; left: 50%; font-size: 5rem; transform: translateX(-50%); animation: bob 1s ease-in-out infinite; }
+.chest { bottom: 40px; left: 50%; margin-left: -75px; }
+
+/* Level picker cards */
+.level .icon { font-size: 4.4rem; }
+.level .stars { font-size: 1.6rem; }
+
+/* Celebration and stickers */
+.stars { font-size: 3.4rem; animation: pulse 1.2s ease-in-out infinite; }
+.sticker-pop { display: flex; flex-direction: column; align-items: center; font-size: 1.4rem; font-weight: 900;
+  background: #fff; border-radius: 36px; padding: 16px 40px; box-shadow: 0 8px 0 rgba(0,0,0,.1); animation: stickerIn .8s cubic-bezier(.2,1.6,.4,1); }
+.sticker-emoji { font-size: 6rem; line-height: 1.1; }
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 4; }
+.confetti span { position: absolute; top: -60px; animation: fall 3.2s linear forwards; }
+
+.album { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; width: min(1000px, 100%); }
+.album-slot { background: rgba(255,255,255,.6); border-radius: 28px; padding: 12px; font-size: 1rem; font-weight: 800;
+  display: flex; flex-direction: column; align-items: center; opacity: .6; }
+.album-slot .sticker-emoji { font-size: 3.6rem; }
+.album-slot.got { background: #fff; opacity: 1; box-shadow: 0 6px 0 rgba(0,0,0,.1); }
+
+/* Map extras */
+.map-top { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.chip { background: #fff; border-radius: 999px; padding: 8px 22px; font-weight: 900; font-size: 1.4rem; box-shadow: 0 4px 0 rgba(0,0,0,.08); }
+.world.locked { opacity: .5; filter: grayscale(.8); }
+
+@keyframes pop { 40% { transform: scale(1.4); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+@keyframes wobble { 20% { transform: rotate(-14deg); } 40% { transform: rotate(12deg); } 60% { transform: rotate(-8deg); } 80% { transform: rotate(4deg); } }
+@keyframes stickerIn { from { transform: scale(0) rotate(-40deg); } }
+@keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }

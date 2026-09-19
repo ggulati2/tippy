@@ -180,14 +180,28 @@ const WORLDS = [
   ["sentences", "☁️"], ["basics", "🖥️"], ["free", "🎨"],
 ];
 
-function mapScreen() {
+async function mapScreen() {
+  await loadProgress();
   const grid = el("div", { class: "worlds" });
   for (const [id, icon] of WORLDS) {
-    grid.append(el("button", { class: "world", onclick: () => { sfx("tap"); comingSoonScreen(id); } },
-      el("span", { class: "icon" }, icon), t("world." + id)));
+    const info = progress.worlds[id];
+    const label = t("world." + id) + (info.complete ? " ✅" : "");
+    grid.append(el("button", { class: "world" + (info.unlocked ? "" : " locked"), onclick: () => openWorld(id) },
+      el("span", { class: "icon" }, info.unlocked ? icon : "🔒"), label));
   }
-  setScreen("map", el("div", { class: "bubble" }, t("chooseWorld")), grid);
+  const chips = el("div", { class: "map-top" },
+    el("span", { class: "chip" }, `⭐ ${progress.total_stars}`),
+    el("button", { class: "chip", onclick: () => { sfx("tap"); albumScreen(); } }, `📖 ${progress.stickers.length}`));
+  if (progress.streak >= 2) chips.append(el("span", { class: "chip" }, `🔥 ${progress.streak}`));
+  setScreen("map", chips, el("div", { class: "bubble" }, t("chooseWorld")), grid);
   speak(t("chooseWorld"));
+}
+
+function openWorld(id) {
+  if (!progress.worlds[id].unlocked) { sfx("key"); speak(t("lockedWorld")); return; }
+  sfx("tap");
+  if (id === "mouse") mouseMeadow();
+  else comingSoonScreen(id);
 }
 
 function comingSoonScreen(worldId) {
@@ -268,9 +282,15 @@ async function parentPanel() {
     toggleRow(t("voice"), [[true, t("on")], [false, t("off")]], settings.voice_on, (v) => saveSetting({ voice_on: v })),
     toggleRow(t("sound"), [[true, t("on")], [false, t("off")]], settings.sound_on, (v) => saveSetting({ sound_on: v })),
     el("div", { class: "row" }, el("span", {}, t("status")), el("span", {}, status.llm_mode === "live" ? t("llmLive") : t("llmMock"))),
+    el("button", { class: "big-btn blue", onclick: unlockAllWorlds }, "🔓 " + t("unlockAll")),
     el("button", { class: "big-btn exit-btn", onclick: exitApp }, t("exitApp")),
     el("button", { class: "big-btn blue", onclick: () => { parentToken = null; closeModal(); welcomeScreen(); } }, t("back")));
   openModal(panel);
+}
+
+async function unlockAllWorlds() {
+  await api("/api/parent/unlock", { method: "POST", body: JSON.stringify({ world: "all" }) });
+  sfx("success");
 }
 
 async function exitApp() {
@@ -310,6 +330,7 @@ $("#parent-btn").addEventListener("click", () => openModal(pinPad()));
     const { body } = await api("/api/settings");
     settings = { ...settings, ...body };
     document.documentElement.lang = settings.language;
+    api("/api/visit", { method: "POST" }); // counts today for the streak
     await welcomeScreen();
   } catch (e) {
     errorScreen(e);

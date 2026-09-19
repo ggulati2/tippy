@@ -46,3 +46,23 @@ def test_exit_with_pin_requests_shutdown(client):
     import time
     time.sleep(0.8)
     assert called
+
+
+def test_complete_level_and_read_progress(client):
+    resp = client.post("/api/progress/complete", json={"world": "mouse", "level": 1, "stars": 3})
+    assert resp.json()["new_stickers"] == ["puppy"]
+    state = client.get("/api/progress").json()
+    assert state["total_stars"] == 3 and "puppy" in state["stickers"]
+    assert any(s["id"] == "puppy" for s in client.get("/api/stickers").json())
+
+
+def test_complete_level_rejects_nonsense(client):
+    assert client.post("/api/progress/complete", json={"world": "mouse", "level": 5, "stars": 3}).status_code == 400
+    assert client.post("/api/progress/complete", json={"world": "mouse", "level": 1, "stars": 50}).status_code == 422
+
+
+def test_unlock_needs_pin(client):
+    assert client.post("/api/parent/unlock", json={"world": "all"}).status_code == 401
+    token = client.post("/api/parent/verify", json={"pin": "4321"}).json()["token"]
+    state = client.post("/api/parent/unlock", json={"world": "all"}, headers={"X-Parent-Token": token}).json()
+    assert state["worlds"]["free"]["unlocked"]

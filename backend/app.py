@@ -12,7 +12,9 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from backend import db
+from datetime import date
+
+from backend import db, progress
 from backend.config import FRONTEND_DIR, LOG_DIR, PORT, load_settings
 from backend.llm.client import get_mascot_line
 from backend.security import PinGuard
@@ -72,6 +74,32 @@ def create_app() -> FastAPI:
     def mascot_line(event: str = "welcome"):
         return {"text": get_mascot_line(event, db.get_settings(settings.db_path)["language"])}
 
+    @app.post("/api/visit")
+    def visit():
+        """Called when the app opens: counts today as a play day for the streak."""
+        progress.record_visit(settings.db_path, date.today())
+        return {"ok": True}
+
+    @app.get("/api/progress")
+    def read_progress():
+        return progress.get_progress(settings.db_path)
+
+    @app.get("/api/stickers")
+    def sticker_catalog():
+        return progress.public_catalog()
+
+    class CompleteBody(BaseModel):
+        world: str = Field(max_length=20)
+        level: int = Field(ge=1, le=20)
+        stars: int = Field(ge=0, le=3)
+
+    @app.post("/api/progress/complete")
+    def complete_level(body: CompleteBody):
+        try:
+            return progress.record_completion(settings.db_path, body.world, body.level, body.stars)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="unknown level")
+
     # ---------- Parent endpoints ----------
 
     class PinBody(BaseModel):
@@ -99,6 +127,18 @@ def create_app() -> FastAPI:
         for key, value in body.model_dump(exclude_none=True).items():
             db.set_setting(settings.db_path, key, ("1" if value else "0") if isinstance(value, bool) else value)
         return read_settings()
+
+    class UnlockBody(BaseModel):
+        world: str = Field(max_length=20)
+
+    @app.post("/api/parent/unlock")
+    def unlock(body: UnlockBody, x_parent_token: str | None = Header(default=None)):
+        require_parent(x_parent_token)
+        try:
+            progress.unlock_world(settings.db_path, body.world)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="unknown world")
+        return progress.get_progress(settings.db_path)
 
     @app.get("/api/parent/status")
     def parent_status(x_parent_token: str | None = Header(default=None)):

@@ -143,7 +143,7 @@ Begin with Section 3, step 1: ask your clarifying questions.
 ## Milestone status
 
 - [x] 1 Skeleton
-- [ ] 2 Mouse Meadow + stickers
+- [x] 2 Mouse Meadow + stickers
 - [ ] 3 Keyboard Kingdom + Letter Land
 - [ ] 4 OpenRouter integration
 - [ ] 5 Word Woods + Sentence Sky

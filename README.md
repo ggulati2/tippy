@@ -13,7 +13,9 @@ Windows: double-click `start.bat`. Linux: run `./start.sh`.
 
 ## Use it
 
-- The child taps **Play**. Only the welcome screen and world map exist so far. The worlds say "Coming soon!".
+- The child taps **Play** and sees the world map. **Mouse Meadow** is playable (4 short games: pop balloons, drag shapes into baskets, double-click eggs, scroll to a treasure). Each finished game gives stars and sometimes a sticker. The other worlds say "Coming soon!".
+- The map shows total stars, the sticker album (📖) and, after 2 days in a row, a streak (🔥). Missing a day just restarts the streak quietly.
+- Finishing all 4 Mouse Meadow games unlocks the next world. In the parent area, **Unlock all worlds** opens everything.
 - **Parent area:** tap the small pale gear in the top-right corner and enter the PIN (default `1234`, change it in `.env`). There you can switch English/German, the keyboard shape (QWERTY/QWERTZ), voice and sounds, and **Exit Tippy**.
 - The app can only be closed with the PIN. If it ever gets stuck: press `Ctrl+C` in the Terminal window that opened.
 
@@ -35,7 +37,7 @@ Change the mascot's name and colours in `frontend/js/config.js`.
 - **Nothing opens:** open http://127.0.0.1:8765 in any browser while the Terminal window is running.
 - **"Address already in use":** Tippy is already running. Close it from the parent area, or quit the old Terminal window.
 - **Something went wrong:** details are in `logs/tippy.log`. The child only sees a smiley.
-- **Reset everything:** stop Tippy and delete the `data/` folder.
+- **Reset everything (stars, stickers, settings):** stop Tippy and delete the `data/` folder.
 
 ## For developers
 
