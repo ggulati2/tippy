@@ -212,3 +212,9 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - Bugs found and fixed that way: double-clicking the window lesson's close button crashed the lesson; pending steps (`setTimeout`) fired after the child pressed Home, popping up a stale "level done" screen (now every delayed game step uses `later()` from `app.js`, which drops it if the screen changed; use `later()` for any new delayed game step); names with accents were silently rejected; the backup file contained the PIN hash; a goodnight screen never cleared at midnight; start scripts needed internet on every start; a damaged database stopped the app from starting (now moved aside); layout overflow on short screens (base text size and several sizes now scale with viewport height).
 - Rule: `sendKeys` and other child-side calls must never throw to the child; the error screen ("Let's try another game!") is the only failure the child may see.
 - Manual checks that cannot be scripted are in `TEST-CHECKLIST.md`.
+
+## Git workflow notes
+
+- Conventional Commits are enforced by `.githooks/commit-msg` (`type(scope): summary`, max 72 chars). Hooks are switched on with `scripts/setup-dev.sh` (`core.hooksPath=.githooks`). `scripts/check.sh` (fast = pre-commit, full = pre-push and future CI) is the single definition of "good enough to merge"; CI must call it rather than duplicate its steps.
+- Version lives in `VERSION` and `CHANGELOG.md`; releases are annotated tags `vX.Y.Z`. `scripts/make_zip.py` names the zip from `VERSION` and leaves developer-only files out.
+- Never `git add -f` an ignored file, never use `--no-verify`. Work on a branch; squash-merge into `main` once a remote exists.

@@ -7,3 +7,17 @@ data/
 logs/
 .DS_Store
 Tippy-*.zip
+
+# Secrets: every .env variant is ignored, only the template is tracked.
+.env.*
+!.env.example
+# Child data and databases never go into git.
+*.db
+*.db-*
+*.db.damaged-*
+data/
+
+# Editors and tools
+.vscode/
+.idea/
+*.swp

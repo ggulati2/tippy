@@ -1,0 +1,13 @@
+#!/bin/bash
+# Checks the first line of the commit message: "type(scope): short summary"
+# Example: fix(typing): ignore Caps Lock. See CONTRIBUTING.md.
+first=$(head -n 1 "$1")
+case "$first" in Merge\ *|Revert\ *|fixup!*|squash!*) exit 0 ;; esac
+if ! echo "$first" | grep -Eq '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: .{3,}$'; then
+  echo "✗ The first line of the commit message must look like:  type(scope): summary"
+  echo "  types: feat fix docs style refactor perf test build ci chore revert"
+  echo "  example: feat(parent): add a setting for text size"
+  echo "  yours:   $first"
+  exit 1
+fi
+if [ ${#first} -gt 72 ]; then echo "✗ First line is longer than 72 characters (${#first})."; exit 1; fi

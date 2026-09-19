@@ -8,18 +8,20 @@ import re
 import subprocess
 import sys
 import zipfile
-from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-LEFT_OUT = ("tests/", "scripts/try_models.py", "scripts/make_zip.py", ".gitignore", "CLAUDE.md")
+LEFT_OUT = ("tests/", "scripts/try_models.py", "scripts/make_zip.py", "scripts/check.sh", "scripts/check_i18n.js",
+            "scripts/setup-dev.sh", ".githooks/", ".gitignore", ".gitattributes", ".editorconfig", "CLAUDE.md",
+            "CONTRIBUTING.md", "CHANGELOG.md")
 SECRET = re.compile(rb"sk-or-[A-Za-z0-9_-]{20,}")
 
 
 def main() -> None:
     files = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.split("\n")
-    files = [f for f in files if f and not f.startswith(LEFT_OUT[0]) and f not in LEFT_OUT[1:]]
-    out = ROOT / f"Tippy-{date.today().isoformat()}.zip"
+    files = [f for f in files if f and not f.startswith(LEFT_OUT)]  # startswith also matches whole folders and exact names
+    version = (ROOT / "VERSION").read_text().strip()
+    out = ROOT / f"Tippy-{version}.zip"
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for name in files:
             data = (ROOT / name).read_bytes()

@@ -107,6 +107,8 @@ Change the mascot's name and colours in `frontend/js/config.js`.
 
 ## For developers
 
+Git workflow, commit rules and releases: see `CONTRIBUTING.md`. One-time: `scripts/setup-dev.sh` turns on the checks that run on every commit and push (`scripts/check.sh` runs them by hand).
+
 ```
 source .venv/bin/activate
 pip install -r requirements-dev.txt   # adds pytest
