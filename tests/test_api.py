@@ -10,6 +10,9 @@ def client(tmp_path, monkeypatch):
     # Use a throwaway database and a known PIN so tests never touch real data.
     monkeypatch.setenv("TIPPY_DB_PATH", str(tmp_path / "test.db"))
     monkeypatch.setenv("PARENT_PIN", "4321")
+    # Tests must never spend real API credit, whatever is in .env or the shell.
+    monkeypatch.setenv("LLM_MODE", "mock")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "")
     from backend.app import create_app
     return TestClient(create_app(), base_url="http://127.0.0.1:8765")
 

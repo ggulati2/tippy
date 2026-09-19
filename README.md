@@ -38,7 +38,7 @@ By default Tippy uses **free** OpenRouter models (their ids end in `:free`), so 
 
 **Free limits:** OpenRouter allows a free account 20 requests a minute and 50 a day. Tippy asks for whole batches and remembers them, so this is normally plenty. `DAILY_REQUEST_CAP=45` in `.env` keeps Tippy safely under it, and if a request fails Tippy waits 10 minutes before trying again. Adding at least 10 USD of credit under **Credits** raises the free-model limit to 1000 a day. It is optional, and it also lets you use paid models (a few cents a month for Tippy's tiny requests).
 
-**Which model is best?** The defaults are `google/gemma-4-26b-a4b-it:free` (main) and `deepseek/deepseek-v4-flash-0731:free` (backup). To compare models on Tippy's real tasks with your own key, run this in Terminal from the Tippy folder (it uses 4 requests per model):
+**Which model is best?** The defaults are `nvidia/nemotron-3-super-120b-a12b:free` (main) and `deepseek/deepseek-v4-flash-0731:free` (backup). In our test on 19 Sep 2026 Nemotron was fastest and best in German, DeepSeek got the most English words through, and Google's free Gemma models were refused with `HTTP 429` (no free capacity). Free capacity changes, so re-run the script now and then. To compare models on Tippy's real tasks with your own key, run this in Terminal from the Tippy folder (it uses 4 requests per model):
 ```
 source .venv/bin/activate
 python scripts/try_models.py

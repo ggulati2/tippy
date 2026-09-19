@@ -15,10 +15,11 @@ CONTENT_DIR = ROOT / "content"
 
 HOST = "127.0.0.1"  # Never change this: it keeps the app private to this computer.
 PORT = 8765
-# Free models (":free"), chosen from the live OpenRouter list: general-purpose instruction
-# followers with JSON output, from two different providers. Run scripts/try_models.py to
-# compare them on Tippy's real tasks with your own key.
-DEFAULT_MODEL = "google/gemma-4-26b-a4b-it:free"
+# Free models (":free") from two providers, compared on Tippy's real tasks with
+# scripts/try_models.py (2026-09-19): Nemotron was fastest and best in German; DeepSeek got
+# the most English words and sentences through. Google's Gemma free models answered
+# HTTP 429 (no capacity) at that time. Results change, so re-run the script now and then.
+DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b:free"
 DEFAULT_FALLBACK_MODEL = "deepseek/deepseek-v4-flash-0731:free"
 
 

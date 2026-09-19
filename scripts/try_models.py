@@ -27,10 +27,10 @@ from backend.llm import prompts  # noqa: E402
 from backend.llm.client import LLMClient  # noqa: E402
 
 SHORTLIST = [
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    "deepseek/deepseek-v4-flash-0731:free",
     "google/gemma-4-26b-a4b-it:free",
     "google/gemma-4-31b-it:free",
-    "deepseek/deepseek-v4-flash-0731:free",
-    "nvidia/nemotron-3-super-120b-a12b:free",
 ]
 
 LETTERS = difficulty.letters_for(12)
