@@ -4,17 +4,24 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-19
+
+Several children per computer, restoring backups, and a much stronger test pipeline.
+
+**Upgrading:** nothing to do. On the first start Tippy moves your existing progress into the first child automatically and keeps a safety copy named `tippy.db.before-profiles-<time>` in the `data` folder.
+
 ### Added
-- Restore a backup (parent area, Data tab): into the shown child or as a new child, with strict validation of the file (bad rows skipped and counted, no PIN or household settings can come in), a safety copy of the replaced data, and an all-or-nothing transaction. Backups from 0.9.x still work.
-- Several children: a Children tab in the parent area (add, rename, change picture, remove, choose which child to show), a "Who is playing?" screen at start-up and a switch button, separate progress, language and play limits per child, and a switch button on the goodnight screen so a sibling can still play.
+- Several children: a Children tab in the parent area (add up to 6, rename, change picture, remove, choose which child to show), a "Who is playing?" screen at start-up with a switch button, separate progress, language and play limits per child, and a switch button on the goodnight screen so a sibling can still play.
+- Restore a backup (parent area, Data tab): into the shown child or as a new child. The file is checked strictly (bad rows are skipped and counted, no PIN or household setting can come in), a safety copy of the replaced data is kept, and the replacement is all-or-nothing. Backups from 0.9.x still work.
+- Saved browser test suite (`tests/browser`, `pytest -m browser`) that plays every level in English and German, stresses the app like a child would, and checks limits, children, restore and the parent area. Runs in CI.
+- CI: tests on Windows, CodeQL scanning, security policy, code owners, issue templates.
 
 ### Changed
-- Storage is now one database per child (`data/profiles/<id>.db`) plus a family database (`data/family.db`) for the PIN, the helper model and the shared online-helper usage counter. An existing single-child `data/tippy.db` is moved into the first child automatically; a safety copy `tippy.db.before-profiles-<time>` is kept. 
-- Importing `backend.app` no longer creates the app (and no longer opens the data folder); tests never touch real data.
+- Storage is one database per child (`data/profiles/<id>.db`) plus a family database (`data/family.db`) for the PIN, the helper model and the shared online-helper usage counter.
+- Importing `backend.app` no longer creates the app or opens the data folder, so tests can never touch real data.
 
-### Added
-- Saved browser test suite (`tests/browser`, `pytest -m browser`) that plays every level in English and German, stresses the app, and checks limits and the parent area; runs in CI.
-- CI: Windows test job, CodeQL scanning, security policy, code owners, issue templates.
+### Fixed
+- Database connections were never closed at the end of a `with` block, which on Windows blocked moving a damaged database aside.
 
 ## [0.9.1] - 2026-09-19
 
