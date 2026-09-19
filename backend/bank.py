@@ -17,6 +17,7 @@ def _load(name: str) -> dict:
 
 WORDS = _load("fallback_words.json")          # {"en": {"animals": [...], ...}, "de": {...}}
 SENTENCES = _load("fallback_sentences.json")
+FREE_PLAY = _load("free_play.json")           # more word pictures, only for the Free Play Studio
 PICTURES = _load("word_pictures.json")        # {"en": {"cat": "🐱", ...}, "de": {...}} for Word Woods
 
 # Short warm lines per moment. "{child}" is replaced by the browser with the

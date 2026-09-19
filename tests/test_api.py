@@ -110,3 +110,11 @@ def test_pictured_words_endpoint_and_name_settings(client):
 
 def test_typing_key_events_accept_space(client):
     assert client.post("/api/keystrokes", json={"events": [{"key": "SPACE", "correct": True, "ms": 300}]}).status_code == 200
+
+
+def test_pictures_endpoint_merges_free_play_and_word_woods(client):
+    pictures = client.get("/api/pictures").json()
+    assert pictures["cat"] == "🐱" and pictures["pizza"] == "🍕"
+    token = client.post("/api/parent/verify", json={"pin": "4321"}).json()["token"]
+    client.post("/api/parent/settings", json={"language": "de"}, headers={"X-Parent-Token": token})
+    assert client.get("/api/pictures").json()["hund"] == "🐶"

@@ -158,3 +158,9 @@ def test_every_picture_belongs_to_a_bank_word():
     for lang, pictures in bank.PICTURES.items():
         bank_words = {w for words in bank.WORDS[lang].values() for w in words}
         assert set(pictures) <= bank_words and all(pictures.values()), lang
+
+
+def test_free_play_pictures_are_sane():
+    import re
+    for lang, pictures in bank.FREE_PLAY.items():
+        assert all(re.fullmatch(r"[a-zäöüß]+", word) and emoji for word, emoji in pictures.items()), lang

@@ -73,3 +73,12 @@ def test_parent_can_unlock_any_world(db_path):
 def test_every_sticker_award_key_is_unique():
     keys = [s["award"] for s in progress.CATALOG]
     assert len(keys) == len(set(keys))
+
+
+def test_basics_and_free_play_chain(db_path):
+    assert not progress.get_progress(db_path, D)["worlds"]["free"]["unlocked"]
+    for level in range(1, 7):
+        result = progress.record_completion(db_path, "basics", level, 3, D)
+    assert "octopus" in result["new_stickers"]
+    assert progress.get_progress(db_path, D)["worlds"]["free"]["unlocked"]
+    assert "painter" in progress.record_completion(db_path, "free", 1, 3, D)["new_stickers"]

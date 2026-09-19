@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from datetime import date
 
-from backend import db, difficulty, progress
+from backend import bank, db, difficulty, progress
 from backend.config import FRONTEND_DIR, LOG_DIR, PORT, load_settings
 from backend.content import ContentService
 from backend.llm.client import LLMClient
@@ -81,6 +81,12 @@ def create_app() -> FastAPI:
     def practice_words(count: int = Query(default=8, ge=1, le=20), pictured: bool = False,
                        max_len: int = Query(default=4, ge=2, le=6)):
         return content.pictured_words(count, max_len) if pictured else content.words(count)
+
+    @app.get("/api/pictures")
+    def pictures():
+        """Word to emoji for the Free Play Studio (Word Woods pictures plus extras)."""
+        lang = content.language()
+        return {**bank.FREE_PLAY.get(lang, {}), **bank.PICTURES.get(lang, {})}
 
     @app.get("/api/content/sentences")
     def practice_sentences(count: int = Query(default=4, ge=1, le=10)):

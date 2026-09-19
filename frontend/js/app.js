@@ -210,6 +210,8 @@ function openWorld(id) {
   else if (id === "letters") letterLand();
   else if (id === "words") wordWoods();
   else if (id === "sentences") sentenceSky();
+  else if (id === "basics") computerCove();
+  else if (id === "free") freePlay();
   else comingSoonScreen(id);
 }
 

@@ -147,7 +147,7 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - [x] 3 Keyboard Kingdom + Letter Land
 - [x] 4 OpenRouter integration
 - [x] 5 Word Woods + Sentence Sky
-- [ ] 6 Computer Basics Cove + Free Play
+- [x] 6 Computer Basics Cove + Free Play
 - [ ] 7 Parent dashboard
 - [ ] 8 Polish
 
@@ -176,3 +176,10 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - Word Woods and Sentence Sky draw from at least the first 16 letters (`MIN_PRACTICE_LETTERS` in `content.py`), otherwise there would be almost no real words. They use the cache and the bank like everything else; cache level key is `max(unlocked, 16)`.
 - Child name and favourite word are settings (`child_name`, `favorite_word`) set in the parent area, used only in the browser (`settings.child_name` replaces `{child}` in mascot lines). Never add them to a prompt.
 - `sfx(name, arg)` now takes an argument (`sfx("note", i)` plays step i of the scale).
+
+## Milestone 6 notes
+
+- `frontend/js/basics.js`: lessons are data-driven through `chooseSteps()` (picture + big choices; a wrong choice only wobbles and points at the right one). The window lesson is a small custom simulation. Add a lesson by adding steps, an i18n entry pair (en and de) and raising `LEVEL_COUNTS["basics"]` in `backend/progress.py`.
+- `frontend/js/freeplay.js`: typed text is never sent anywhere (no LLM, no server). Word to emoji comes from `/api/pictures` = `content/free_play.json` plus `content/word_pictures.json`. Free Play has one "level": the first time the child makes 3 scenes it earns the Painter sticker.
+- Basics unlocks after Sentence Sky is complete, Free Play after Basics is complete (parent can unlock all).
+- Screens with the on-screen keyboard are tight at 720 px height: check new screens at 1280x720 (see the screenshot approach in the Milestone 3 notes).

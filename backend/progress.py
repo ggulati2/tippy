@@ -15,7 +15,7 @@ from backend.config import CONTENT_DIR
 WORLD_ORDER = ["mouse", "keyboard", "letters", "words", "sentences", "basics", "free"]
 
 # How many levels each *built* world has. Add a world here when it is built.
-LEVEL_COUNTS = {"mouse": 4, "keyboard": 5, "letters": 5, "words": 5, "sentences": 5}
+LEVEL_COUNTS = {"mouse": 4, "keyboard": 5, "letters": 5, "words": 5, "sentences": 5, "basics": 6, "free": 1}
 
 MAX_STARS_PER_LEVEL = 3
 
