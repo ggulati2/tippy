@@ -33,13 +33,19 @@ MIN_PRACTICE_LETTERS = 16  # Word Woods and Sentence Sky draw from at least this
 
 
 class ContentService:
-    def __init__(self, db_path: Path, llm: LLMClient, background: bool = True):
-        self.db_path = db_path
+    def __init__(self, source, llm: LLMClient, background: bool = True):
+        # `source` is a database Path, or an object with a `db_path` attribute (the Family), so that
+        # the service always talks to the database of whoever is playing right now.
+        self._source = source
         self.llm = llm
         self.background = background  # tests set False so refills run immediately
         self._inflight: set[str] = set()
         self._cooldown: dict[str, float] = {}
         self._lock = threading.Lock()
+
+    @property
+    def db_path(self) -> Path:
+        return self._source.db_path if hasattr(self._source, "db_path") else self._source
 
     # ---------- Child profile ----------
 
@@ -81,9 +87,9 @@ class ContentService:
                 "SELECT COUNT(*) FROM content_cache WHERE type = ? AND level = ? AND used = 0", (cache_type, level)
             ).fetchone()[0]
 
-    def _store(self, cache_type: str, level: int, items: list[str]) -> None:
+    def _store(self, cache_type: str, level: int, items: list[str], db_path: Path | None = None) -> None:
         now = datetime.now().isoformat(timespec="seconds")
-        with db.connect(self.db_path) as conn:
+        with db.connect(db_path or self.db_path) as conn:
             known = {json.loads(r["json"])["text"] for r in
                      conn.execute("SELECT json FROM content_cache WHERE type = ? AND level = ?", (cache_type, level))}
             for text in items:
@@ -119,13 +125,15 @@ class ContentService:
             return []
         return good
 
-    def _refill(self, kind: str, cache_type: str, level: int, params: dict) -> None:
-        key = f"{cache_type}:{level}"
+    def _refill(self, kind: str, cache_type: str, level: int, params: dict, db_path: Path) -> None:
+        # db_path is the child the request was for: if another child starts playing while the
+        # answer is on its way, it still lands in the right child's cache.
+        key = f"{db_path.name}:{cache_type}:{level}"
         try:
             text = self.llm.generate({"kind": kind, "count": BATCH[kind], **params})
             good = self._validate(kind, text, params)
             if good:
-                self._store(cache_type, level, good)
+                self._store(cache_type, level, good, db_path)
                 self._cooldown.pop(key, None)
             else:
                 self._cooldown[key] = time.monotonic() + COOLDOWN_SECONDS
@@ -139,7 +147,8 @@ class ContentService:
     def _maybe_refill(self, kind: str, cache_type: str, level: int, params: dict) -> None:
         if not self.llm.enabled or self._unused(cache_type, level) >= LOW_WATER[kind]:
             return
-        key = f"{cache_type}:{level}"
+        db_path = self.db_path
+        key = f"{db_path.name}:{cache_type}:{level}"
         if time.monotonic() < self._cooldown.get(key, 0):
             return
         with self._lock:
@@ -147,9 +156,9 @@ class ContentService:
                 return
             self._inflight.add(key)
         if self.background:
-            threading.Thread(target=self._refill, args=(kind, cache_type, level, params), daemon=True).start()
+            threading.Thread(target=self._refill, args=(kind, cache_type, level, params, db_path), daemon=True).start()
         else:
-            self._refill(kind, cache_type, level, params)
+            self._refill(kind, cache_type, level, params, db_path)
 
     # ---------- What the app asks for ----------
 

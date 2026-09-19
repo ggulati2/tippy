@@ -208,7 +208,7 @@ def test_first_run_setup_and_change_pin(tmp_path, monkeypatch):
     done = c.post("/api/setup", json={"pin": "2468", "language": "de", "child_name": "Mia", "daily_limit_minutes": 30}).json()
     assert done["setup_needed"] is False and done["language"] == "de" and done["daily_limit_minutes"] == 30
     assert c.post("/api/setup", json={"pin": "1111"}).status_code == 409  # only once
-    stored = db.get_settings(tmp_path / "t.db")["pin_hash"]
+    stored = db.get_settings(tmp_path / "family.db")["pin_hash"]   # the PIN belongs to the household
     assert "2468" not in stored
     # Sign in, change the PIN, and the new one works after a restart.
     token = c.post("/api/parent/verify", json={"pin": "2468"}).json()["token"]

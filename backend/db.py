@@ -94,7 +94,6 @@ DEFAULT_SETTINGS = {
     "font_scale": "1",             # text size: 1, 1.125 or 1.25
     "reduce_motion": "0",          # 1 = no animations
     "ask_tippy": "0",              # the picture Q&A is off unless the parent turns it on
-    "openrouter_model": "",        # parent override; empty = use the model from .env
     "weekly_summary": "",          # cached weekly summary (JSON), parent area only
 }
 

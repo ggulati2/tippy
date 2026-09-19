@@ -18,6 +18,7 @@ from backend import bank, dashboard, db, difficulty, progress, summary
 from backend.config import FRONTEND_DIR, LOG_DIR, PORT, load_settings
 from backend.content import ContentService
 from backend.llm.client import LLMClient
+from backend.profiles import AVATARS, Family, ProfileError
 from backend.security import PinGuard
 
 LOG_DIR.mkdir(exist_ok=True)
@@ -38,13 +39,15 @@ WORD_PATTERN = r"^[\p{L}]{0,15}$"
 
 def create_app() -> FastAPI:
     settings = load_settings()
-    db.init_db(settings.db_path, settings.app_language)
-    # PIN: saved (hashed) in the database after first-run setup or a change; otherwise the optional
+    # The family database (PIN, list of children, helper usage) and one database per child.
+    # An older single-child database (tippy.db) is moved into the first child automatically.
+    family = Family(settings.db_path.parent, settings.app_language, legacy_db=settings.db_path)
+    # PIN: saved (hashed) in the family database after first-run setup or a change; otherwise the optional
     # PARENT_PIN from .env; otherwise the parent is asked to choose one on the first start.
-    saved_pin = db.get_settings(settings.db_path).get("pin_hash")
+    saved_pin = db.get_settings(family.family_db).get("pin_hash")
     guard = PinGuard(pin=settings.parent_pin or None, stored=saved_pin or None)
-    llm = LLMClient(settings)
-    content = ContentService(settings.db_path, llm)
+    llm = LLMClient(settings, state_db=family.family_db)
+    content = ContentService(family, llm)
     app = FastAPI(title="Tippy", docs_url=None, redoc_url=None, openapi_url=None)
     # launch.py replaces this with a clean shutdown. Standalone fallback below.
     app.state.request_shutdown = lambda: os._exit(0)
@@ -80,13 +83,15 @@ def create_app() -> FastAPI:
     @app.get("/api/settings")
     def read_settings():
         """Settings the child's screen needs. Contains no secrets and nothing from the parent's private data."""
-        stored = db.get_settings(settings.db_path)
+        stored = db.get_settings(family.db_path)
         out = {key: stored.get(key, "") for key in db.CHILD_SETTINGS}
         out["font_scale"] = float(stored.get("font_scale") or 1)
         for flag in ("voice_on", "sound_on", "ask_tippy", "reduce_motion"):
             out[flag] = stored.get(flag) == "1"
         out["online_helper"] = llm.mode == "live"  # the parent area hides the helper tab when off
         out["setup_needed"] = not guard.has_pin
+        out["profile_id"] = family.active_id
+        out["profile_count"] = len(family.list())
         for number in ("session_minutes", "daily_limit_minutes"):
             out[number] = int(stored.get(number) or 0)
         return out
@@ -116,29 +121,29 @@ def create_app() -> FastAPI:
     @app.post("/api/session/heartbeat")
     def heartbeat(body: HeartbeatBody):
         """The browser reports active play time every 15 seconds (used for break and daily limits)."""
-        dashboard.add_play_seconds(settings.db_path, body.seconds)
-        return dashboard.limits_state(settings.db_path)
+        dashboard.add_play_seconds(family.db_path, body.seconds)
+        return dashboard.limits_state(family.db_path)
 
     @app.get("/api/limits")
     def limits():
-        return dashboard.limits_state(settings.db_path)
+        return dashboard.limits_state(family.db_path)
 
     @app.get("/api/ask")
     def ask_tippy(topic: str = Query(max_length=20)):
         """Picture questions only. Off unless the parent has switched Ask Tippy on."""
-        if db.get_settings(settings.db_path).get("ask_tippy") != "1":
+        if db.get_settings(family.db_path).get("ask_tippy") != "1":
             raise HTTPException(status_code=403, detail="ask tippy is off")
         return content.ask_answer(topic)
 
     @app.post("/api/visit")
     def visit():
         """Called when the app opens: counts today as a play day for the streak."""
-        progress.record_visit(settings.db_path, date.today())
+        progress.record_visit(family.db_path, date.today())
         return {"ok": True}
 
     @app.get("/api/progress")
     def read_progress():
-        return progress.get_progress(settings.db_path)
+        return progress.get_progress(family.db_path)
 
     @app.get("/api/stickers")
     def sticker_catalog():
@@ -152,7 +157,7 @@ def create_app() -> FastAPI:
     @app.post("/api/progress/complete")
     def complete_level(body: CompleteBody):
         try:
-            return progress.record_completion(settings.db_path, body.world, body.level, body.stars)
+            return progress.record_completion(family.db_path, body.world, body.level, body.stars)
         except ValueError:
             raise HTTPException(status_code=400, detail="unknown level")
 
@@ -167,11 +172,11 @@ def create_app() -> FastAPI:
 
     @app.get("/api/letters")
     def read_letters():
-        return difficulty.get_letters(settings.db_path)
+        return difficulty.get_letters(family.db_path)
 
     @app.post("/api/keystrokes")
     def save_keystrokes(body: KeystrokeBody):
-        return difficulty.record_keystrokes(settings.db_path, [e.model_dump() for e in body.events], body.adaptive)
+        return difficulty.record_keystrokes(family.db_path, [e.model_dump() for e in body.events], body.adaptive)
 
     # ---------- Parent endpoints ----------
 
@@ -199,11 +204,12 @@ def create_app() -> FastAPI:
         """Runs once, on the very first start: the parent chooses a PIN and a few basics."""
         if guard.has_pin:
             raise HTTPException(status_code=409, detail="already set up")
-        db.set_setting(settings.db_path, "pin_hash", guard.set_pin(body.pin))
-        db.set_setting(settings.db_path, "language", body.language)
-        db.set_setting(settings.db_path, "keyboard_layout", "qwertz" if body.language == "de" else "qwerty")
-        db.set_setting(settings.db_path, "child_name", body.child_name)
-        db.set_setting(settings.db_path, "daily_limit_minutes", str(body.daily_limit_minutes))
+        db.set_setting(family.family_db, "pin_hash", guard.set_pin(body.pin))
+        db.set_setting(family.db_path, "language", body.language)
+        db.set_setting(family.db_path, "keyboard_layout", "qwertz" if body.language == "de" else "qwerty")
+        db.set_setting(family.db_path, "child_name", body.child_name)
+        family.rename_active(body.child_name)
+        db.set_setting(family.db_path, "daily_limit_minutes", str(body.daily_limit_minutes))
         return read_settings()
 
     class NewPinBody(BaseModel):
@@ -212,7 +218,7 @@ def create_app() -> FastAPI:
     @app.post("/api/parent/pin")
     def change_pin(body: NewPinBody, x_parent_token: str | None = Header(default=None)):
         require_parent(x_parent_token)
-        db.set_setting(settings.db_path, "pin_hash", guard.set_pin(body.pin))
+        db.set_setting(family.family_db, "pin_hash", guard.set_pin(body.pin))
         return {"ok": True}  # the old token is revoked: the parent signs in again with the new PIN
 
     class SettingsBody(BaseModel):
@@ -240,11 +246,75 @@ def create_app() -> FastAPI:
         if interests is not None:
             if not interests or any(topic not in bank.THEMES for topic in interests):
                 raise HTTPException(status_code=422, detail="pick at least one known interest")
-            with db.connect(settings.db_path) as conn:
+            with db.connect(family.db_path) as conn:
                 conn.execute("UPDATE child_profile SET interests = ? WHERE id = 1", (",".join(dict.fromkeys(interests)),))
         for key, value in data.items():
-            db.set_setting(settings.db_path, key, "1" if value is True else "0" if value is False else str(value))
+            text = "1" if value is True else "0" if value is False else str(value)
+            # The helper model belongs to the household; everything else to the child who is selected.
+            db.set_setting(family.family_db if key == "openrouter_model" else family.db_path, key, text)
+            if key == "child_name":
+                family.rename_active(text)
         return read_settings()
+
+    # ---------- Children ----------
+
+    @app.get("/api/profiles")
+    def list_profiles():
+        """For the "who is playing?" screen. Names stay on this computer."""
+        return {"profiles": family.list(), "active": family.active_id, "avatars": AVATARS}
+
+    class SelectBody(BaseModel):
+        id: int
+
+    @app.post("/api/profiles/select")
+    def select_profile(body: SelectBody):
+        """A child taps their picture. No PIN: it only decides whose progress is shown."""
+        try:
+            family.select(body.id)
+        except ProfileError as error:
+            raise HTTPException(status_code=422, detail=str(error))
+        return read_settings()
+
+    class NewProfileBody(BaseModel):
+        name: str = Field(min_length=1, pattern=NAME_PATTERN)
+        avatar: str = Field(max_length=8)
+        language: str | None = Field(default=None, pattern="^(en|de)$")
+
+    @app.post("/api/parent/profiles")
+    def add_profile(body: NewProfileBody, x_parent_token: str | None = Header(default=None)):
+        require_parent(x_parent_token)
+        try:
+            family.create(body.name, body.avatar, body.language)
+        except ProfileError as error:
+            raise HTTPException(status_code=422, detail=str(error))
+        return list_profiles()
+
+    class EditProfileBody(BaseModel):
+        name: str | None = Field(default=None, min_length=1, pattern=NAME_PATTERN)
+        avatar: str | None = Field(default=None, max_length=8)
+
+    @app.post("/api/parent/profiles/{profile_id}")
+    def edit_profile(profile_id: int, body: EditProfileBody, x_parent_token: str | None = Header(default=None)):
+        require_parent(x_parent_token)
+        try:
+            family.update(profile_id, body.name, body.avatar)
+        except ProfileError as error:
+            raise HTTPException(status_code=422, detail=str(error))
+        return list_profiles()
+
+    class DeleteProfileBody(BaseModel):
+        confirm: str
+
+    @app.post("/api/parent/profiles/{profile_id}/delete")
+    def delete_profile(profile_id: int, body: DeleteProfileBody, x_parent_token: str | None = Header(default=None)):
+        require_parent(x_parent_token)
+        if body.confirm != "DELETE":
+            raise HTTPException(status_code=422, detail="type DELETE to confirm")
+        try:
+            family.delete(profile_id)
+        except ProfileError as error:
+            raise HTTPException(status_code=422, detail=str(error))
+        return list_profiles()
 
     class UnlockBody(BaseModel):
         world: str = Field(max_length=20)
@@ -253,10 +323,10 @@ def create_app() -> FastAPI:
     def unlock(body: UnlockBody, x_parent_token: str | None = Header(default=None)):
         require_parent(x_parent_token)
         try:
-            progress.unlock_world(settings.db_path, body.world)
+            progress.unlock_world(family.db_path, body.world)
         except ValueError:
             raise HTTPException(status_code=400, detail="unknown world")
-        return progress.get_progress(settings.db_path)
+        return progress.get_progress(family.db_path)
 
     @app.get("/api/parent/status")
     def parent_status(x_parent_token: str | None = Header(default=None)):
@@ -272,18 +342,18 @@ def create_app() -> FastAPI:
     @app.get("/api/parent/dashboard")
     def parent_dashboard(x_parent_token: str | None = Header(default=None)):
         require_parent(x_parent_token)
-        return dashboard.dashboard(settings.db_path)
+        return dashboard.dashboard(family.db_path)
 
     @app.get("/api/parent/summary")
     def parent_summary(refresh: bool = False, x_parent_token: str | None = Header(default=None)):
         """The weekly summary. May take a few seconds when it has to ask the LLM; parent area only."""
         require_parent(x_parent_token)
-        return summary.get_summary(settings.db_path, llm, refresh=refresh)
+        return summary.get_summary(family.db_path, llm, refresh=refresh)
 
     @app.get("/api/parent/export")
     def parent_export(x_parent_token: str | None = Header(default=None)):
         require_parent(x_parent_token)
-        return dashboard.export_data(settings.db_path)
+        return dashboard.export_data(family.db_path)
 
     class ResetBody(BaseModel):
         confirm: str
@@ -293,7 +363,7 @@ def create_app() -> FastAPI:
         require_parent(x_parent_token)
         if body.confirm != "RESET":
             raise HTTPException(status_code=400, detail="confirmation missing")
-        dashboard.reset_progress(settings.db_path)
+        dashboard.reset_progress(family.db_path)
         log.info("Progress reset from parent area")
         return {"ok": True}
 
@@ -311,4 +381,18 @@ def create_app() -> FastAPI:
     return app
 
 
-app = create_app()
+_app = None
+
+
+def __getattr__(name):
+    """`from backend.app import app` creates the app the first time it is asked for.
+
+    It is not created when this module is merely imported (for example by the tests), because
+    creating it opens the real data folder.
+    """
+    global _app
+    if name == "app":
+        if _app is None:
+            _app = create_app()
+        return _app
+    raise AttributeError(name)

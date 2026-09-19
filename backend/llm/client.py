@@ -9,6 +9,7 @@ Everything that talks to the internet is in this file. Rules:
 import json
 import logging
 import time
+from pathlib import Path
 from datetime import date
 
 import httpx
@@ -25,8 +26,10 @@ FATAL_STATUS = {401, 402, 403}  # wrong key or no credit: retrying another model
 
 
 class LLMClient:
-    def __init__(self, settings: Settings, transport: httpx.BaseTransport | None = None):
+    def __init__(self, settings: Settings, transport: httpx.BaseTransport | None = None, state_db: Path | None = None):
         self.settings = settings
+        # Usage counter and the parent's model choice belong to the household, not to one child.
+        self._state_db = state_db or settings.db_path
         self._transport = transport  # tests pass a fake network here
         self.online: bool | None = None  # None = not tried yet
         self.last_error = ""
@@ -45,12 +48,12 @@ class LLMClient:
     @property
     def model(self) -> str:
         """The main model: the parent's choice in the parent area, otherwise the one from .env."""
-        return db.get_settings(self.settings.db_path).get("openrouter_model") or self.settings.openrouter_model
+        return db.get_settings(self._state_db).get("openrouter_model") or self.settings.openrouter_model
 
     # ---------- Usage and cost ----------
 
     def usage_today(self) -> dict:
-        with db.connect(self.settings.db_path) as conn:
+        with db.connect(self._state_db) as conn:
             row = conn.execute(
                 "SELECT COUNT(*) AS n, COALESCE(SUM(est_cost_usd), 0) AS cost FROM llm_usage WHERE day = ?",
                 (date.today().isoformat(),),
@@ -58,7 +61,7 @@ class LLMClient:
         return {"requests": row["n"], "cost_usd": round(row["cost"], 6), "cap": self.settings.daily_request_cap}
 
     def _record(self, model: str, prompt_tokens: int = 0, completion_tokens: int = 0, cost: float = 0.0) -> None:
-        with db.connect(self.settings.db_path) as conn:
+        with db.connect(self._state_db) as conn:
             conn.execute(
                 "INSERT INTO llm_usage (day, model, prompt_tokens, completion_tokens, est_cost_usd) VALUES (?, ?, ?, ?, ?)",
                 (date.today().isoformat(), model, prompt_tokens, completion_tokens, cost),

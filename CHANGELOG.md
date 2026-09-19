@@ -4,6 +4,10 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+### Changed
+- Storage is now one database per child (`data/profiles/<id>.db`) plus a family database (`data/family.db`) for the PIN, the helper model and the shared online-helper usage counter. An existing single-child `data/tippy.db` is moved into the first child automatically; a safety copy `tippy.db.before-profiles-<time>` is kept. Screens for choosing and managing children follow in the next changes.
+- Importing `backend.app` no longer creates the app (and no longer opens the data folder); tests never touch real data.
+
 ### Added
 - Saved browser test suite (`tests/browser`, `pytest -m browser`) that plays every level in English and German, stresses the app, and checks limits and the parent area; runs in CI.
 - CI: Windows test job, CodeQL scanning, security policy, code owners, issue templates.
