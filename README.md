@@ -95,6 +95,10 @@ Change the mascot's name and colours in `frontend/js/config.js`.
 - **No sound or voice:** check the 🔊 button is not showing 🔇, the Mac volume, and Settings *Voice* / *Sounds*. Voices come from macOS (System Settings, Accessibility, Spoken Content); a German voice must be installed to hear German.
 - **Reset everything (stars, stickers, settings):** stop Tippy and delete the `data/` folder.
 
+## License
+
+Tippy is free software under the [MIT License](LICENSE): you may use, copy and change it, including for your own children, and share it. The bundled font Nunito is under the SIL Open Font License (`frontend/assets/fonts/OFL.txt`). Tippy comes with no warranty.
+
 ## Limits to know about
 
 - One child profile per copy of Tippy (progress is shared by everyone who uses that computer's Tippy).
