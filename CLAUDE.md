@@ -198,3 +198,10 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - Accessibility: settings `font_scale` (1, 1.125, 1.25; drives the CSS variable `--font-scale`, capped at 1.25 because larger sizes push the world map and Free Play off a 720 px screen) and `reduce_motion` (adds the class `reduce-motion` to `body`). Both are applied by `applyLook()` in `app.js`. The child's 🔊 button (`muted` in `app.js`) is per-run and silences `sfx` and `speak`.
 - `#screen` scrolls (`overflow-y: auto`, `justify-content: safe center`) as a safety net. Welcome and world-map sizes are capped with `vh` so they fit 1280x720 even at the biggest text size. Check new screens at 1280x720 with font_scale 1.25.
 - Localisation review: en and de have the same 162 keys and every `t("...")` key exists. Keep it that way (a small node script that loads `i18n.js` and diffs the keys is enough).
+
+## Distribution notes (after Milestone 8)
+
+- Decisions with the parent: share as a zip first (`scripts/make_zip.py`, tracked files only, refuses anything that looks like an API key), standalone Mac/Windows builds later as a separate milestone; the shared version is offline only.
+- `LLM_MODE` now has `off` (default: built-in content only, no helper tab), `mock` (development) and `live`. The parent's own `.env` may keep `live`.
+- First start with no PIN: `setup_needed` is true in `/api/settings`, and `frontend/js/setup.js` runs the wizard (language, PIN, name, daily limit, default 30 min) via `POST /api/setup` (works once). The PIN is stored as a salted PBKDF2 hash in the `pin_hash` setting (private, not in `CHILD_SETTINGS`); `PARENT_PIN` in `.env` is optional and the saved hash wins. Change PIN: `POST /api/parent/pin`.
+- Keep `.env.example` free of secrets and with `LLM_MODE=off`.
