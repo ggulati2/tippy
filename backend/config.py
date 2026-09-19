@@ -51,7 +51,7 @@ class Settings:
     openrouter_fallback_model: str
     app_language: str  # "en" or "de"
     parent_pin: str
-    llm_mode: str  # "mock" (no network, no cost) or "live"
+    llm_mode: str  # "off" (built-in content only), "mock" (fake LLM, for development) or "live"
     daily_request_cap: int  # most OpenRouter requests per day, so a bug can never run up a bill
     db_path: Path
 
@@ -66,15 +66,15 @@ def load_settings() -> Settings:
     language = get("APP_LANGUAGE", "en").lower()
     if language not in ("en", "de"):
         language = "en"
-    mode = get("LLM_MODE", "mock").lower()
-    if mode not in ("mock", "live"):
-        mode = "mock"
+    mode = get("LLM_MODE", "off").lower()
+    if mode not in ("off", "mock", "live"):
+        mode = "off"
     return Settings(
         openrouter_api_key=get("OPENROUTER_API_KEY"),
         openrouter_model=get("OPENROUTER_MODEL") or DEFAULT_MODEL,
         openrouter_fallback_model=get("OPENROUTER_FALLBACK_MODEL") or DEFAULT_FALLBACK_MODEL,
         app_language=language,
-        parent_pin=get("PARENT_PIN", "1234"),
+        parent_pin=get("PARENT_PIN"),  # empty = the parent chooses one on first start
         llm_mode=mode,
         daily_request_cap=_to_int(get("DAILY_REQUEST_CAP", "45"), 45),
         db_path=Path(get("TIPPY_DB_PATH", str(DATA_DIR / "tippy.db"))),

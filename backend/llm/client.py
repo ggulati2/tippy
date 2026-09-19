@@ -40,7 +40,7 @@ class LLMClient:
     @property
     def enabled(self) -> bool:
         """True if generate() can produce anything (mock always; live needs a key)."""
-        return self.mode == "mock" or bool(self.settings.openrouter_api_key)
+        return self.mode == "mock" or (self.mode == "live" and bool(self.settings.openrouter_api_key))
 
     @property
     def model(self) -> str:
@@ -68,6 +68,8 @@ class LLMClient:
 
     def generate(self, task: dict) -> str | None:
         """Return the model's JSON text for a task, or None if anything goes wrong."""
+        if self.mode == "off":
+            return None
         if self.mode == "mock":
             self.online = None
             return mock.mock_generate(task)

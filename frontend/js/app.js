@@ -322,7 +322,7 @@ document.addEventListener("keydown", (e) => {
     if (/^[0-9]$/.test(e.key)) pad.pinPress(e.key);
     else if (e.key === "Backspace") pad.pinBack();
     else if (e.key === "Enter") pad.pinSubmit();
-    else if (e.key === "Escape") closeModal();
+    else if (e.key === "Escape" && !setupActive) closeModal();
     e.preventDefault();
     return;
   }
@@ -356,6 +356,7 @@ $("#parent-btn").addEventListener("click", () => openModal(pinPad()));
     settings = { ...settings, ...body };
     applyLook();
     api("/api/visit", { method: "POST" }); // counts today for the streak
+    if (settings.setup_needed) { await welcomeScreen(); setupWizard(); return; }
     startLimits();
     await welcomeScreen();
   } catch (e) {

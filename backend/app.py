@@ -32,7 +32,10 @@ log = logging.getLogger("tippy")
 def create_app() -> FastAPI:
     settings = load_settings()
     db.init_db(settings.db_path, settings.app_language)
-    guard = PinGuard(settings.parent_pin)
+    # PIN: saved (hashed) in the database after first-run setup or a change; otherwise the optional
+    # PARENT_PIN from .env; otherwise the parent is asked to choose one on the first start.
+    saved_pin = db.get_settings(settings.db_path).get("pin_hash")
+    guard = PinGuard(pin=settings.parent_pin or None, stored=saved_pin or None)
     llm = LLMClient(settings)
     content = ContentService(settings.db_path, llm)
     app = FastAPI(title="Tippy", docs_url=None, redoc_url=None, openapi_url=None)
@@ -75,6 +78,8 @@ def create_app() -> FastAPI:
         out["font_scale"] = float(stored.get("font_scale") or 1)
         for flag in ("voice_on", "sound_on", "ask_tippy", "reduce_motion"):
             out[flag] = stored.get(flag) == "1"
+        out["online_helper"] = llm.mode == "live"  # the parent area hides the helper tab when off
+        out["setup_needed"] = not guard.has_pin
         for number in ("session_minutes", "daily_limit_minutes"):
             out[number] = int(stored.get(number) or 0)
         return out
@@ -175,6 +180,33 @@ def create_app() -> FastAPI:
         if token is None:
             return JSONResponse({"ok": False, "locked_seconds": guard.seconds_locked()}, status_code=401)
         return {"ok": True, "token": token}
+
+    class SetupBody(BaseModel):
+        pin: str = Field(pattern=r"^[0-9]{4,8}$")
+        language: str = Field(default="en", pattern="^(en|de)$")
+        child_name: str = Field(default="", pattern="^[A-Za-zÄÖÜäöüß \\-]{0,20}$")
+        daily_limit_minutes: int = Field(default=30, ge=0, le=480)
+
+    @app.post("/api/setup")
+    def first_run_setup(body: SetupBody):
+        """Runs once, on the very first start: the parent chooses a PIN and a few basics."""
+        if guard.has_pin:
+            raise HTTPException(status_code=409, detail="already set up")
+        db.set_setting(settings.db_path, "pin_hash", guard.set_pin(body.pin))
+        db.set_setting(settings.db_path, "language", body.language)
+        db.set_setting(settings.db_path, "keyboard_layout", "qwertz" if body.language == "de" else "qwerty")
+        db.set_setting(settings.db_path, "child_name", body.child_name)
+        db.set_setting(settings.db_path, "daily_limit_minutes", str(body.daily_limit_minutes))
+        return read_settings()
+
+    class NewPinBody(BaseModel):
+        pin: str = Field(pattern=r"^[0-9]{4,8}$")
+
+    @app.post("/api/parent/pin")
+    def change_pin(body: NewPinBody, x_parent_token: str | None = Header(default=None)):
+        require_parent(x_parent_token)
+        db.set_setting(settings.db_path, "pin_hash", guard.set_pin(body.pin))
+        return {"ok": True}  # the old token is revoked: the parent signs in again with the new PIN
 
     class SettingsBody(BaseModel):
         language: str | None = Field(default=None, pattern="^(en|de)$")

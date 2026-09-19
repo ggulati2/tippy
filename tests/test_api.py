@@ -2,6 +2,8 @@ import json
 import os
 
 import pytest
+
+from backend import db
 from fastapi.testclient import TestClient
 
 
@@ -188,3 +190,29 @@ def test_accessibility_settings(client):
     out = client.post("/api/parent/settings", json={"font_scale": 1.125, "reduce_motion": True}, headers=headers).json()
     assert out["font_scale"] == 1.125 and out["reduce_motion"] is True
     assert client.post("/api/parent/settings", json={"font_scale": 1.5}, headers=headers).status_code == 422
+
+
+def test_first_run_setup_and_change_pin(tmp_path, monkeypatch):
+    """No PIN in .env: the first start asks the parent to choose one, and it is stored only as a hash."""
+    from fastapi.testclient import TestClient
+    from backend.app import create_app
+    monkeypatch.setenv("TIPPY_DB_PATH", str(tmp_path / "t.db"))
+    monkeypatch.setenv("PARENT_PIN", "")
+    monkeypatch.setenv("LLM_MODE", "off")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "")
+    c = TestClient(create_app())
+    first = c.get("/api/settings").json()
+    assert first["setup_needed"] is True and first["online_helper"] is False
+    assert c.post("/api/parent/verify", json={"pin": "1234"}).status_code == 401  # no PIN yet: nothing works
+    assert c.post("/api/setup", json={"pin": "12"}).status_code == 422
+    done = c.post("/api/setup", json={"pin": "2468", "language": "de", "child_name": "Mia", "daily_limit_minutes": 30}).json()
+    assert done["setup_needed"] is False and done["language"] == "de" and done["daily_limit_minutes"] == 30
+    assert c.post("/api/setup", json={"pin": "1111"}).status_code == 409  # only once
+    stored = db.get_settings(tmp_path / "t.db")["pin_hash"]
+    assert "2468" not in stored
+    # Sign in, change the PIN, and the new one works after a restart.
+    token = c.post("/api/parent/verify", json={"pin": "2468"}).json()["token"]
+    assert c.post("/api/parent/pin", json={"pin": "13579"}, headers={"X-Parent-Token": token}).status_code == 200
+    assert c.post("/api/parent/verify", json={"pin": "2468"}).status_code == 401
+    again = TestClient(create_app())
+    assert again.post("/api/parent/verify", json={"pin": "13579"}).status_code == 200
