@@ -20,22 +20,32 @@ Windows: double-click `start.bat`. Linux: run `./start.sh`.
 - **Parent area:** tap the small pale gear in the top-right corner and enter the PIN (default `1234`, change it in `.env`). There you can switch English/German, the keyboard shape (QWERTY/QWERTZ), voice and sounds, uppercase or lowercase letters, and **Exit Tippy**.
 - The app can only be closed with the PIN. If it ever gets stuck: press `Ctrl+C` in the Terminal window that opened.
 
-## Turn on the online helper (optional)
+## Turn on the online helper (optional, can be free)
 
-Tippy works fully without it, using its built-in words and sentences. With it, Tippy also gets fresh practice words themed on animals, space, dinosaurs and vehicles, plus varied encouragement lines. Everything the LLM writes is checked before the child sees it, and the child's name is never sent.
+Tippy works fully without it, using its built-in words and sentences. With it, Tippy also gets fresh practice words themed on animals, space, dinosaurs and vehicles, plus varied encouragement lines. Everything the LLM writes is checked before the child sees it, and the child's name is never sent. Only letters, themes, language and the moment ("finished a game") are sent, nothing personal.
+
+By default Tippy uses **free** OpenRouter models (their ids end in `:free`), so no credit card is needed:
 
 1. Go to https://openrouter.ai and sign in.
-2. Open **Credits** and add a small amount (for example 5 USD). Tippy's requests are tiny, so this should last a very long time.
-3. Open **Keys**, click **Create Key**, and copy the key (it starts with `sk-or-`).
-4. In the Tippy folder, open the hidden `.env` file. In Finder press `Cmd+Shift+.` to show hidden files, or run this in Terminal from the Tippy folder: `open -e .env`
-5. Set these two lines (paste your key after the `=`), then save:
+2. Open **Keys**, click **Create Key**, and copy the key (it starts with `sk-or-`).
+3. In the Tippy folder, open the hidden `.env` file. In Finder press `Cmd+Shift+.` to show hidden files, or run this in Terminal from the Tippy folder: `open -e .env`
+4. Set these two lines (paste your key after the `=`), then save:
    ```
    OPENROUTER_API_KEY=sk-or-...your key...
    LLM_MODE=live
    ```
-6. Restart Tippy, open the parent area and press **Test connection**. You should see a green tick with the model name.
+5. Restart Tippy, open the parent area and press **Test connection**. You should see a green tick with the model name.
 
-`DAILY_REQUEST_CAP` in `.env` (default 200) is a safety brake: Tippy never sends more requests than that per day. The parent area shows today's requests and cost. If the internet is down or the key runs out of credit, the child notices nothing: Tippy switches to the built-in content.
+**Free limits:** OpenRouter allows a free account 20 requests a minute and 50 a day. Tippy asks for whole batches and remembers them, so this is normally plenty. `DAILY_REQUEST_CAP=45` in `.env` keeps Tippy safely under it, and if a request fails Tippy waits 10 minutes before trying again. Adding at least 10 USD of credit under **Credits** raises the free-model limit to 1000 a day. It is optional, and it also lets you use paid models (a few cents a month for Tippy's tiny requests).
+
+**Which model is best?** The defaults are `google/gemma-4-26b-a4b-it:free` (main) and `deepseek/deepseek-v4-flash-0731:free` (backup). To compare models on Tippy's real tasks with your own key, run this in Terminal from the Tippy folder (it uses 4 requests per model):
+```
+source .venv/bin/activate
+python scripts/try_models.py
+```
+It prints how many items from each model passed Tippy's safety checks and how long each answer took. Put the winner in `OPENROUTER_MODEL` in `.env`.
+
+If the internet is down or the key stops working, the child notices nothing: Tippy switches to the built-in content.
 
 ## Configure
 
@@ -47,8 +57,8 @@ Edit the `.env` file in this folder (created from `.env.example` on first start)
 | `APP_LANGUAGE` | `en` or `de` for the first start |
 | `LLM_MODE` | `mock` = no internet, no cost. `live` = real OpenRouter |
 | `OPENROUTER_API_KEY` | Your key. Stays on this computer, never shown in the browser. |
-| `OPENROUTER_MODEL`, `OPENROUTER_FALLBACK_MODEL` | Main and backup model. The defaults are cheap and fast; any id from openrouter.ai/models that supports JSON output works. |
-| `DAILY_REQUEST_CAP` | Most requests per day (default 200) |
+| `OPENROUTER_MODEL`, `OPENROUTER_FALLBACK_MODEL` | Main and backup model. The defaults are free models; any id from openrouter.ai/models that supports JSON output works. |
+| `DAILY_REQUEST_CAP` | Most requests Tippy sends per day (default 45, just under the free limit of 50) |
 
 Change the mascot's name and colours in `frontend/js/config.js`.
 
@@ -57,7 +67,7 @@ Change the mascot's name and colours in `frontend/js/config.js`.
 - **Nothing opens:** open http://127.0.0.1:8765 in any browser while the Terminal window is running.
 - **"Address already in use":** Tippy is already running. Close it from the parent area, or quit the old Terminal window.
 - **Something went wrong:** details are in `logs/tippy.log`. The child only sees a smiley.
-- **Test connection says `HTTP 401`:** the key is wrong. **`HTTP 402`:** no credit left. **`no API key`:** `.env` is missing the key or `LLM_MODE` is still `mock`. **`ReadTimeout`:** slow internet; Tippy keeps using built-in content.
+- **Test connection says `HTTP 401`:** the key is wrong. **`HTTP 402`:** the model needs credit (a `:free` model does not). **`HTTP 429`:** the free daily or per-minute limit is used up; Tippy uses built-in content until it resets. **`no API key`:** `.env` is missing the key or `LLM_MODE` is still `mock`. **`ReadTimeout`:** slow internet; Tippy keeps using built-in content.
 - **Reset everything (stars, stickers, settings):** stop Tippy and delete the `data/` folder.
 
 ## For developers

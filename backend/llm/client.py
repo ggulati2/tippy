@@ -90,6 +90,9 @@ class LLMClient:
             "model": model,
             "messages": messages,
             "response_format": {"type": "json_object"},
+            # Some models "think" first, and that thinking would eat the whole token
+            # budget and leave an empty answer. We only need short, direct output.
+            "reasoning": {"effort": "none"},
             "temperature": 0.8,
             "max_tokens": 700,
         }

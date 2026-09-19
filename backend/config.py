@@ -15,8 +15,11 @@ CONTENT_DIR = ROOT / "content"
 
 HOST = "127.0.0.1"  # Never change this: it keeps the app private to this computer.
 PORT = 8765
-DEFAULT_MODEL = "google/gemini-2.5-flash-lite"
-DEFAULT_FALLBACK_MODEL = "openai/gpt-4o-mini"
+# Free models (":free"), chosen from the live OpenRouter list: general-purpose instruction
+# followers with JSON output, from two different providers. Run scripts/try_models.py to
+# compare them on Tippy's real tasks with your own key.
+DEFAULT_MODEL = "google/gemma-4-26b-a4b-it:free"
+DEFAULT_FALLBACK_MODEL = "deepseek/deepseek-v4-flash-0731:free"
 
 
 def _to_int(text: str, default: int) -> int:
@@ -67,14 +70,11 @@ def load_settings() -> Settings:
         mode = "mock"
     return Settings(
         openrouter_api_key=get("OPENROUTER_API_KEY"),
-        # Checked against the live OpenRouter model list: both are cheap, fast, follow
-        # instructions well and support JSON output. They come from different
-        # providers, so if one is down the other usually still works.
         openrouter_model=get("OPENROUTER_MODEL") or DEFAULT_MODEL,
         openrouter_fallback_model=get("OPENROUTER_FALLBACK_MODEL") or DEFAULT_FALLBACK_MODEL,
         app_language=language,
         parent_pin=get("PARENT_PIN", "1234"),
         llm_mode=mode,
-        daily_request_cap=_to_int(get("DAILY_REQUEST_CAP", "200"), 200),
+        daily_request_cap=_to_int(get("DAILY_REQUEST_CAP", "45"), 45),
         db_path=Path(get("TIPPY_DB_PATH", str(DATA_DIR / "tippy.db"))),
     )

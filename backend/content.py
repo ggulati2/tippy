@@ -12,6 +12,7 @@ import json
 import logging
 import random
 import threading
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -26,6 +27,7 @@ log = logging.getLogger("tippy.content")
 LOW_WATER = {"words": 10, "sentences": 6, "mascot": 4}   # refill when fewer unused items remain
 BATCH = {"words": 20, "sentences": 10, "mascot": 8}      # how many to ask for at once
 MIN_GOOD = 3                                             # a batch with fewer valid items is thrown away
+COOLDOWN_SECONDS = 600  # after a failed refill, wait before asking again (free accounts have a small daily limit)
 SENTENCE_MIN_LETTERS = 12  # sentences need more letters than words to be possible at all
 
 
@@ -35,6 +37,7 @@ class ContentService:
         self.llm = llm
         self.background = background  # tests set False so refills run immediately
         self._inflight: set[str] = set()
+        self._cooldown: dict[str, float] = {}
         self._lock = threading.Lock()
 
     # ---------- Child profile ----------
@@ -120,8 +123,12 @@ class ContentService:
             good = self._validate(kind, text, params)
             if good:
                 self._store(cache_type, level, good)
+                self._cooldown.pop(key, None)
+            else:
+                self._cooldown[key] = time.monotonic() + COOLDOWN_SECONDS
         except Exception:
             log.exception("Background refill failed")  # never reaches the child
+            self._cooldown[key] = time.monotonic() + COOLDOWN_SECONDS
         finally:
             with self._lock:
                 self._inflight.discard(key)
@@ -130,6 +137,8 @@ class ContentService:
         if not self.llm.enabled or self._unused(cache_type, level) >= LOW_WATER[kind]:
             return
         key = f"{cache_type}:{level}"
+        if time.monotonic() < self._cooldown.get(key, 0):
+            return
         with self._lock:
             if key in self._inflight:
                 return

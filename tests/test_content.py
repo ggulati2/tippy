@@ -126,3 +126,11 @@ def test_banks_have_only_safe_typable_content():
     for lang, themes in bank.SENTENCES.items():
         for sentences in themes.values():
             assert all(clean_line(s, max_words=6, max_chars=60, lang=lang) for s in sentences), lang
+
+
+def test_failed_refill_backs_off(settings):
+    unlock(settings, 12)
+    svc, llm = service(settings, "garbage")
+    for _ in range(4):
+        svc.words(2)
+    assert llm.calls == 1          # after one failure we stop asking for a while

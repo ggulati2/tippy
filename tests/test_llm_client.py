@@ -48,7 +48,8 @@ def test_request_carries_key_and_no_personal_data(tmp_path):
     assert seen["body"]["response_format"] == {"type": "json_object"}
     text = json.dumps(seen["body"])
     assert "{child}" in text                       # the placeholder is sent, never a real name
-    assert set(seen["body"]) == {"model", "messages", "response_format", "temperature", "max_tokens"}
+    assert set(seen["body"]) == {"model", "messages", "response_format", "reasoning", "temperature", "max_tokens"}
+    assert seen["body"]["reasoning"] == {"effort": "none"}
 
 
 def test_falls_back_to_second_model_after_server_error(tmp_path):
