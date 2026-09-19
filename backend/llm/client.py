@@ -1,38 +1,147 @@
-"""The single doorway to the LLM.
+"""The single doorway to the LLM (OpenRouter, or the fake one in mock mode).
 
-Milestone 1 only has the mock: it needs no internet and costs nothing.
-Milestone 4 adds the real OpenRouter call behind the same function, with the
-mock lines as the fallback. The rest of the app never needs to know which is used.
-
-Privacy: only structured stats (event name, accuracy, streak) are ever passed
-in here. Never pass the child's name or any personal detail.
+Everything that talks to the internet is in this file. Rules:
+- Only prompts built by prompts.py go out: no names or personal details.
+- Short timeout, at most two tries (main model, then the fallback model).
+- Every try is written to the llm_usage table, and a daily cap stops runaway use.
+- On any problem we return None and the caller quietly uses the built-in bank.
 """
-import random
+import json
+import logging
+import time
+from datetime import date
 
-from backend.validators import clean_line
+import httpx
 
-# Short warm lines per event. The "{child}" placeholder is filled in by the
-# browser, locally, so the name never travels anywhere.
-_MOCK_LINES = {
-    "en": {
-        "welcome": ["Hi {child}! Let's play!", "Hello {child}! I missed you!", "Yay, you are here!"],
-        "success": ["Great job, {child}!", "You did it!", "Wow, super typing!"],
-        "oops": ["Oops! Try this one.", "Almost! Look at the glowing key."],
-        "streak": ["You came back again! Hooray!", "Another happy day!"],
-    },
-    "de": {
-        "welcome": ["Hallo {child}! Los geht's!", "Hallo {child}! Schön, dass du da bist!", "Juhu, du bist da!"],
-        "success": ["Toll gemacht, {child}!", "Du hast es geschafft!", "Wow, super getippt!"],
-        "oops": ["Huch! Probier diese Taste.", "Fast! Schau auf die leuchtende Taste."],
-        "streak": ["Du bist wieder da! Hurra!", "Wieder ein schöner Tag!"],
-    },
-}
+from backend import db
+from backend.config import Settings
+from backend.llm import mock, prompts
+
+log = logging.getLogger("tippy.llm")
+
+API_URL = "https://openrouter.ai/api/v1/chat/completions"
+TIMEOUT_SECONDS = 8.0
+FATAL_STATUS = {401, 402, 403}  # wrong key or no credit: retrying another model will not help
 
 
-def get_mascot_line(event: str, language: str = "en") -> str:
-    """Return one short, safe line for the mascot to say."""
-    lines = _MOCK_LINES.get(language, _MOCK_LINES["en"])
-    candidates = lines.get(event, lines["welcome"])
-    # Even our own lines pass through the validator: same rule for all text.
-    safe = [line for line in candidates if clean_line(line.replace("{child}", "friend"))]
-    return random.choice(safe or candidates)
+class LLMClient:
+    def __init__(self, settings: Settings, transport: httpx.BaseTransport | None = None):
+        self.settings = settings
+        self._transport = transport  # tests pass a fake network here
+        self.online: bool | None = None  # None = not tried yet
+        self.last_error = ""
+
+    # ---------- What is available ----------
+
+    @property
+    def mode(self) -> str:
+        return self.settings.llm_mode
+
+    @property
+    def enabled(self) -> bool:
+        """True if generate() can produce anything (mock always; live needs a key)."""
+        return self.mode == "mock" or bool(self.settings.openrouter_api_key)
+
+    # ---------- Usage and cost ----------
+
+    def usage_today(self) -> dict:
+        with db.connect(self.settings.db_path) as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) AS n, COALESCE(SUM(est_cost_usd), 0) AS cost FROM llm_usage WHERE day = ?",
+                (date.today().isoformat(),),
+            ).fetchone()
+        return {"requests": row["n"], "cost_usd": round(row["cost"], 6), "cap": self.settings.daily_request_cap}
+
+    def _record(self, model: str, prompt_tokens: int = 0, completion_tokens: int = 0, cost: float = 0.0) -> None:
+        with db.connect(self.settings.db_path) as conn:
+            conn.execute(
+                "INSERT INTO llm_usage (day, model, prompt_tokens, completion_tokens, est_cost_usd) VALUES (?, ?, ?, ?, ?)",
+                (date.today().isoformat(), model, prompt_tokens, completion_tokens, cost),
+            )
+
+    # ---------- Asking ----------
+
+    def generate(self, task: dict) -> str | None:
+        """Return the model's JSON text for a task, or None if anything goes wrong."""
+        if self.mode == "mock":
+            self.online = None
+            return mock.mock_generate(task)
+        if not self.settings.openrouter_api_key:
+            self.last_error = "no API key"
+            return None
+
+        messages = prompts.build_messages(task)
+        models = [self.settings.openrouter_model, self.settings.openrouter_fallback_model]
+        for model in models:
+            if self.usage_today()["requests"] >= self.settings.daily_request_cap:
+                self.last_error = "daily request cap reached"
+                log.warning("LLM daily request cap reached (%s)", self.settings.daily_request_cap)
+                return None
+            text, fatal = self._try(model, messages)
+            if text is not None:
+                return text
+            if fatal:
+                break
+        return None
+
+    def _try(self, model: str, messages: list[dict]) -> tuple[str | None, bool]:
+        """One request. Returns (text, fatal). Never raises."""
+        body = {
+            "model": model,
+            "messages": messages,
+            "response_format": {"type": "json_object"},
+            "temperature": 0.8,
+            "max_tokens": 700,
+        }
+        headers = {"Authorization": f"Bearer {self.settings.openrouter_api_key}"}
+        try:
+            with httpx.Client(timeout=TIMEOUT_SECONDS, transport=self._transport) as http:
+                response = http.post(API_URL, json=body, headers=headers)
+        except httpx.HTTPError as error:
+            return self._fail(model, type(error).__name__), False
+        if response.status_code != 200:
+            # We log only the status code, never the response body or the key.
+            return self._fail(model, f"HTTP {response.status_code}"), response.status_code in FATAL_STATUS
+        try:
+            data = response.json()
+            text = data["choices"][0]["message"]["content"]
+            usage = data.get("usage") or {}
+        except (ValueError, KeyError, IndexError, TypeError):
+            return self._fail(model, "unreadable reply"), False
+        if not isinstance(text, str):
+            return self._fail(model, "unreadable reply"), False
+        self._record(model, usage.get("prompt_tokens", 0), usage.get("completion_tokens", 0), float(usage.get("cost") or 0))
+        self.online, self.last_error = True, ""
+        return text, False
+
+    def _fail(self, model: str, reason: str) -> None:
+        log.warning("LLM request to %s failed: %s", model, reason)
+        self._record(model)  # failed tries still count toward the daily cap
+        self.online, self.last_error = False, reason
+
+    # ---------- Parent area ----------
+
+    def test_connection(self) -> dict:
+        """A tiny real request, for the parent's "Test connection" button."""
+        started = time.monotonic()
+        if self.mode == "mock":
+            return {"ok": True, "mode": "mock", "model": "mock", "latency_ms": 0, "error": ""}
+        text = self.generate({"kind": "ping"})
+        ok = False
+        if text is not None:
+            try:
+                ok = json.loads(text).get("ok") is True
+            except (ValueError, AttributeError):
+                ok = False
+        return {
+            "ok": ok, "mode": "live", "model": self.settings.openrouter_model,
+            "latency_ms": int((time.monotonic() - started) * 1000),
+            "error": "" if ok else (self.last_error or "unexpected answer"),
+        }
+
+    def status(self) -> dict:
+        return {
+            "mode": self.mode, "key_set": bool(self.settings.openrouter_api_key),
+            "model": self.settings.openrouter_model, "fallback_model": self.settings.openrouter_fallback_model,
+            "online": self.online, "last_error": self.last_error, **self.usage_today(),
+        }

@@ -1,0 +1,104 @@
+{
+ "en": {
+  "animals": [
+   "The cat sat on a mat.",
+   "A dog can run fast.",
+   "The hen has an egg.",
+   "A frog can hop.",
+   "The fox is red.",
+   "Ducks can swim.",
+   "A big cow eats grass.",
+   "The bee is on a flower.",
+   "A bird can sing.",
+   "The pig is in mud.",
+   "Owls can see at night.",
+   "A lion has a big mane."
+  ],
+  "space": [
+   "The sun is hot.",
+   "The moon is up.",
+   "A star can shine.",
+   "Mars is a red planet.",
+   "We can see the stars.",
+   "The rocket goes up.",
+   "A big star is far away.",
+   "The sky is dark at night.",
+   "Stars shine at night.",
+   "A rocket can fly fast."
+  ],
+  "dinosaurs": [
+   "A dino has a big tail.",
+   "The rex can roar.",
+   "A dino came from an egg.",
+   "The dino ate the leaf.",
+   "Big dinos had big feet.",
+   "A dino can run fast.",
+   "The egg is in the nest.",
+   "Dinos lived long ago."
+  ],
+  "vehicles": [
+   "The bus is big.",
+   "A car can go fast.",
+   "The train has a horn.",
+   "A boat can float.",
+   "The jet can fly high.",
+   "The taxi is yellow.",
+   "We ride the bus.",
+   "A bike has two wheels.",
+   "The ship is on the sea.",
+   "The van is red."
+  ],
+  "general": [
+   "I like to type.",
+   "We can type words.",
+   "Typing is fun.",
+   "The sun is up.",
+   "It is a nice day.",
+   "I see a red hat.",
+   "We can play a game.",
+   "I can read a book.",
+   "Milk is good for me.",
+   "It is time to play.",
+   "Let us type a word.",
+   "I have two hands.",
+   "Keys make letters.",
+   "We use a mouse.",
+   "The screen is bright."
+  ]
+ },
+ "de": {
+  "animals": [
+   "Der Hund läuft schnell.",
+   "Die Katze schläft gern.",
+   "Die Kuh frisst Gras.",
+   "Der Hase hüpft weg.",
+   "Die Ente kann schwimmen.",
+   "Ein Vogel kann singen."
+  ],
+  "space": [
+   "Die Sonne ist heiß.",
+   "Der Mond ist hell.",
+   "Ein Stern leuchtet.",
+   "Die Rakete fliegt hoch."
+  ],
+  "dinosaurs": [
+   "Ein Dino hat einen Schwanz.",
+   "Der Dino kann brüllen.",
+   "Das Ei liegt im Nest."
+  ],
+  "vehicles": [
+   "Der Bus ist groß.",
+   "Das Auto fährt schnell.",
+   "Das Boot schwimmt.",
+   "Der Zug ist lang."
+  ],
+  "general": [
+   "Wir tippen gern.",
+   "Tippen macht Spaß.",
+   "Heute ist ein schöner Tag.",
+   "Wir spielen ein Spiel.",
+   "Ich lese ein Buch.",
+   "Die Maus ist klein."
+  ]
+ }
+}

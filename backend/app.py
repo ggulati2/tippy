@@ -7,7 +7,7 @@ import logging
 import os
 import threading
 
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -16,7 +16,8 @@ from datetime import date
 
 from backend import db, difficulty, progress
 from backend.config import FRONTEND_DIR, LOG_DIR, PORT, load_settings
-from backend.llm.client import get_mascot_line
+from backend.content import ContentService
+from backend.llm.client import LLMClient
 from backend.security import PinGuard
 
 LOG_DIR.mkdir(exist_ok=True)
@@ -32,6 +33,8 @@ def create_app() -> FastAPI:
     settings = load_settings()
     db.init_db(settings.db_path, settings.app_language)
     guard = PinGuard(settings.parent_pin)
+    llm = LLMClient(settings)
+    content = ContentService(settings.db_path, llm)
     app = FastAPI(title="Tippy", docs_url=None, redoc_url=None, openapi_url=None)
     # launch.py replaces this with a clean shutdown. Standalone fallback below.
     app.state.request_shutdown = lambda: os._exit(0)
@@ -72,7 +75,15 @@ def create_app() -> FastAPI:
 
     @app.get("/api/mascot/line")
     def mascot_line(event: str = "welcome"):
-        return {"text": get_mascot_line(event, db.get_settings(settings.db_path)["language"])}
+        return {"text": content.mascot_line(event)}
+
+    @app.get("/api/content/words")
+    def practice_words(count: int = Query(default=8, ge=1, le=20)):
+        return content.words(count)
+
+    @app.get("/api/content/sentences")
+    def practice_sentences(count: int = Query(default=4, ge=1, le=10)):
+        return content.sentences(count)
 
     @app.post("/api/visit")
     def visit():
@@ -161,7 +172,13 @@ def create_app() -> FastAPI:
     @app.get("/api/parent/status")
     def parent_status(x_parent_token: str | None = Header(default=None)):
         require_parent(x_parent_token)
-        return {"llm_mode": settings.llm_mode, "llm_key_set": bool(settings.openrouter_api_key)}
+        return llm.status()
+
+    @app.post("/api/parent/llm/test")
+    def test_llm(x_parent_token: str | None = Header(default=None)):
+        """The "Test connection" button: one tiny real request."""
+        require_parent(x_parent_token)
+        return llm.test_connection()
 
     @app.post("/api/parent/exit")
     def exit_app(x_parent_token: str | None = Header(default=None)):

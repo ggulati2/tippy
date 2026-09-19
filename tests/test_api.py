@@ -1,3 +1,4 @@
+import json
 import os
 
 import pytest
@@ -74,3 +75,20 @@ def test_keystroke_endpoint_validates_and_adapts(client):
     assert client.get("/api/letters").json()["letters"] == ["A", "S", "D"]
     bad_key = {"events": [{"key": "<script>", "correct": True, "ms": 1}]}
     assert client.post("/api/keystrokes", json=bad_key).status_code == 422
+
+
+def test_practice_content_endpoints(client):
+    words = client.get("/api/content/words?count=5").json()
+    assert len(words["items"]) == 5 and words["source"] in ("cache", "fallback", "mixed")
+    assert client.get("/api/content/sentences?count=2").json()["items"]
+    assert client.get("/api/content/words?count=999").status_code == 422
+
+
+def test_llm_status_and_test_button_need_pin(client):
+    assert client.get("/api/parent/status").status_code == 401
+    assert client.post("/api/parent/llm/test").status_code == 401
+    token = client.post("/api/parent/verify", json={"pin": "4321"}).json()["token"]
+    headers = {"X-Parent-Token": token}
+    status = client.get("/api/parent/status", headers=headers).json()
+    assert status["mode"] == "mock" and "api_key" not in json.dumps(status).lower()
+    assert client.post("/api/parent/llm/test", headers=headers).json()["ok"] is True

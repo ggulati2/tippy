@@ -288,11 +288,36 @@ async function parentPanel() {
     toggleRow(t("letterCase"), [["upper", "ABC"], ["lower", "abc"]], settings.letter_case, (v) => saveSetting({ letter_case: v })),
     toggleRow(t("voice"), [[true, t("on")], [false, t("off")]], settings.voice_on, (v) => saveSetting({ voice_on: v })),
     toggleRow(t("sound"), [[true, t("on")], [false, t("off")]], settings.sound_on, (v) => saveSetting({ sound_on: v })),
-    el("div", { class: "row" }, el("span", {}, t("status")), el("span", {}, status.llm_mode === "live" ? t("llmLive") : t("llmMock"))),
+    llmSection(status),
     el("button", { class: "big-btn blue", onclick: unlockAllWorlds }, "🔓 " + t("unlockAll")),
     el("button", { class: "big-btn exit-btn", onclick: exitApp }, t("exitApp")),
     el("button", { class: "big-btn blue", onclick: () => { parentToken = null; closeModal(); welcomeScreen(); } }, t("back")));
   openModal(panel);
+}
+
+// The online helper's status, cost and a "Test connection" button. Parent area only.
+function llmSection(status) {
+  let line;
+  if (status.mode === "mock") line = "🧪 " + t("llmMock");
+  else if (!status.key_set) line = "🔑 " + t("llmNoKey");
+  else if (status.online === false) line = "🟡 " + t("llmOffline");
+  else line = "🟢 " + t("llmLive");
+
+  const result = el("span", { class: "llm-result" }, "");
+  const testButton = el("button", { class: "chip", onclick: async () => {
+    result.textContent = "…";
+    const { body } = await api("/api/parent/llm/test", { method: "POST" });
+    result.textContent = body.ok
+      ? `✓ ${t("llmOk")} (${body.model}${body.latency_ms ? ", " + body.latency_ms + " ms" : ""})`
+      : `✗ ${t("llmFail")}: ${body.error}`;
+  } }, "🔌 " + t("llmTest"));
+
+  const details = [`${t("llmModel")}: ${status.model}`, `${t("llmToday")}: ${status.requests}/${status.cap}`,
+                   `${t("llmCost")}: $${Number(status.cost_usd).toFixed(4)}`].join("  ·  ");
+  return el("div", { class: "llm-box" },
+    el("div", { class: "row" }, el("span", {}, t("status")), el("span", {}, line)),
+    status.mode === "live" ? el("div", { class: "llm-details" }, details) : "",
+    el("div", { class: "row" }, testButton, result));
 }
 
 async function unlockAllWorlds() {

@@ -15,6 +15,15 @@ CONTENT_DIR = ROOT / "content"
 
 HOST = "127.0.0.1"  # Never change this: it keeps the app private to this computer.
 PORT = 8765
+DEFAULT_MODEL = "google/gemini-2.5-flash-lite"
+DEFAULT_FALLBACK_MODEL = "openai/gpt-4o-mini"
+
+
+def _to_int(text: str, default: int) -> int:
+    try:
+        return max(0, int(text))
+    except ValueError:
+        return default
 
 
 def _read_env_file(path: Path) -> dict:
@@ -39,6 +48,7 @@ class Settings:
     app_language: str  # "en" or "de"
     parent_pin: str
     llm_mode: str  # "mock" (no network, no cost) or "live"
+    daily_request_cap: int  # most OpenRouter requests per day, so a bug can never run up a bill
     db_path: Path
 
 
@@ -57,10 +67,14 @@ def load_settings() -> Settings:
         mode = "mock"
     return Settings(
         openrouter_api_key=get("OPENROUTER_API_KEY"),
-        openrouter_model=get("OPENROUTER_MODEL"),
-        openrouter_fallback_model=get("OPENROUTER_FALLBACK_MODEL"),
+        # Checked against the live OpenRouter model list: both are cheap, fast, follow
+        # instructions well and support JSON output. They come from different
+        # providers, so if one is down the other usually still works.
+        openrouter_model=get("OPENROUTER_MODEL") or DEFAULT_MODEL,
+        openrouter_fallback_model=get("OPENROUTER_FALLBACK_MODEL") or DEFAULT_FALLBACK_MODEL,
         app_language=language,
         parent_pin=get("PARENT_PIN", "1234"),
         llm_mode=mode,
+        daily_request_cap=_to_int(get("DAILY_REQUEST_CAP", "200"), 200),
         db_path=Path(get("TIPPY_DB_PATH", str(DATA_DIR / "tippy.db"))),
     )

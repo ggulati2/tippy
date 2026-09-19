@@ -1,0 +1,171 @@
+"""Practice content and mascot lines, served to the child without ever waiting.
+
+Order of preference for every request:
+  1. fresh items from the cache (filled earlier in the background by the LLM),
+  2. items that were already used before (better than nothing),
+  3. the built-in bank.
+After serving, if the cache is running low, a background thread asks the LLM
+for a new batch, validates it, and stores it for next time.
+The child's request itself never touches the network.
+"""
+import json
+import logging
+import random
+import threading
+from datetime import datetime
+from pathlib import Path
+
+from pydantic import ValidationError
+
+from backend import bank, db, difficulty, validators
+from backend.llm.client import LLMClient
+from backend.llm.schemas import SCHEMAS
+
+log = logging.getLogger("tippy.content")
+
+LOW_WATER = {"words": 10, "sentences": 6, "mascot": 4}   # refill when fewer unused items remain
+BATCH = {"words": 20, "sentences": 10, "mascot": 8}      # how many to ask for at once
+MIN_GOOD = 3                                             # a batch with fewer valid items is thrown away
+SENTENCE_MIN_LETTERS = 12  # sentences need more letters than words to be possible at all
+
+
+class ContentService:
+    def __init__(self, db_path: Path, llm: LLMClient, background: bool = True):
+        self.db_path = db_path
+        self.llm = llm
+        self.background = background  # tests set False so refills run immediately
+        self._inflight: set[str] = set()
+        self._lock = threading.Lock()
+
+    # ---------- Child profile ----------
+
+    def language(self) -> str:
+        return db.get_settings(self.db_path).get("language", "en")
+
+    def interests(self) -> list[str]:
+        """Themes from the profile, filtered to our fixed list (free text is never used in prompts)."""
+        with db.connect(self.db_path) as conn:
+            row = conn.execute("SELECT interests FROM child_profile WHERE id = 1").fetchone()
+        chosen = [x for x in (row["interests"] if row else "").split(",") if x in bank.THEMES]
+        return chosen or list(bank.THEMES)
+
+    # ---------- Cache ----------
+
+    def _take(self, cache_type: str, level: int, count: int) -> list[str]:
+        """Take up to `count` items: unused first, then re-use old ones. Marks them used."""
+        items: list[str] = []
+        with db.connect(self.db_path) as conn:
+            fresh = conn.execute(
+                "SELECT id, json FROM content_cache WHERE type = ? AND level = ? AND used = 0 ORDER BY id LIMIT ?",
+                (cache_type, level, count),
+            ).fetchall()
+            for row in fresh:
+                items.append(json.loads(row["json"])["text"])
+                conn.execute("UPDATE content_cache SET used = 1 WHERE id = ?", (row["id"],))
+            if len(items) < count:
+                old = conn.execute(
+                    "SELECT json FROM content_cache WHERE type = ? AND level = ? AND used = 1", (cache_type, level)
+                ).fetchall()
+                pool = [json.loads(r["json"])["text"] for r in old]
+                random.shuffle(pool)
+                items += [x for x in pool if x not in items][: count - len(items)]
+        return items
+
+    def _unused(self, cache_type: str, level: int) -> int:
+        with db.connect(self.db_path) as conn:
+            return conn.execute(
+                "SELECT COUNT(*) FROM content_cache WHERE type = ? AND level = ? AND used = 0", (cache_type, level)
+            ).fetchone()[0]
+
+    def _store(self, cache_type: str, level: int, items: list[str]) -> None:
+        now = datetime.now().isoformat(timespec="seconds")
+        with db.connect(self.db_path) as conn:
+            known = {json.loads(r["json"])["text"] for r in
+                     conn.execute("SELECT json FROM content_cache WHERE type = ? AND level = ?", (cache_type, level))}
+            for text in items:
+                if text not in known:
+                    conn.execute("INSERT INTO content_cache (type, level, json, created_at) VALUES (?, ?, ?, ?)",
+                                 (cache_type, level, json.dumps({"text": text}), now))
+
+    # ---------- Background refill ----------
+
+    def _validate(self, kind: str, text: str | None, params: dict) -> list[str]:
+        """Turn the LLM's raw answer into safe items, or [] if it is not good enough."""
+        if not text:
+            return []
+        schema, field = SCHEMAS[kind]
+        try:
+            reply = schema.model_validate_json(text.strip().removeprefix("```json").removesuffix("```").strip())
+        except ValidationError:
+            log.warning("LLM %s reply rejected: not the expected JSON", kind)
+            return []
+        items = getattr(reply, field)
+        allowed = set(params.get("letters", ""))
+        lang = params.get("lang")
+        if kind == "words":
+            good = validators.clean_words(items, allowed, lang)
+        elif kind == "sentences":
+            good = validators.clean_sentences(items, allowed, lang)
+        else:
+            good = validators.clean_mascot_lines(items, lang)
+        if len(good) < MIN_GOOD:
+            log.warning("LLM %s reply rejected: only %d of %d items were safe", kind, len(good), len(items))
+            return []
+        return good
+
+    def _refill(self, kind: str, cache_type: str, level: int, params: dict) -> None:
+        key = f"{cache_type}:{level}"
+        try:
+            text = self.llm.generate({"kind": kind, "count": BATCH[kind], **params})
+            good = self._validate(kind, text, params)
+            if good:
+                self._store(cache_type, level, good)
+        except Exception:
+            log.exception("Background refill failed")  # never reaches the child
+        finally:
+            with self._lock:
+                self._inflight.discard(key)
+
+    def _maybe_refill(self, kind: str, cache_type: str, level: int, params: dict) -> None:
+        if not self.llm.enabled or self._unused(cache_type, level) >= LOW_WATER[kind]:
+            return
+        key = f"{cache_type}:{level}"
+        with self._lock:
+            if key in self._inflight:
+                return
+            self._inflight.add(key)
+        if self.background:
+            threading.Thread(target=self._refill, args=(kind, cache_type, level, params), daemon=True).start()
+        else:
+            self._refill(kind, cache_type, level, params)
+
+    # ---------- What the app asks for ----------
+
+    def _practice(self, kind: str, count: int, min_letters: int = 0) -> dict:
+        lang = self.language()
+        unlocked = max(difficulty.get_letters(self.db_path)["unlocked"], min_letters)
+        letters = difficulty.letters_for(unlocked)
+        cache_type = f"{kind}:{lang}"
+        items = self._take(cache_type, unlocked, count)
+        from_cache = len(items)
+        if from_cache < count:  # cache could not fill the request: top up from the built-in bank
+            pool = bank.WORDS if kind == "words" else bank.SENTENCES
+            items += bank.pick(pool, lang, set(letters), self.interests(), count - from_cache, exclude=items)
+        source = "cache" if from_cache == len(items) else "fallback" if from_cache == 0 else "mixed"
+        self._maybe_refill(kind, cache_type, unlocked, {"lang": lang, "letters": letters, "themes": self.interests()})
+        return {"items": items, "letters": letters, "source": source}
+
+    def words(self, count: int = 8) -> dict:
+        return self._practice("words", count)
+
+    def sentences(self, count: int = 4) -> dict:
+        return self._practice("sentences", count, min_letters=SENTENCE_MIN_LETTERS)
+
+    def mascot_line(self, event: str) -> str:
+        if event not in bank.MASCOT_LINES["en"]:
+            event = "welcome"
+        lang = self.language()
+        cache_type = f"mascot:{lang}:{event}"
+        taken = self._take(cache_type, 0, 1)
+        self._maybe_refill("mascot", cache_type, 0, {"lang": lang, "event": event})
+        return taken[0] if taken else bank.local_mascot_line(lang, event)

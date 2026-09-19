@@ -47,12 +47,17 @@ function celebrate(newStickerIds, next) {
     nodes.push(el("div", { class: "sticker-pop" }, el("span", { class: "sticker-emoji" }, s.emoji),
       el("span", {}, stickerName(s))));
   }
-  nodes.push(el("button", { class: "big-btn play-btn", onclick: () => { sfx("play"); next(); } }, "▶"));
+  const cheer = el("div", { class: "bubble" }, "\u00a0"); // Tippy's own line, filled in below
+  nodes.push(cheer, el("button", { class: "big-btn play-btn", onclick: () => { sfx("play"); next(); } }, "▶"));
   setScreen("celebrate", ...nodes);
   $("#screen").append(confetti());
   sfx(stickers.length ? "sparkle" : "success");
   setTimeout(() => sfx("success"), 350);
-  speak(stickers.length ? t("newSticker") : t("levelDone"));
+  // The line comes from the cache (or the built-in bank), so it arrives instantly.
+  mascotLine("success").then((line) => {
+    cheer.textContent = line || t("levelDone");
+    speak(stickers.length ? t("newSticker") : cheer.textContent);
+  });
 }
 
 function albumScreen() {

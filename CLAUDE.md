@@ -145,7 +145,7 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - [x] 1 Skeleton
 - [x] 2 Mouse Meadow + stickers
 - [x] 3 Keyboard Kingdom + Letter Land
-- [ ] 4 OpenRouter integration
+- [x] 4 OpenRouter integration
 - [ ] 5 Word Woods + Sentence Sky
 - [ ] 6 Computer Basics Cove + Free Play
 - [ ] 7 Parent dashboard
@@ -157,3 +157,12 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - Adaptive difficulty lives in `backend/difficulty.py` (start with A and S, +1 letter at 80% over the last 20 presses, -1 below 50%, never below 2). Only Letter Land sends `adaptive: true`.
 - CSS class `.target` is the Mouse Meadow click target. The glowing keyboard key is `.goal` (they clashed once).
 - Testing UI without a browser tester: headless Chrome with `--dump-dom` plus a throwaway `sim.js` that dispatches `keydown` events (kept out of the repo).
+
+## Milestone 4 notes
+
+- All internet access is in `backend/llm/client.py` (`LLMClient`). Prompts come only from `backend/llm/prompts.py`, which has no parameter for a name. Models: default `google/gemini-2.5-flash-lite`, fallback `openai/gpt-4o-mini` (checked against the live OpenRouter list; both cheap with JSON output). Each request: 8 s timeout, at most 2 tries (main, then fallback), every try logged to `llm_usage`, daily cap `DAILY_REQUEST_CAP`. Cost comes from `usage.cost` in the response.
+- `backend/content.py` (`ContentService`) serves words, sentences and mascot lines: cache first, then the built-in bank (`backend/bank.py`, files `content/fallback_*.json`), then a background thread refills the cache. The child's request never waits on the network.
+- LLM output is parsed with Pydantic (`backend/llm/schemas.py`), then filtered by `clean_words` / `clean_sentences` / `clean_mascot_lines` in `validators.py`. A batch with fewer than 3 good items is dropped. Blocklists are per language (German "die" is fine).
+- `LLM_MODE=mock` runs the same pipeline with `backend/llm/mock.py`. In tests use `httpx.MockTransport` (see `tests/test_llm_client.py`); never call the real API from tests.
+- Interests come from `child_profile.interests`, filtered to the four fixed themes in `bank.THEMES` (free text never goes into a prompt).
+- Not built yet (later milestones): mascot lines from richer stats, Ask Tippy, weekly summary, a model picker and interests editor in the parent area, Word Woods and Sentence Sky which will use `/api/content/words` and `/api/content/sentences`.
