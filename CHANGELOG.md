@@ -4,25 +4,27 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
-### Added
-- Germany-specific content (German only): culture and festival words and sentences, an Ä Ö Ü ß typing level, and Computer Cove lessons on the emergency numbers (112, 110) and on traffic. The German keyboard has an ß key. Seven German-only stickers, shown in the German album (an earned one stays visible in any language).
-- Language-specific content is supported in general: `content/special.json` (per-language sets served by `/api/content/special`), stickers with `langs`, and screen texts prefixed with the language code (`de.…`), which the i18n check requires only in that language.
+## [0.11.0] - 2026-09-19
+
+More to learn, in three languages: a Number Land, Spanish, many bonus levels and German-specific content.
+
+**Upgrading:** nothing to do. Existing progress is untouched. Bonus levels never change what is unlocked, and Number Land opens after Keyboard Kingdom, so children who are further on keep everything open.
 
 ### Added
-- Keyboard Kingdom bonus games: arrow keys (a bunny hops to the carrot) and Caps Lock. Computer Cove bonus lessons: what the internet is, saving a picture, being kind online, and using the touchpad. Two new stickers; arrow and Caps Lock keys are valid statistics keys.
+- **Number Land**, a new world with six games and an on-screen number pad (find the number, count, in order, add up, big numbers, countdown). The setting *This computer has a number pad* makes it ask for the pad keys; the digit row always works too. Digit statistics appear in the parent's heat map.
+- **Spanish (Spain)**: screen text, the es-ES voice, words, sentences, pictures, Free Play words, Ask Tippy answers, mascot lines, stickers, the safety word list and the parent's weekly summary. New keyboard shape QWERTY with Ñ; accented letters are typed with the plain letter. The Spanish and German texts have not been checked by a native speaker yet.
+- **Bonus levels** (a ✨ Bonus row in the level pickers; optional, they give stars and stickers):
+  - Letter Land: top row, bottom row, big and small letters.
+  - Word Woods: longer words, and word sets for animals, space, dinosaurs and vehicles.
+  - Sentence Sky: longer sentences, questions, and sentences about what the child likes.
+  - Keyboard Kingdom: arrow keys (a bunny hops to the carrot) and Caps Lock.
+  - Computer Cove: the internet, saving a picture, being kind online, using the touchpad.
+- **Germany-specific content** (German only): words and sentences about Germany and the year's festivals, an Ä Ö Ü ß typing level (the German keyboard now has its ß key), and lessons on the emergency numbers 112 and 110 and on traffic lights and the zebra crossing.
+- 15 new stickers (7 of them German-only). More built-in content in every language: longer pictured words, themed words, longer sentences, question sentences.
+- One server-side list of languages (`backend/languages.py`) drives the setup wizard, the settings and the Children tab. Adding a language is data plus texts, and the tests and `scripts/check.sh` fail if a language is incomplete or not typable on its keyboard.
 
-### Added
-- Bonus levels: Letter Land (top row, bottom row, big and small letters), Word Woods (longer words; animals, space, dinosaurs and vehicles word sets) and Sentence Sky (longer sentences, questions, sentences about the child's interests), with a ✨ Bonus section in the level pickers and five new stickers.
-- More built-in content in all three languages: longer pictured words, themed words, longer sentences and question sentences. English and German now have pictured words of five or more letters; German has far more space and dinosaur words.
-
-### Added
-- Spanish (Spain): screen text, voice (es-ES), built-in words, sentences, pictures, Free Play words, Ask Tippy answers, mascot lines, stickers, safety word list and the parent's weekly summary. New keyboard shape QWERTY with Ñ; accented letters are typed with the plain letter.
-- The first-run wizard, the settings and the Children tab list every language from one server-side list (`backend/languages.py`), so another language needs data, not code. Tests and `scripts/check.sh` fail if a language is incomplete.
-
-### Added
-- Number Land: a new world with six games and an on-screen number pad (find the number, count, in order, add up, big numbers, countdown). Opens after Keyboard Kingdom, so children who are further on keep everything open. New stickers: bee, giraffe, trophy.
-- Setting *This computer has a number pad*: Number Land then asks for the pad keys (the digit row gets a friendly hint). Digit statistics appear in the parent's heat map on their own number pad.
-- Bonus levels (foundation): worlds can have extra levels that give stars and stickers but never change completion or unlocking, and a world can open after a chosen world instead of the previous one.
+### Changed
+- Worlds can have optional bonus levels and their own prerequisite world; language-specific levels, stickers, content sets and screen texts are supported (see `CLAUDE.md`).
 
 ## [0.10.0] - 2026-09-19
 
