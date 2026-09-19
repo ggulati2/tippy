@@ -151,3 +151,16 @@ def test_bonus_levels_do_not_award_the_world_done_sticker_early(tmp_path, monkey
     for level in (1, 2, 3):
         got += progress.record_completion(path, "letters", level, 3)["new_stickers"]
     assert "lion" in got
+
+
+def test_bonus_levels_are_accepted_up_to_the_last_one_and_award_their_stickers(tmp_path):
+    path = tmp_path / "p.db"
+    db.init_db(path)
+    for world, bonus, sticker in (("letters", 3, "fish"), ("words", 5, "flamingo"), ("sentences", 3, "peacock")):
+        last = progress.LEVEL_COUNTS[world] + bonus
+        assert progress.max_level(world) == last
+        assert sticker in progress.record_completion(path, world, last, 3)["new_stickers"]
+        with pytest.raises(ValueError):
+            progress.record_completion(path, world, last + 1, 3)
+    state = progress.get_progress(path)["worlds"]
+    assert not state["letters"]["complete"] and not state["words"]["complete"]        # bonus levels alone never complete a world

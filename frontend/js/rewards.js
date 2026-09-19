@@ -73,20 +73,34 @@ function albumScreen() {
   speak(t("album"));
 }
 
-// The row of level cards for a world (used by Keyboard Kingdom and Letter Land).
+// Bonus levels: extra levels after the core ones of a world. They give stars and stickers but never
+// change what is unlocked (the server counts only the core levels). `langs` shows a level only for
+// some languages, `when` can require something else (for example a key on the keyboard).
+// The numbers must match BONUS_LEVELS in backend/progress.py.
+const BONUS = {
+  letters: [{ level: 6, icon: "🔝" }, { level: 7, icon: "⬇️" }, { level: 8, icon: "🔠" }],
+  words: [{ level: 6, icon: "🐘" }, { level: 7, icon: "🐾" }, { level: 8, icon: "🚀" }, { level: 9, icon: "🦖" }, { level: 10, icon: "🚗" }],
+  sentences: [{ level: 6, icon: "🦜" }, { level: 7, icon: "❓" }, { level: 8, icon: "💛" }],
+};
+const bonusLevels = (world) => (BONUS[world] || []).filter((b) => (!b.langs || b.langs.includes(settings.language)) && (!b.when || b.when()));
+
+// The row of level cards for a world, then its bonus levels (if any).
 // `extra` is an optional element shown under the title.
 async function levelPicker(worldId, icon, levelIcons, run, extra = null) {
   await loadProgress();
   const stars = progress.worlds[worldId].levels;
-  const cards = levelIcons.map((levelIcon, i) => {
-    const earned = stars[i + 1] || 0;
-    return el("button", { class: "world level", onclick: () => { sfx("tap"); run(i + 1); } },
+  const card = (levelIcon, level, cls = "") => {
+    const earned = stars[level] || 0;
+    return el("button", { class: "world level" + cls, onclick: () => { sfx("tap"); run(level); } },
       el("span", { class: "icon" }, levelIcon),
       el("span", { class: "stars" }, earned ? "⭐".repeat(earned) : "☆☆☆"));
-  });
+  };
+  const cards = levelIcons.map((levelIcon, i) => card(levelIcon, i + 1));
+  const bonus = bonusLevels(worldId).map((b) => card(b.icon, b.level, " bonus"));
   const nodes = [el("h1", { class: "title" }, `${icon} ${t("world." + worldId)}`)];
   if (extra) nodes.push(extra);
-  nodes.push(el("div", { class: "worlds" }, ...cards));
+  nodes.push(el("div", { class: "worlds" + (cards.length + bonus.length > 8 ? " many" : "") }, ...cards,
+    ...(bonus.length ? [el("div", { class: "bonus-label" }, "✨ " + t("bonus"))] : []), ...bonus));
   setScreen(worldId, ...nodes);
   speak(t("world." + worldId));
 }

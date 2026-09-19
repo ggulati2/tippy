@@ -179,10 +179,19 @@ class ContentService:
     def words(self, count: int = 8) -> dict:
         return self._practice("words", count, min_letters=MIN_PRACTICE_LETTERS)
 
-    def pictured_words(self, count: int = 5, max_len: int = 4) -> dict:
-        """Words for Word Woods: only words we have a picture for, up to `max_len` letters."""
+    def pictured_words(self, count: int = 5, max_len: int = 4, min_len: int = 0, theme: str | None = None) -> dict:
+        """Words for Word Woods: only words we have a picture for, `min_len` to `max_len` letters.
+        Longer words (min_len) and themed sets (theme) come from the built-in bank."""
         lang = self.language()
         pictures = bank.PICTURES.get(lang, bank.PICTURES["en"])
+        if min_len or theme:
+            usable = {w for w in pictures if min_len <= len(w) <= max_len}
+            everything = set(difficulty.LETTER_ORDER)
+            chosen = bank.pick(bank.WORDS, lang, everything, [theme] if theme else self.interests(), count,
+                               only=usable, themes={theme} if theme else None)
+            if len(chosen) < count:
+                chosen += bank.pick(bank.WORDS, lang, everything, self.interests(), count - len(chosen), exclude=chosen, only=usable)
+            return {"items": chosen, "pictures": {w: pictures[w] for w in chosen}, "source": "fallback"}
         result = self._practice("words", count * 3, min_letters=MIN_PRACTICE_LETTERS)  # ask wide, then keep the drawable ones
         chosen = [w for w in result["items"] if w in pictures and len(w) <= max_len][:count]
         if len(chosen) < count:  # top up from the built-in bank
@@ -191,8 +200,15 @@ class ContentService:
                                 exclude=chosen, only=usable)
         return {"items": chosen, "pictures": {w: pictures[w] for w in chosen}, "source": result["source"]}
 
-    def sentences(self, count: int = 4) -> dict:
-        return self._practice("sentences", count, min_letters=MIN_PRACTICE_LETTERS)
+    def sentences(self, count: int = 4, kind: str = "normal") -> dict:
+        """Sentences for Sentence Sky. kind: normal, long (5 or more words), question, or themed (the child's interests)."""
+        if kind == "normal":
+            return self._practice("sentences", count, min_letters=MIN_PRACTICE_LETTERS)
+        everything = set(difficulty.LETTER_ORDER)
+        themes = {bank.QUESTIONS} if kind == "question" else set(self.interests()) if kind == "themed" else None
+        items = bank.pick(bank.SENTENCES, self.language(), everything, self.interests(), count, themes=themes,
+                          min_words=5 if kind == "long" else 0)
+        return {"items": items, "letters": list(difficulty.LETTER_ORDER), "source": "fallback"}
 
     def mascot_line(self, event: str) -> str:
         if event not in bank.MASCOT_LINES["en"]:

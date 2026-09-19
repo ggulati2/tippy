@@ -5,6 +5,7 @@ when the LLM's answer fails our checks. The app is fully usable with only this.
 """
 import json
 import random
+import re
 
 from backend import languages
 from backend.config import CONTENT_DIR
@@ -55,18 +56,31 @@ def letters_outside(text: str, allowed: set[str]) -> int:
     return len(languages.base_letters(text) - allowed)
 
 
-def pick(pool: dict, lang: str, allowed: set[str], interests: list[str], count: int, exclude=(), only=None) -> list[str]:
+QUESTIONS = "questions"   # question sentences: only used when a level asks for them
+
+
+def word_count(text: str) -> int:
+    return len(re.sub(r"[.,!?¡¿]", "", text).split())
+
+
+def pick(pool: dict, lang: str, allowed: set[str], interests: list[str], count: int, exclude=(), only=None,
+         themes=None, min_words: int = 0) -> list[str]:
     """Choose `count` items from a bank, using only the allowed letters where possible.
 
     `only` limits the choice to a given set (Word Woods uses it to get words that have a picture).
+    `themes` limits it to those themes (a themed level); without it the "questions" theme is left out.
+    `min_words` keeps only sentences with at least that many words (the longer-sentences level).
     Items that fit the letters come first, favouring the child's interests.
     If there are not enough (very early levels), we take the items that need
     the fewest extra letters, so the caller always gets something.
     """
-    themes = pool.get(lang) or pool["en"]
+    pool_themes = pool.get(lang) or pool["en"]
     liked = [t for t in interests if t in THEMES]
-    items = [(text, theme) for theme, texts in themes.items() for text in texts
-             if text not in set(exclude) and (only is None or text in only)]
+    wanted = set(themes) if themes else None
+    items = [(text, theme) for theme, texts in pool_themes.items()
+             if (theme in wanted if wanted else theme != QUESTIONS)
+             for text in texts
+             if text not in set(exclude) and (only is None or text in only) and word_count(text) >= min_words]
     fitting = [(text, theme) for text, theme in items if letters_outside(text, allowed) == 0]
     random.shuffle(fitting)
     fitting.sort(key=lambda x: x[1] not in liked and x[1] != "general")  # liked themes first (stable sort)

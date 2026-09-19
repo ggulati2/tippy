@@ -25,5 +25,10 @@
   {"id": "painter",  "emoji": "🎨", "award": "free:done",       "name": {"en": "Painter",      "de": "Maler", "es": "Artista"}},
   {"id": "bee", "emoji": "🐝", "award": "numbers:1", "name": {"en": "Bee", "de": "Biene", "es": "Abeja"}},
   {"id": "giraffe", "emoji": "🦒", "award": "numbers:3", "name": {"en": "Giraffe", "de": "Giraffe", "es": "Jirafa"}},
-  {"id": "trophy", "emoji": "🏆", "award": "numbers:done", "name": {"en": "Trophy", "de": "Pokal", "es": "Trofeo"}}
+  {"id": "trophy", "emoji": "🏆", "award": "numbers:done", "name": {"en": "Trophy", "de": "Pokal", "es": "Trofeo"}},
+  {"id": "elephant", "emoji": "🐘", "award": "words:6", "name": {"en": "Elephant", "de": "Elefant", "es": "Elefante"}},
+  {"id": "flamingo", "emoji": "🦩", "award": "words:10", "name": {"en": "Flamingo", "de": "Flamingo", "es": "Flamenco"}},
+  {"id": "parrot", "emoji": "🦜", "award": "sentences:6", "name": {"en": "Parrot", "de": "Papagei", "es": "Loro"}},
+  {"id": "peacock", "emoji": "🦚", "award": "sentences:8", "name": {"en": "Peacock", "de": "Pfau", "es": "Pavo real"}},
+  {"id": "fish", "emoji": "🐠", "award": "letters:8", "name": {"en": "Fish", "de": "Fisch", "es": "Pez"}}
 ]

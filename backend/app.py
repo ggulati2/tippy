@@ -108,8 +108,9 @@ def create_app() -> FastAPI:
 
     @app.get("/api/content/words")
     def practice_words(count: int = Query(default=8, ge=1, le=20), pictured: bool = False,
-                       max_len: int = Query(default=4, ge=2, le=6)):
-        return content.pictured_words(count, max_len) if pictured else content.words(count)
+                       max_len: int = Query(default=4, ge=2, le=10), min_len: int = Query(default=0, ge=0, le=10),
+                       theme: str | None = Query(default=None, pattern="^(" + "|".join(bank.THEMES) + ")$")):
+        return content.pictured_words(count, max_len, min_len, theme) if pictured else content.words(count)
 
     @app.get("/api/pictures")
     def pictures():
@@ -118,8 +119,9 @@ def create_app() -> FastAPI:
         return {**bank.FREE_PLAY.get(lang, {}), **bank.PICTURES.get(lang, {})}
 
     @app.get("/api/content/sentences")
-    def practice_sentences(count: int = Query(default=4, ge=1, le=10)):
-        return content.sentences(count)
+    def practice_sentences(count: int = Query(default=4, ge=1, le=10),
+                           kind: str = Query(default="normal", pattern="^(normal|long|question|themed)$")):
+        return content.sentences(count, kind)
 
     class HeartbeatBody(BaseModel):
         seconds: int = Field(ge=0, le=dashboard.MAX_HEARTBEAT_SECONDS)

@@ -62,6 +62,15 @@ def test_enough_content_for_word_woods_and_sentence_sky(code):
     sentences = [s for theme in bank.SENTENCES[code].values() for s in theme]
     assert len(sentences) >= 20
     assert len(bank.FREE_PLAY[code]) >= 50
+    # content for the bonus levels
+    assert len([w for w in pictures if len(w) >= 5]) >= 30, "the longer-words level needs 30+ pictured words of 5 or more letters"
+    for theme in bank.THEMES:
+        themed = [w for w in bank.WORDS[code][theme] if w in pictures]
+        assert len(themed) >= 10, f"the {theme} words level needs 10+ pictured words"
+    long_sentences = [s for theme, lines in bank.SENTENCES[code].items() if theme != bank.QUESTIONS for s in lines if bank.word_count(s) >= 5]
+    assert len(long_sentences) >= 10, "the longer-sentences level needs 10+ sentences of 5 or 6 words"
+    questions = bank.SENTENCES[code][bank.QUESTIONS]
+    assert len(questions) >= 8 and all(s.rstrip().endswith("?") for s in questions)
 
 
 @pytest.mark.parametrize("code", CODES)
@@ -183,3 +192,36 @@ def test_restore_accepts_every_language_and_layout(tmp_path):
                                                                           {"key": "keyboard_layout", "value": languages.default_keyboard(code)}]}})
         assert plan["settings"]["language"] == code and plan["settings"]["keyboard_layout"] == languages.default_keyboard(code)
     assert restore.prepare({"app": "tippy", "tables": {"settings": [{"key": "language", "value": "es"}, {"key": "language", "value": "fr"}]}})["skipped"] == 1
+
+
+@pytest.mark.parametrize("code", CODES)
+def test_bonus_levels_get_longer_words_themed_words_and_sentence_kinds(tmp_path, code):
+    path = tmp_path / "c.db"
+    db.init_db(path, code)
+    db.set_setting(path, "language", code)
+    service = ContentService(path, LLMClient(_settings(tmp_path)), background=False)
+    pictures = bank.PICTURES[code]
+    longer = service.pictured_words(5, max_len=8, min_len=5)
+    assert len(longer["items"]) == 5 and all(5 <= len(w) <= 8 and w in longer["pictures"] and w in pictures for w in longer["items"])
+    for theme in bank.THEMES:
+        themed = service.pictured_words(5, max_len=8, theme=theme)["items"]
+        assert len(themed) == 5 and all(w in bank.WORDS[code][theme] and len(w) <= 8 for w in themed), theme
+    assert all(bank.word_count(s) >= 5 for s in service.sentences(6, "long")["items"])
+    assert all(s in bank.SENTENCES[code][bank.QUESTIONS] for s in service.sentences(6, "question")["items"])
+    db.set_setting(path, "language", code)
+    with db.connect(path) as conn:
+        conn.execute("UPDATE child_profile SET interests = 'space' WHERE id = 1")
+    themed_sentences = service.sentences(5, "themed")["items"]
+    assert themed_sentences and all(s in bank.SENTENCES[code]["space"] for s in themed_sentences)
+    # ordinary rounds never contain a question
+    for _ in range(60):
+        assert not any(s in bank.SENTENCES[code][bank.QUESTIONS] for s in service.sentences(4)["items"])
+
+
+def test_content_api_parameters(api):
+    client, _ = api
+    assert len(client.get("/api/content/words?pictured=true&min_len=5&max_len=8&count=5").json()["items"]) == 5
+    assert len(client.get("/api/content/words?pictured=true&theme=animals&max_len=8&count=5").json()["items"]) == 5
+    assert client.get("/api/content/sentences?kind=question&count=3").json()["items"]
+    for bad in ("/api/content/words?theme=politics", "/api/content/words?max_len=11", "/api/content/sentences?kind=weird", "/api/content/words?min_len=-1"):
+        assert client.get(bad).status_code == 422, bad

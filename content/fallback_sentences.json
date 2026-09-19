@@ -12,7 +12,11 @@
    "A bird can sing.",
    "The pig is in mud.",
    "Owls can see at night.",
-   "A lion has a big mane."
+   "A lion has a big mane.",
+   "The cat sleeps on the sofa.",
+   "My dog likes to run fast.",
+   "The little frog can jump high.",
+   "Birds sing in the tall tree."
   ],
   "space": [
    "The sun is hot.",
@@ -24,7 +28,9 @@
    "A big star is far away.",
    "The sky is dark at night.",
    "Stars shine at night.",
-   "A rocket can fly fast."
+   "A rocket can fly fast.",
+   "The rocket flies to the moon.",
+   "The moon is round and bright."
   ],
   "dinosaurs": [
    "A dino has a big tail.",
@@ -34,7 +40,8 @@
    "Big dinos had big feet.",
    "A dino can run fast.",
    "The egg is in the nest.",
-   "Dinos lived long ago."
+   "Dinos lived long ago.",
+   "A dino has very sharp teeth."
   ],
   "vehicles": [
    "The bus is big.",
@@ -46,7 +53,9 @@
    "We ride the bus.",
    "A bike has two wheels.",
    "The ship is on the sea.",
-   "The van is red."
+   "The van is red.",
+   "I see a big red bus.",
+   "The train goes very fast."
   ],
   "general": [
    "I like to type.",
@@ -63,7 +72,21 @@
    "I have two hands.",
    "Keys make letters.",
    "We use a mouse.",
-   "The screen is bright."
+   "The screen is bright.",
+   "We play with a red ball.",
+   "I like to eat apples."
+  ],
+  "questions": [
+   "Where is the cat?",
+   "Can you see the moon?",
+   "Do you like dogs?",
+   "Who is at the door?",
+   "Is the sun hot?",
+   "Can a fish fly?",
+   "Where is my ball?",
+   "Do you like cake?",
+   "What can you see?",
+   "How are you today?"
   ]
  },
  "de": {
@@ -73,24 +96,33 @@
    "Die Kuh frisst Gras.",
    "Der Hase hüpft weg.",
    "Die Ente kann schwimmen.",
-   "Ein Vogel kann singen."
+   "Ein Vogel kann singen.",
+   "Die Katze schläft auf dem Sofa.",
+   "Der kleine Hund läuft im Park.",
+   "Der Frosch kann hoch springen."
   ],
   "space": [
    "Die Sonne ist heiß.",
    "Der Mond ist hell.",
    "Ein Stern leuchtet.",
-   "Die Rakete fliegt hoch."
+   "Die Rakete fliegt hoch.",
+   "Die Rakete fliegt zum Mond.",
+   "Der Mond ist rund und hell.",
+   "Am Himmel sind viele Sterne."
   ],
   "dinosaurs": [
    "Ein Dino hat einen Schwanz.",
    "Der Dino kann brüllen.",
-   "Das Ei liegt im Nest."
+   "Das Ei liegt im Nest.",
+   "Der Dino hat scharfe Zähne."
   ],
   "vehicles": [
    "Der Bus ist groß.",
    "Das Auto fährt schnell.",
    "Das Boot schwimmt.",
-   "Der Zug ist lang."
+   "Der Zug ist lang.",
+   "Ich sehe einen roten Bus.",
+   "Der Zug fährt sehr schnell."
   ],
   "general": [
    "Wir tippen gern.",
@@ -98,7 +130,22 @@
    "Heute ist ein schöner Tag.",
    "Wir spielen ein Spiel.",
    "Ich lese ein Buch.",
-   "Die Maus ist klein."
+   "Die Maus ist klein.",
+   "Die Sonne scheint heute hell.",
+   "Wir spielen mit dem roten Ball.",
+   "Ich esse gern einen Apfel."
+  ],
+  "questions": [
+   "Wo ist die Katze?",
+   "Siehst du den Mond?",
+   "Magst du Hunde?",
+   "Wer ist an der Tür?",
+   "Ist die Sonne warm?",
+   "Kann ein Fisch fliegen?",
+   "Wo ist mein Ball?",
+   "Magst du Kuchen?",
+   "Was siehst du da?",
+   "Wie geht es dir?"
   ]
  },
  "es": {
@@ -114,7 +161,11 @@
    "El conejo come zanahorias.",
    "La abeja vuela rápido.",
    "El caballo es fuerte.",
-   "La tortuga camina despacio."
+   "La tortuga camina despacio.",
+   "El gato duerme sobre el sofá.",
+   "Mi perro corre muy rápido.",
+   "La rana pequeña salta muy alto.",
+   "Los pájaros cantan en el árbol."
   ],
   "space": [
    "El sol es muy grande.",
@@ -124,14 +175,17 @@
    "La Tierra es redonda.",
    "Marte es un planeta rojo.",
    "El cielo está lleno de estrellas.",
-   "Voy al espacio en un cohete."
+   "Voy al espacio en un cohete.",
+   "Hoy el sol brilla mucho.",
+   "El cohete vuela hasta la luna."
   ],
   "dinosaurs": [
    "El dino tiene una cola.",
    "El dino ruge fuerte.",
    "El dino puso un huevo.",
    "Un dino come hojas.",
-   "El dino es enorme."
+   "El dino es enorme.",
+   "El dino tiene dientes muy afilados."
   ],
   "vehicles": [
    "El bus es grande.",
@@ -140,7 +194,9 @@
    "Voy en bici al parque.",
    "El barco flota en el mar.",
    "El avión vuela alto.",
-   "La moto hace ruido."
+   "La moto hace ruido.",
+   "Veo un bus grande y rojo.",
+   "El tren va muy rápido."
   ],
   "general": [
    "Me gusta escribir.",
@@ -154,7 +210,21 @@
    "Vamos a jugar.",
    "Tengo un amigo nuevo.",
    "Me gusta la tarta.",
-   "Leo un libro."
+   "Leo un libro.",
+   "Jugamos con una pelota roja.",
+   "Me gusta comer manzanas rojas."
+  ],
+  "questions": [
+   "¿Dónde está el gato?",
+   "¿Ves la luna?",
+   "¿Te gustan los perros?",
+   "¿Quién está en la puerta?",
+   "¿Hace calor hoy?",
+   "¿Puede volar un pez?",
+   "¿Dónde está mi pelota?",
+   "¿Te gusta la tarta?",
+   "¿Qué ves ahí?",
+   "¿Cómo estás hoy?"
   ]
  }
 }

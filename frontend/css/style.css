@@ -446,3 +446,8 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .count-things .plus { font-weight: 900; color: var(--primary); letter-spacing: 0; }
 .heat-pad { margin-top: 4px; }
 .card h4 { margin: 10px 0 4px; }
+
+/* ---------- Bonus levels ---------- */
+.worlds.many { grid-template-columns: repeat(5, 1fr); width: min(1100px, 100%); }
+.worlds .bonus-label { grid-column: 1 / -1; font-weight: 900; font-size: 1.2rem; color: #7a5a00; text-align: left; }
+.world.level.bonus { background: #fff9db; }

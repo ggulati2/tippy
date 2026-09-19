@@ -5,6 +5,10 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 ## [Unreleased]
 
 ### Added
+- Bonus levels: Letter Land (top row, bottom row, big and small letters), Word Woods (longer words; animals, space, dinosaurs and vehicles word sets) and Sentence Sky (longer sentences, questions, sentences about the child's interests), with a ✨ Bonus section in the level pickers and five new stickers.
+- More built-in content in all three languages: longer pictured words, themed words, longer sentences and question sentences. English and German now have pictured words of five or more letters; German has far more space and dinosaur words.
+
+### Added
 - Spanish (Spain): screen text, voice (es-ES), built-in words, sentences, pictures, Free Play words, Ask Tippy answers, mascot lines, stickers, safety word list and the parent's weekly summary. New keyboard shape QWERTY with Ñ; accented letters are typed with the plain letter.
 - The first-run wizard, the settings and the Children tab list every language from one server-side list (`backend/languages.py`), so another language needs data, not code. Tests and `scripts/check.sh` fail if a language is incomplete.
 

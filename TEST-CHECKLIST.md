@@ -23,6 +23,10 @@ These checks need a person. Tick them off on the computer Tippy will really be u
 - [ ] The Ñ key sits next to L. Words with accents (león, camión) are typed with the plain vowel key.
 - [ ] Free Play: type "leon", "avion", "piña": the pictures appear.
 
+## Bonus levels (5 minutes)
+- [ ] Word Woods, Sentence Sky and Letter Land show a ✨ Bonus row. Play one bonus level in each. The longer words fit on the screen and are read aloud.
+- [ ] Bonus levels are optional: finishing a world is still only about the normal levels.
+
 ## Number Land (3 minutes)
 - [ ] Play Number Land with the row of digits above the letters: it works.
 - [ ] On a computer with a real number pad: switch on *This computer has a number pad* in Settings. The digit row now gets a hint and the pad keys count. Try all six games (count the animals, add up, the rocket countdown).
