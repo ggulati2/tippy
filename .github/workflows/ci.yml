@@ -45,9 +45,54 @@ jobs:
       - name: Run all checks (secrets, syntax, texts, tests)
         run: scripts/check.sh
 
+  browser:
+    name: Browser tests (Chrome)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install
+        run: pip install -r requirements-dev.txt
+      - name: Show which Chrome is used
+        run: google-chrome --version
+      # Plays every level in English and German, stresses it like a child would, and checks the
+      # break, the daily limit and the parent area in headless Chrome (see tests/browser).
+      - name: Play the real app in headless Chrome
+        run: python -m pytest -m browser -v
+
+  windows:
+    name: Tests (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install
+        run: pip install -r requirements-dev.txt
+      # Windows families get Tippy too, so the automatic tests and a fresh start must work there.
+      - name: Automatic tests
+        run: python -m pytest -q
+      - name: The server starts and serves the first-run setup
+        shell: bash
+        run: |
+          TIPPY_DB_PATH="$RUNNER_TEMP/tippy.db" LLM_MODE=off PARENT_PIN= python -m uvicorn backend.app:create_app --factory --port 8765 > server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8765/api/settings > settings.json && break; sleep 1; done
+          cat settings.json; echo
+          grep -q '"setup_needed":true' settings.json
+          curl -sf -o /dev/null http://127.0.0.1:8765/ && echo "index page served"
+
   package:
     name: Build the zip
-    needs: checks
+    needs: [checks, browser, windows]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

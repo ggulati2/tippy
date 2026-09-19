@@ -10,11 +10,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 LOG_DIR = ROOT / "logs"
-FRONTEND_DIR = ROOT / "frontend"
+# The two overrides below exist for the automatic browser tests (own port, own copy of the frontend).
+FRONTEND_DIR = Path(os.environ.get("TIPPY_FRONTEND_DIR", ROOT / "frontend"))
 CONTENT_DIR = ROOT / "content"
 
 HOST = "127.0.0.1"  # Never change this: it keeps the app private to this computer.
-PORT = 8765
+PORT = int(os.environ.get("TIPPY_PORT", "8765"))
 # Free models (":free") from two providers, compared on Tippy's real tasks with
 # scripts/try_models.py (2026-09-19): Nemotron was fastest and best in German; DeepSeek got
 # the most English words and sentences through. Google's Gemma free models answered

@@ -4,6 +4,10 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+### Added
+- Saved browser test suite (`tests/browser`, `pytest -m browser`) that plays every level in English and German, stresses the app, and checks limits and the parent area; runs in CI.
+- CI: Windows test job, CodeQL scanning, security policy, code owners, issue templates.
+
 ## [0.9.1] - 2026-09-19
 
 No change to how Tippy plays. Packaging, licensing and process improvements after the 0.9.0 test pass.

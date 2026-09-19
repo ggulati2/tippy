@@ -99,9 +99,23 @@ DEFAULT_SETTINGS = {
 }
 
 
+class _Connection(sqlite3.Connection):
+    """A connection that really closes when a `with` block ends.
+
+    Python's own connection only commits at the end of `with`; it stays open until the garbage
+    collector notices. On Windows an open database file cannot be renamed or deleted, so we close it.
+    """
+
+    def __exit__(self, *error):
+        try:
+            return super().__exit__(*error)   # commit, or roll back if something went wrong
+        finally:
+            self.close()
+
+
 def connect(db_path: Path) -> sqlite3.Connection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, factory=_Connection)
     conn.row_factory = sqlite3.Row
     return conn
 

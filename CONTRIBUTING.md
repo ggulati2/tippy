@@ -50,9 +50,13 @@ Bad: `fixed stuff`, `Update`, `wip`
 
 The body (optional) says **why**, not what. Keep secrets, the child's name and real API keys out of messages and code.
 
+## Browser tests
+
+`python -m pytest -m browser -v` (about a minute, needs Chrome, Chromium or Edge) plays the real app in headless Chrome, each test on its own fresh server: every level in English and German (with mistakes, double-clicks and a check that every screen fits the window), a "child cannot break it" stress test (Home at any moment, key mashing, shortcuts), the break and daily limit, and the whole parent area. The scripts are in `tests/browser/js`; add a `T.check(...)` there when you fix a bug that only shows in the browser. Set `CHROME_PATH` if Chrome is somewhere unusual. They are left out of the normal quick run (`pytest.ini`) and run in CI as *Browser tests (Chrome)*.
+
 ## What the CI pipeline checks
 
-On every pull request and every push to `main`, GitHub Actions (`.github/workflows/ci.yml`) runs `scripts/check.sh` on a clean machine (Python 3.11 and 3.13 on Linux, 3.13 on macOS), then builds the zip and checks that it contains the app and nothing private. Look at the **Actions** tab, or the green tick or red cross on your pull request. Fix red before merging. The built zip is kept for 14 days under the run's *Artifacts*.
+On every pull request and every push to `main`, GitHub Actions (`.github/workflows/ci.yml`) runs `scripts/check.sh` on a clean machine (Python 3.11 and 3.13 on Linux, 3.13 on macOS), then plays the app in headless Chrome, runs the tests on Windows, builds the zip and checks that it contains the app and nothing private. CodeQL scans the code for vulnerabilities (Security tab). Look at the **Actions** tab, or the green tick or red cross on your pull request. Fix red before merging. The built zip is kept for 14 days under the run's *Artifacts*.
 
 ## What the hooks check
 

@@ -1,6 +1,6 @@
 # Tippy: things to check by hand
 
-The automated tests (`python -m pytest`) and the scripted play-throughs cannot hear, feel or watch a child.
+The automated tests (`python -m pytest`, and `python -m pytest -m browser` which plays the app in headless Chrome) and the scripted play-throughs cannot hear, feel or watch a child.
 These checks need a person. Tick them off on the computer Tippy will really be used on.
 
 ## Sound and voice (2 minutes)

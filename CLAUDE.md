@@ -233,3 +233,9 @@ Begin with Section 3, step 1: ask your clarifying questions.
 
 - Release flow is in `CONTRIBUTING.md`. `.github/workflows/release.yml` runs on tags `vX.Y.Z` (and manually as a dry run), verifies tag == `VERSION` and commit on main, runs `scripts/check.sh`, builds and checks the zip (`scripts/check_zip.sh`), and creates a DRAFT release (pre-release while < 1.0.0) that the owner publishes by hand. Release text comes from the matching `CHANGELOG.md` section (`scripts/release_notes.sh`).
 - Anything developer-only must be listed in `LEFT_OUT` in `scripts/make_zip.py`; `check_zip.sh` fails the build if private or developer files slip into the zip.
+
+## Browser tests
+
+- `tests/browser/` (marker `browser`, skipped by default via `pytest.ini`): `conftest.py` starts a fresh uvicorn per test on a free port (env `TIPPY_PORT`, `TIPPY_FRONTEND_DIR`, `TIPPY_DB_PATH`), writes `browser-test.html` (index.html + `js/common.js` + a script) into a temp copy of the frontend, and runs headless Chrome with `--dump-dom` and a fast virtual clock; results come back as JSON from a hidden result element. `T.check(label, ok, detail)` in the scripts is the only assertion API; page errors always fail the test. `T.act()` plays whatever game screen is showing.
+- Chrome may print the DOM and then linger when a private profile is used, so `_run_until_dumped` stops Chrome once `</html>` arrives. Headless viewport is about 87 px shorter than `--window-size`.
+- The suite was verified to fail when two known bugs are reintroduced (missing double-click guard, plain `setTimeout` instead of `later()`). When fixing a browser-only bug, add a check that fails without the fix.

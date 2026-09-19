@@ -1,0 +1,29 @@
+name: Something does not work
+description: A game, screen or setting behaves wrongly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Please do not include your child's name or any personal details. For security problems use the private reporting link on the Security tab instead."
+  - type: input
+    id: version
+    attributes:
+      label: Tippy version
+      description: The number in the `VERSION` file
+    validations: { required: true }
+  - type: input
+    id: system
+    attributes:
+      label: Computer and browser
+      placeholder: "macOS 15, Chrome 153"
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: Which world and level? Add a screenshot if you can.
+    validations: { required: true }
+  - type: textarea
+    id: log
+    attributes:
+      label: Anything in logs/tippy.log
+      render: text
