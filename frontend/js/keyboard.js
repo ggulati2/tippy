@@ -30,7 +30,12 @@ const KEYBOARD_NAMES = { qwerty: "QWERTY", qwertz: "QWERTZ", qwerty_es: "QWERTY 
 // Does this keyboard have a key of its own for this character (Ä Ö Ü on a German one, Ñ on a Spanish one)?
 const layoutHas = (name, layout = settings.keyboard_layout) => (KEY_ROWS[layout] || []).some((row) => row.includes(name));
 
-const KEY_LABELS = { SHIFT: "⇧", BACKSPACE: "⌫", ENTER: "⏎", SPACE: "␣" };
+const KEY_LABELS = { SHIFT: "⇧", BACKSPACE: "⌫", ENTER: "⏎", SPACE: "␣", UP: "↑", DOWN: "↓", LEFT: "←", RIGHT: "→", CAPS: "⇪" };
+
+// Small boards for single-key games in Keyboard Kingdom.
+const ARROW_ROWS = [["UP"], ["LEFT", "DOWN", "RIGHT"]];
+const CAPS_ROWS = [["CAPS"]];
+const WIDE_KEYS = ["SHIFT", "BACKSPACE", "ENTER", "CAPS"];
 
 // The number pad, as on the right of a big keyboard. Number Land draws it on screen.
 const NUMPAD_ROWS = [["7", "8", "9"], ["4", "5", "6"], ["1", "2", "3"], ["0", ".", "ENTER"]];
@@ -56,13 +61,18 @@ function fingerGroups(layout) {
 }
 
 function zoneColor(key, layout = settings.keyboard_layout) {
+  if (["UP", "DOWN", "LEFT", "RIGHT"].includes(key)) return FINGER_COLORS[4];
+  if (key === "CAPS") return FINGER_COLORS[0];
   if (layout === "numpad") return key in NUMPAD_FINGER ? FINGER_COLORS[NUMPAD_FINGER[key]] : THUMB_COLOR;
   const finger = fingerGroups(layout).findIndex((group) => group.includes(key));
   return finger === -1 ? THUMB_COLOR : FINGER_COLORS[finger];
 }
 
 // Turn a real key press into one of our key names (or null for keys we ignore).
+const SPECIAL_KEYS = { ArrowUp: "UP", ArrowDown: "DOWN", ArrowLeft: "LEFT", ArrowRight: "RIGHT", CapsLock: "CAPS" };
+
 function keyName(e) {
+  if (e.key in SPECIAL_KEYS) return SPECIAL_KEYS[e.key];
   if (padOnlyScreen && settings.has_numpad && /^[0-9]$/.test(e.key) && e.code && e.code.startsWith("Digit")) return "NOPAD";
   if (e.key === " ") return "SPACE";
   if (e.key === "Enter") return "ENTER";
@@ -73,13 +83,14 @@ function keyName(e) {
 }
 
 // Draws the keyboard. Returns { node, highlight, press, wobble, pulse, has }.
-function renderKeyboard(layout = settings.keyboard_layout) {
+// `rows` draws a small custom board (arrow keys, Caps Lock) instead of a full keyboard.
+function renderKeyboard(layout = settings.keyboard_layout, rows = null) {
   const node = el("div", { class: "keyboard" + (layout === "numpad" ? " numpad" : "") });
   const keys = {};
-  for (const row of layout === "numpad" ? NUMPAD_ROWS : KEY_ROWS[layout] || KEY_ROWS.qwerty) {
+  for (const row of rows || (layout === "numpad" ? NUMPAD_ROWS : KEY_ROWS[layout] || KEY_ROWS.qwerty)) {
     const rowNode = el("div", { class: "key-row" });
     for (const name of row) {
-      const key = el("div", { class: "key" + (KEY_LABELS[name] && name !== "SPACE" ? " wide" : "") + (name === "SPACE" ? " space" : "") },
+      const key = el("div", { class: "key" + (WIDE_KEYS.includes(name) ? " wide" : "") + (name === "SPACE" ? " space" : "") },
         KEY_LABELS[name] || name);
       key.style.setProperty("--c", zoneColor(name, layout));
       keys[name] = key;

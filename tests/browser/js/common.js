@@ -30,7 +30,7 @@ T.run = async (fn) => { try { await fn(); } catch (e) { T.check("test script cra
 
 // The key the screen is asking for (the glowing one), as a real keyboard event key.
 const labelToName = Object.fromEntries(Object.entries(KEY_LABELS).map(([k, v]) => [v, k]));
-const toKey = { SPACE: " ", ENTER: "Enter", BACKSPACE: "Backspace", SHIFT: "Shift" };
+const toKey = { SPACE: " ", ENTER: "Enter", BACKSPACE: "Backspace", SHIFT: "Shift", UP: "ArrowUp", DOWN: "ArrowDown", LEFT: "ArrowLeft", RIGHT: "ArrowRight", CAPS: "CapsLock" };
 T.goalKey = () => {
   const g = document.querySelector(".key.goal");
   if (!g) return null;

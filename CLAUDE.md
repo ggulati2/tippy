@@ -281,3 +281,5 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - Content for a level must exist in EVERY language (tests/test_languages.py sets minimums: 30+ pictured words of 5+ letters, 10+ pictured words per theme, 10+ long sentences, 8+ questions). Sentence banks have a `questions` theme that ordinary rounds never use (`bank.QUESTIONS`).
 - `/api/content/words` takes `min_len`, `max_len` (up to 10) and `theme`; `/api/content/sentences` takes `kind` (normal, long, question, themed). Long and themed requests use the built-in bank only.
 - The browser play-through plays every core and bonus level (it reads `bonusLevels(world)` from the page) and fails if the picker shows the wrong number of levels.
+
+- Keyboard bonus games use small custom boards: `renderKeyboard(layout, rows)` with `ARROW_ROWS` / `CAPS_ROWS`; `keyName` maps arrow keys and CapsLock to UP/DOWN/LEFT/RIGHT/CAPS (valid statistics keys on the server and in restore). `specialKeyGame` takes an optional `rows`. Cove lessons are data (`chooseSteps`); bonus lessons 7 to 10 are listed in `BONUS.basics` in rewards.js.

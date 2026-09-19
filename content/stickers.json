@@ -30,5 +30,7 @@
   {"id": "flamingo", "emoji": "🦩", "award": "words:10", "name": {"en": "Flamingo", "de": "Flamingo", "es": "Flamenco"}},
   {"id": "parrot", "emoji": "🦜", "award": "sentences:6", "name": {"en": "Parrot", "de": "Papagei", "es": "Loro"}},
   {"id": "peacock", "emoji": "🦚", "award": "sentences:8", "name": {"en": "Peacock", "de": "Pfau", "es": "Pavo real"}},
-  {"id": "fish", "emoji": "🐠", "award": "letters:8", "name": {"en": "Fish", "de": "Fisch", "es": "Pez"}}
+  {"id": "fish", "emoji": "🐠", "award": "letters:8", "name": {"en": "Fish", "de": "Fisch", "es": "Pez"}},
+  {"id": "crocodile", "emoji": "🐊", "award": "keyboard:7", "name": {"en": "Crocodile", "de": "Krokodil", "es": "Cocodrilo"}},
+  {"id": "sloth", "emoji": "🦥", "award": "basics:10", "name": {"en": "Sloth", "de": "Faultier", "es": "Perezoso"}}
 ]

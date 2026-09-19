@@ -21,7 +21,7 @@ MAX_ROWS = 20_000
 DATA_TABLES = ("progress", "stickers", "keystroke_stats", "daily_stats", "play_time", "play_days")
 # Settings that are known but deliberately not restored (internal counters, household secrets): ignored without counting.
 IGNORED_SETTINGS = {"letters_changed_at", "weekly_summary", "pin_hash", "openrouter_model"}
-_KEY = re.compile(r"^([A-ZÄÖÜ]|[0-9]|SPACE|ENTER|BACKSPACE|SHIFT)$")
+_KEY = re.compile(r"^([A-ZÄÖÜÑ]|[0-9]|SPACE|ENTER|BACKSPACE|SHIFT|UP|DOWN|LEFT|RIGHT|CAPS)$")
 
 
 class RestoreError(ValueError):

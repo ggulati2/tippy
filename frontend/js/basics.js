@@ -6,7 +6,8 @@ const BASICS_ICONS = ["🖥️", "🪟", "📁", "⏰", "🙋", "🤐"];
 
 function computerCove() {
   levelPicker("basics", "🐚", BASICS_ICONS, (n) => {
-    [lessonParts, lessonWindow, lessonFolders, lessonBreak, lessonAsk, lessonSecrets][n - 1](
+    [lessonParts, lessonWindow, lessonFolders, lessonBreak, lessonAsk, lessonSecrets,
+      lessonInternet, lessonSave, lessonKind, lessonPad][n - 1](
       () => completeLevel("basics", n, computerCove));
   });
 }
@@ -155,5 +156,38 @@ function lessonSecrets(done) {
     { icon: "🤐", prompt: t("b6.address"), scene: "🏠 ❓", options, answer: 0 },
     { icon: "🤐", prompt: t("b6.name"), scene: "🧒 ❓", options, answer: 0 },
     { icon: "🤐", prompt: t("b6.password"), scene: "🔑 ❓", options, answer: 0, fact: t("b6.fact") },
+  ], done);
+}
+
+// ---------- Bonus 7. What is the internet? ----------
+function lessonInternet(done) {
+  chooseSteps("basics-7", [
+    { icon: "🌐", prompt: t("b7.wifi"), options: [{ emoji: "📶" }, { emoji: "📺" }, { emoji: "🔦" }], answer: 0, fact: t("b7.wifi.fact") },
+    { icon: "🌐", prompt: t("b7.ask"), scene: "🦒 ❓", options: [{ emoji: "🌍🔍" }, { emoji: "🍎" }, { emoji: "⚽" }], answer: 0, fact: t("b7.ask.fact") },
+  ], done);
+}
+
+// ---------- Bonus 8. Saving a picture ----------
+function lessonSave(done) {
+  chooseSteps("basics-8", [
+    { icon: "💾", prompt: t("b8.save"), scene: "🖼️", options: [{ emoji: "💾" }, { emoji: "🗑️" }, { emoji: "🔦" }], answer: 0, fact: t("b8.save.fact") },
+    { icon: "📁", prompt: t("b8.where"), scene: "💾 ➡️", options: [{ emoji: "📁" }, { emoji: "🍽️" }, { emoji: "🪣" }], answer: 0, fact: t("b8.where.fact") },
+  ], done);
+}
+
+// ---------- Bonus 9. Being kind online ----------
+function lessonKind(done) {
+  chooseSteps("basics-9", [
+    { icon: "💛", prompt: t("b9.sad"), scene: "😢", options: [{ emoji: "💛" }, { emoji: "😠" }], answer: 0 },
+    { icon: "🙋", prompt: t("b9.mean"), scene: "😠 💬", options: [{ emoji: "🙋" }, { emoji: "😠" }], answer: 0, fact: t("b9.fact") },
+  ], done);
+}
+
+// ---------- Bonus 10. The touchpad ----------
+function lessonPad(done) {
+  chooseSteps("basics-10", [
+    { icon: "☝️", prompt: t("b10.move"), scene: "➡️ 🖱️", options: [{ emoji: "☝️" }, { emoji: "🖐️" }, { emoji: "🦶" }], answer: 0, fact: t("b10.move.fact") },
+    { icon: "👇", prompt: t("b10.click"), options: [{ emoji: "👇" }, { emoji: "🖐️" }], answer: 0 },
+    { icon: "✌️", prompt: t("b10.scroll"), scene: "⬆️ ⬇️", options: [{ emoji: "✌️" }, { emoji: "☝️" }, { emoji: "🖐️" }], answer: 0, fact: t("b10.fact") },
   ], done);
 }

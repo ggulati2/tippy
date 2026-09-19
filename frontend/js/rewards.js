@@ -78,6 +78,8 @@ function albumScreen() {
 // some languages, `when` can require something else (for example a key on the keyboard).
 // The numbers must match BONUS_LEVELS in backend/progress.py.
 const BONUS = {
+  keyboard: [{ level: 6, icon: "🐰" }, { level: 7, icon: "🔠" }],
+  basics: [{ level: 7, icon: "🌐" }, { level: 8, icon: "💾" }, { level: 9, icon: "💛" }, { level: 10, icon: "☝️" }],
   letters: [{ level: 6, icon: "🔝" }, { level: 7, icon: "⬇️" }, { level: 8, icon: "🔠" }],
   words: [{ level: 6, icon: "🐘" }, { level: 7, icon: "🐾" }, { level: 8, icon: "🚀" }, { level: 9, icon: "🦖" }, { level: 10, icon: "🚗" }],
   sentences: [{ level: 6, icon: "🦜" }, { level: 7, icon: "❓" }, { level: 8, icon: "💛" }],

@@ -5,6 +5,9 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 ## [Unreleased]
 
 ### Added
+- Keyboard Kingdom bonus games: arrow keys (a bunny hops to the carrot) and Caps Lock. Computer Cove bonus lessons: what the internet is, saving a picture, being kind online, and using the touchpad. Two new stickers; arrow and Caps Lock keys are valid statistics keys.
+
+### Added
 - Bonus levels: Letter Land (top row, bottom row, big and small letters), Word Woods (longer words; animals, space, dinosaurs and vehicles word sets) and Sentence Sky (longer sentences, questions, sentences about the child's interests), with a ✨ Bonus section in the level pickers and five new stickers.
 - More built-in content in all three languages: longer pictured words, themed words, longer sentences and question sentences. English and German now have pictured words of five or more letters; German has far more space and dinosaur words.
 

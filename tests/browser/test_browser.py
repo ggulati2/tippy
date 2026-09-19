@@ -63,3 +63,7 @@ def test_first_run_wizard_offers_every_language(fresh_server, lang):
 
 def test_spanish_keyboard_accents_and_free_play(server):
     assert_clean(run_script(server, "spanish.js", budget_ms=300_000))
+
+
+def test_arrow_keys_and_caps_lock_games(server):
+    assert_clean(run_script(server, "keygames.js", budget_ms=300_000))

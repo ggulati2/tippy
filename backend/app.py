@@ -170,7 +170,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=400, detail="unknown level")
 
     class KeyEvent(BaseModel):
-        key: str = Field(pattern=r"^([A-Z]|[0-9]|SPACE|ENTER|BACKSPACE|SHIFT)$")
+        key: str = Field(pattern=r"^([A-Z]|[0-9]|SPACE|ENTER|BACKSPACE|SHIFT|UP|DOWN|LEFT|RIGHT|CAPS)$")
         correct: bool
         ms: int = Field(ge=0, le=600000)
 

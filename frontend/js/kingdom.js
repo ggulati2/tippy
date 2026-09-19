@@ -6,7 +6,8 @@ const KINGDOM_ICONS = ["🔎", "🚀", "✈️", "🎈", "🌞"];
 
 function kingdom() {
   levelPicker("keyboard", "⌨️", KINGDOM_ICONS, (n) => {
-    [levelFindKeys, levelSpace, levelEnter, levelBackspace, levelShift][n - 1](() => completeLevel("keyboard", n, kingdom));
+    [levelFindKeys, levelSpace, levelEnter, levelBackspace, levelShift, levelArrows, levelCapsLock][n - 1](
+      () => completeLevel("keyboard", n, kingdom));
   });
 }
 
@@ -48,8 +49,8 @@ function levelFindKeys(done) {
 
 // ---------- Games 2 to 5: one special key each ----------
 // `scene` is the picture; `react(n)` makes the picture respond to the n-th press.
-function specialKeyGame(done, { screen, icon, text, key, total, scene, react }) {
-  const board = renderKeyboard();
+function specialKeyGame(done, { screen, icon, text, key, total, scene, react, rows = null }) {
+  const board = renderKeyboard(settings.keyboard_layout, rows);
   const dots = progressDots(0, total);
   setScreen(screen, instruction(icon, text), scene, dots, board.node);
   board.highlight(key);
@@ -114,5 +115,69 @@ function levelShift(done) {
     screen: "kb-5", icon: "🌞", text: t("kb.shift"), key: "SHIFT", total: 3,
     scene: el("div", { class: "scene" }, sun),
     react: () => { replayAnimation(sun, "grow"); sfx("sparkle"); },
+  });
+}
+
+// ---------- Bonus game 6: arrow keys ----------
+const pickInt = (min, max) => Math.floor(min + Math.random() * (max - min + 1));
+// A bunny hops through a small garden to the carrot. The arrow that moves it next glows.
+function levelArrows(done) {
+  const COLS = 5, ROWS = 3;
+  const MOVES = { UP: [0, -1], DOWN: [0, 1], LEFT: [-1, 0], RIGHT: [1, 0] };
+  // A random start and carrot 4 to 6 steps apart; the path goes sideways first, then up or down.
+  let start, goal;
+  do {
+    start = [pickInt(0, COLS - 1), pickInt(0, ROWS - 1)];
+    goal = [pickInt(0, COLS - 1), pickInt(0, ROWS - 1)];
+  } while (Math.abs(goal[0] - start[0]) + Math.abs(goal[1] - start[1]) < 4);
+  const path = [
+    ...Array(Math.abs(goal[0] - start[0])).fill(goal[0] > start[0] ? "RIGHT" : "LEFT"),
+    ...Array(Math.abs(goal[1] - start[1])).fill(goal[1] > start[1] ? "DOWN" : "UP"),
+  ];
+  let [x, y] = start, step = 0, shownAt = performance.now();
+
+  const cells = [];
+  const garden = el("div", { class: "garden" });
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const cell = el("div", { class: "garden-cell" });
+    cells.push(cell);
+    garden.append(cell);
+  }
+  const draw = () => cells.forEach((cell, i) => {
+    const cx = i % COLS, cy = Math.floor(i / COLS);
+    cell.textContent = cx === x && cy === y ? "🐰" : cx === goal[0] && cy === goal[1] ? "🥕" : "";
+  });
+  draw();
+
+  const board = renderKeyboard(settings.keyboard_layout, ARROW_ROWS);
+  const dots = progressDots(0, path.length);
+  setScreen("kb-6", instruction("🐰", t("kb.arrows")), garden, dots, board.node);
+  board.highlight(path[0]);
+
+  keyHandler = (e) => {
+    const key = keyName(e);
+    if (!key) return;
+    const target = path[step];
+    sendKeys([{ key: target, correct: key === target, ms: Math.round(performance.now() - shownAt) }]);
+    if (key !== target) return softMiss(board, target, key);
+    board.press(key);
+    x += MOVES[key][0]; y += MOVES[key][1];
+    draw();
+    sfx("boing");
+    step++;
+    shownAt = performance.now();
+    dots.textContent = progressDots(step, path.length).textContent;
+    if (step === path.length) { keyHandler = null; board.highlight(null); sfx("sparkle"); return later(done, 1000); }
+    board.highlight(path[step]);
+  };
+}
+
+// ---------- Bonus game 7: Caps Lock ----------
+function levelCapsLock(done) {
+  const word = el("div", { class: "caps-word" }, "tippy");
+  specialKeyGame(done, {
+    screen: "kb-7", icon: "🔠", text: t("kb.caps"), key: "CAPS", total: 4, rows: CAPS_ROWS,
+    scene: el("div", { class: "scene" }, word),
+    react: (n) => { word.textContent = n % 2 ? "TIPPY" : "tippy"; sfx("sparkle"); },   // big, small, big, small
   });
 }

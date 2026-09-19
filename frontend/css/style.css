@@ -451,3 +451,10 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .worlds.many { grid-template-columns: repeat(5, 1fr); width: min(1100px, 100%); }
 .worlds .bonus-label { grid-column: 1 / -1; font-weight: 900; font-size: 1.2rem; color: #7a5a00; text-align: left; }
 .world.level.bonus { background: #fff9db; }
+
+/* ---------- Keyboard Kingdom bonus games ---------- */
+.garden { display: grid; grid-template-columns: repeat(5, min(96px, 12vh)); grid-auto-rows: min(96px, 12vh); gap: 6px;
+  background: #b2f2bb; border-radius: 24px; padding: 10px; }
+.garden-cell { background: #d3f9d8; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: min(3.4rem, 8vh); }
+.caps-word { font-size: min(6rem, 12vh); font-weight: 1000; letter-spacing: 6px; }
+#screen[data-name="kb-6"] .keyboard, #screen[data-name="kb-7"] .keyboard { align-items: center; }

@@ -20,7 +20,7 @@ LEVEL_COUNTS = {"mouse": 4, "keyboard": 5, "letters": 5, "words": 5, "sentences"
 # Bonus levels come after the core levels of a world. They give stars and stickers, but they never
 # change whether the world counts as complete, so adding them cannot re-lock anything for a child
 # who has already played. Some bonus levels only appear for one language (decided in the browser).
-BONUS_LEVELS: dict[str, int] = {"letters": 3, "words": 5, "sentences": 3}
+BONUS_LEVELS: dict[str, int] = {"keyboard": 2, "letters": 3, "words": 5, "sentences": 3, "basics": 4}
 
 # By default a world opens when the one before it in WORLD_ORDER is complete. A world listed here
 # opens after the named world instead. Number Land (added later) opens after Keyboard Kingdom; putting it
