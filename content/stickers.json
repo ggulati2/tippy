@@ -22,5 +22,8 @@
   {"id": "dino",     "emoji": "🦖", "award": "words:done",      "name": {"en": "Dino",         "de": "Dino"}},
   {"id": "whale",    "emoji": "🐳", "award": "sentences:done",  "name": {"en": "Whale",        "de": "Wal"}},
   {"id": "octopus",  "emoji": "🐙", "award": "basics:done",     "name": {"en": "Octopus",      "de": "Krake"}},
-  {"id": "painter",  "emoji": "🎨", "award": "free:done",       "name": {"en": "Painter",      "de": "Maler"}}
+  {"id": "painter",  "emoji": "🎨", "award": "free:done",       "name": {"en": "Painter",      "de": "Maler"}},
+  {"id": "bee", "emoji": "🐝", "award": "numbers:1", "name": {"en": "Bee", "de": "Biene"}},
+  {"id": "giraffe", "emoji": "🦒", "award": "numbers:3", "name": {"en": "Giraffe", "de": "Giraffe"}},
+  {"id": "trophy", "emoji": "🏆", "award": "numbers:done", "name": {"en": "Trophy", "de": "Pokal"}}
 ]

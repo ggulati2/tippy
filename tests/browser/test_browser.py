@@ -50,3 +50,7 @@ def test_start_with_several_children_asks_who_is_playing(server):
 
 def test_backup_and_restore_through_the_screens(server):
     assert_clean(run_script(server, "restore.js", budget_ms=600_000))
+
+
+def test_number_pad_rule(server):
+    assert_clean(run_script(server, "numpad.js", budget_ms=300_000))

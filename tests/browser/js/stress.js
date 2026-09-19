@@ -10,7 +10,7 @@ T.run(async () => {
   // A) Leave every level with Home at three different moments. A game's pending step must never
   //    fire afterwards (it once popped a "level done" screen on top of the home screen).
   let leaks = [];
-  for (const [world, levels] of [["mouse", 4], ["keyboard", 5], ["letters", 5], ["words", 5], ["sentences", 5], ["basics", 6]]) {
+  for (const [world, levels] of [["mouse", 4], ["keyboard", 5], ["letters", 5], ["words", 5], ["sentences", 5], ["basics", 6], ["numbers", 6]]) {
     for (let i = 0; i < levels; i++) for (const delay of [200, 900, 2500]) {
       await loadProgress(); openWorld(world); await T.wait(400);
       [...document.querySelectorAll(".world.level")][i].click();

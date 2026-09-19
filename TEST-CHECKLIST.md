@@ -17,6 +17,11 @@ These checks need a person. Tick them off on the computer Tippy will really be u
 - [ ] Word Woods and Sentence Sky: type a whole sentence. The keys feel instant.
 - [ ] Free Play: type `cat`, press Enter. Try a word that is not known: the letters dance.
 
+## Number Land (3 minutes)
+- [ ] Play Number Land with the row of digits above the letters: it works.
+- [ ] On a computer with a real number pad: switch on *This computer has a number pad* in Settings. The digit row now gets a hint and the pad keys count. Try all six games (count the animals, add up, the rocket countdown).
+- [ ] The numbers are read aloud one digit at a time ("one two three").
+
 ## Fullscreen and accidental exits (3 minutes)
 - [ ] Double-click the start file: Tippy opens fullscreen with no address bar.
 - [ ] Try Cmd+W (Ctrl+W), Cmd+R (F5), Esc, Tab, Alt+F4 while playing. Tippy stays open. (Cmd+Q and Alt+F4 may still close the window on some systems; if so, double-click the start file again: progress and the daily limit are kept.)

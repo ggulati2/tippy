@@ -82,3 +82,72 @@ def test_basics_and_free_play_chain(db_path):
     assert "octopus" in result["new_stickers"]
     assert progress.get_progress(db_path, D)["worlds"]["free"]["unlocked"]
     assert "painter" in progress.record_completion(db_path, "free", 1, 3, D)["new_stickers"]
+
+
+# ---------- Number Land, prerequisites and bonus levels ----------
+
+def finish(path, world, levels=None):
+    for level in range(1, (levels or progress.LEVEL_COUNTS[world]) + 1):
+        progress.record_completion(path, world, level, 3)
+
+
+def test_number_land_opens_after_keyboard_kingdom_not_at_the_end(tmp_path):
+    path = tmp_path / "p.db"
+    db.init_db(path)
+    assert not progress.get_progress(path)["worlds"]["numbers"]["unlocked"]
+    finish(path, "mouse")
+    assert not progress.get_progress(path)["worlds"]["numbers"]["unlocked"]
+    finish(path, "keyboard")
+    worlds = progress.get_progress(path)["worlds"]
+    assert worlds["numbers"]["unlocked"] and worlds["letters"]["unlocked"]
+
+
+def test_adding_a_world_never_relocks_a_child_who_was_further_on(tmp_path):
+    """A child who finished mouse to sentences before Number Land existed keeps everything open."""
+    path = tmp_path / "p.db"
+    db.init_db(path)
+    for world in ("mouse", "keyboard", "letters", "words", "sentences"):
+        finish(path, world)
+    worlds = progress.get_progress(path)["worlds"]
+    assert [w for w in progress.WORLD_ORDER if worlds[w]["unlocked"] and w != "numbers"] == ["mouse", "keyboard", "letters", "words", "sentences", "basics"]
+    assert worlds["numbers"]["unlocked"] and not worlds["numbers"]["complete"]
+
+
+def test_number_land_has_six_levels_and_its_own_stickers(tmp_path):
+    path = tmp_path / "p.db"
+    db.init_db(path)
+    got = []
+    for level in range(1, 7):
+        got += progress.record_completion(path, "numbers", level, 3)["new_stickers"]
+    assert got == ["bee", "giraffe", "trophy"]
+    assert progress.get_progress(path)["worlds"]["numbers"]["complete"]
+    with pytest.raises(ValueError):
+        progress.record_completion(path, "numbers", 7, 3)
+
+
+def test_bonus_levels_give_rewards_but_never_change_completion(tmp_path, monkeypatch):
+    monkeypatch.setitem(progress.BONUS_LEVELS, "letters", 2)
+    path = tmp_path / "p.db"
+    db.init_db(path)
+    progress.record_completion(path, "letters", 6, 3)                       # a bonus level, nothing else done
+    progress.record_completion(path, "letters", 7, 3)
+    state = progress.get_progress(path)["worlds"]["letters"]
+    assert not state["complete"] and set(state["levels"]) == {"6", "7"}
+    with pytest.raises(ValueError):
+        progress.record_completion(path, "letters", 8, 3)                  # beyond the last bonus level
+    finish(path, "letters")                                                # now the five core levels
+    after = progress.get_progress(path)
+    assert after["worlds"]["letters"]["complete"] and after["worlds"]["words"]["unlocked"]
+
+
+def test_bonus_levels_do_not_award_the_world_done_sticker_early(tmp_path, monkeypatch):
+    monkeypatch.setitem(progress.BONUS_LEVELS, "letters", 3)
+    path = tmp_path / "p.db"
+    db.init_db(path)
+    got = []
+    for level in (4, 5, 6, 7, 8):                                           # 2 core + 3 bonus levels = 5 rows, but only 2 core
+        got += progress.record_completion(path, "letters", level, 3)["new_stickers"]
+    assert "lion" not in got
+    for level in (1, 2, 3):
+        got += progress.record_completion(path, "letters", level, 3)["new_stickers"]
+    assert "lion" in got

@@ -4,6 +4,11 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+### Added
+- Number Land: a new world with six games and an on-screen number pad (find the number, count, in order, add up, big numbers, countdown). Opens after Keyboard Kingdom, so children who are further on keep everything open. New stickers: bee, giraffe, trophy.
+- Setting *This computer has a number pad*: Number Land then asks for the pad keys (the digit row gets a friendly hint). Digit statistics appear in the parent's heat map on their own number pad.
+- Bonus levels (foundation): worlds can have extra levels that give stars and stickers but never change completion or unlocking, and a world can open after a chosen world instead of the previous one.
+
 ## [0.10.0] - 2026-09-19
 
 Several children per computer, restoring backups, and a much stronger test pipeline.

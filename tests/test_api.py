@@ -243,3 +243,29 @@ def test_damaged_database_is_moved_aside_and_app_starts(tmp_path):
     db.init_db(path)
     assert db.get_settings(path)["language"] == "en"        # fresh database works
     assert list(tmp_path.glob("tippy.db.damaged-*"))          # the old file was kept, not deleted
+
+
+def test_digits_are_valid_keystrokes_and_shown_in_the_key_report(client):
+    headers = parent_headers(client)
+    ok = client.post("/api/keystrokes", json={"events": [{"key": "7", "correct": True, "ms": 400}, {"key": "3", "correct": False, "ms": 900}]})
+    assert ok.status_code == 200
+    for bad in ("10", "-", "a1", ""):
+        assert client.post("/api/keystrokes", json={"events": [{"key": bad, "correct": True, "ms": 1}]}).status_code == 422, bad
+    keys = {row["key"]: row for row in client.get("/api/parent/dashboard", headers=headers).json()["keys"]}
+    assert keys["7"]["attempts"] == 1 and keys["3"]["accuracy"] == 0
+
+
+def test_number_pad_setting(client):
+    headers = parent_headers(client)
+    assert client.get("/api/settings").json()["has_numpad"] is False
+    assert client.post("/api/parent/settings", json={"has_numpad": True}, headers=headers).json()["has_numpad"] is True
+    assert client.post("/api/parent/settings", json={"has_numpad": "maybe"}, headers=headers).status_code == 422
+
+
+def test_number_land_progress_and_stickers_through_the_api(client):
+    for level in range(1, 7):
+        done = client.post("/api/progress/complete", json={"world": "numbers", "level": level, "stars": 3})
+        assert done.status_code == 200
+    assert client.post("/api/progress/complete", json={"world": "numbers", "level": 7, "stars": 3}).status_code == 400
+    stickers = client.get("/api/progress").json()["stickers"]
+    assert {"bee", "giraffe", "trophy"} <= set(stickers)

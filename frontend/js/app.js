@@ -174,6 +174,8 @@ function later(fn, ms) {
 function setScreen(name, ...nodes) {
   screenSerial++;
   keyHandler = null;
+  padOnlyScreen = false;
+  delete $("#screen").dataset.answer;   // Number Land sets this so the tests know the right answer
   $("#screen").dataset.name = name;
   show(...nodes);
 }
@@ -194,7 +196,7 @@ async function welcomeScreen() {
 }
 
 const WORLDS = [
-  ["mouse", "🐭"], ["keyboard", "⌨️"], ["letters", "🔤"], ["words", "🌳"],
+  ["mouse", "🐭"], ["keyboard", "⌨️"], ["letters", "🔤"], ["numbers", "🔢"], ["words", "🌳"],
   ["sentences", "☁️"], ["basics", "🖥️"], ["free", "🎨"],
 ];
 
@@ -222,6 +224,7 @@ function openWorld(id) {
   if (id === "mouse") mouseMeadow();
   else if (id === "keyboard") kingdom();
   else if (id === "letters") letterLand();
+  else if (id === "numbers") numberLand();
   else if (id === "words") wordWoods();
   else if (id === "sentences") sentenceSky();
   else if (id === "basics") computerCove();

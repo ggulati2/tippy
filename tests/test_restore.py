@@ -188,3 +188,14 @@ def test_new_child_respects_the_limit_of_six(api):
         client.post("/api/parent/profiles", json={"name": "Kid" + "abcde"[i], "avatar": AVATARS[i]}, headers=parent)
     assert client.post("/api/parent/import?target=new", content=json.dumps(GOOD), headers=parent).status_code == 422
     assert len(client.get("/api/profiles").json()["profiles"]) == 6
+
+
+def test_digit_statistics_and_number_pad_setting_restore(tmp_path):
+    backup = {"app": "tippy", "tables": {
+        "settings": [{"key": "has_numpad", "value": "1"}, {"key": "has_numpad", "value": "yes"}],
+        "keystroke_stats": [{"key": "7", "attempts": 4, "correct": 3, "avg_ms": 600}, {"key": "77", "attempts": 1, "correct": 1, "avg_ms": 1}],
+        "progress": [{"world": "numbers", "level": 6, "status": "done", "stars": 3}, {"world": "numbers", "level": 7, "status": "done", "stars": 3}]}}
+    plan = restore.prepare(backup)
+    assert plan["settings"]["has_numpad"] == "1"
+    assert plan["rows"]["keystroke_stats"] == [("7", 4, 3, 600.0)]
+    assert plan["rows"]["progress"] == [("numbers", 6, "done", 3)]

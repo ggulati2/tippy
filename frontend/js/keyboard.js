@@ -19,6 +19,15 @@ const KEY_ROWS = {
 };
 const KEY_LABELS = { SHIFT: "⇧", BACKSPACE: "⌫", ENTER: "⏎", SPACE: "␣" };
 
+// The number pad, as on the right of a big keyboard. Number Land draws it on screen.
+const NUMPAD_ROWS = [["7", "8", "9"], ["4", "5", "6"], ["1", "2", "3"], ["0", ".", "ENTER"]];
+// Right-hand fingers on the pad: index (7 4 1), middle (8 5 2), ring (9 6 3), thumb and little finger below.
+const NUMPAD_FINGER = { 7: 4, 4: 4, 1: 4, 8: 5, 5: 5, 2: 5, 9: 6, 6: 6, 3: 6, ".": 6, ENTER: 7 };
+
+// While a Number Land screen is showing and the parent said "this computer has a number pad", digits
+// from the row above the letters are treated like a wrong key ("use the pad"), so the pad gets practised.
+let padOnlyScreen = false;
+
 // One colour per finger, from the left little finger to the right little finger.
 const FINGER_COLORS = ["#ff8787", "#ffa94d", "#ffd43b", "#69db7c", "#4dabf7", "#9775fa", "#f783ac", "#38d9a9"];
 const THUMB_COLOR = "#dee2e6";
@@ -34,12 +43,14 @@ function fingerGroups(layout) {
 }
 
 function zoneColor(key, layout = settings.keyboard_layout) {
+  if (layout === "numpad") return key in NUMPAD_FINGER ? FINGER_COLORS[NUMPAD_FINGER[key]] : THUMB_COLOR;
   const finger = fingerGroups(layout).findIndex((group) => group.includes(key));
   return finger === -1 ? THUMB_COLOR : FINGER_COLORS[finger];
 }
 
 // Turn a real key press into one of our key names (or null for keys we ignore).
 function keyName(e) {
+  if (padOnlyScreen && settings.has_numpad && /^[0-9]$/.test(e.key) && e.code && e.code.startsWith("Digit")) return "NOPAD";
   if (e.key === " ") return "SPACE";
   if (e.key === "Enter") return "ENTER";
   if (e.key === "Backspace") return "BACKSPACE";
@@ -50,9 +61,9 @@ function keyName(e) {
 
 // Draws the keyboard. Returns { node, highlight, press, wobble, pulse, has }.
 function renderKeyboard(layout = settings.keyboard_layout) {
-  const node = el("div", { class: "keyboard" });
+  const node = el("div", { class: "keyboard" + (layout === "numpad" ? " numpad" : "") });
   const keys = {};
-  for (const row of KEY_ROWS[layout] || KEY_ROWS.qwerty) {
+  for (const row of layout === "numpad" ? NUMPAD_ROWS : KEY_ROWS[layout] || KEY_ROWS.qwerty) {
     const rowNode = el("div", { class: "key-row" });
     for (const name of row) {
       const key = el("div", { class: "key" + (KEY_LABELS[name] && name !== "SPACE" ? " wide" : "") + (name === "SPACE" ? " space" : "") },
@@ -79,6 +90,8 @@ function renderKeyboard(layout = settings.keyboard_layout) {
     pulse(name) { if (keys[name]) replay(keys[name], "attention"); },
   };
 }
+
+const renderNumpad = () => renderKeyboard("numpad");
 
 // Wrong key: never red, never a buzzer. The pressed key wiggles, the right key
 // pulses, and every second time Tippy says a friendly hint.

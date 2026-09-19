@@ -139,10 +139,9 @@ function heatStep(mistakes) {
   return { color, dark: position > 1.6 };
 }
 
-function heatMap(keys) {
-  const board = renderKeyboard();
-  const stats = Object.fromEntries(keys.map((k) => [k.key, k]));
-  for (const name of Object.keys(KEY_LABELS).concat("QWERTYUIOPASDFGHJKLZXCVBNMÖÄÜ".split(""))) {
+// Colour the keys of a board by how often they went wrong (darker = more mistakes, grey = no data).
+function paintHeat(board, stats, names) {
+  for (const name of names) {
     const node = board.element(name);
     if (!node) continue;
     const stat = stats[name];
@@ -153,12 +152,21 @@ function heatMap(keys) {
     node.style.color = dark ? "#ffffff" : INK;
     node.title = `${name}: ${Math.round(stat.accuracy * 100)}% (${stat.attempts})`;
   }
+}
+
+function heatMap(keys) {
+  const board = renderKeyboard();
+  const stats = Object.fromEntries(keys.map((k) => [k.key, k]));
+  paintHeat(board, stats, Object.keys(KEY_LABELS).concat("QWERTYUIOPASDFGHJKLZXCVBNMÖÄÜ".split("")));
+  // Number Land keys get their own small pad once the child has practised digits.
+  const pad = keys.some((k) => /^[0-9]$/.test(k.key)) ? renderNumpad() : null;
+  if (pad) { paintHeat(pad, stats, "0123456789".split("")); pad.node.classList.add("heat", "heat-pad"); }
   const legend = el("div", { class: "heat-legend" }, el("span", {}, t("heatLess")),
     el("span", { class: "heat-bar" }), el("span", {}, t("heatMore")), el("span", { class: "heat-none" }), el("span", {}, t("heatNone")));
   const rows = [...keys].sort((a, b) => a.accuracy - b.accuracy)
     .map((k) => [k.key, `${Math.round(k.accuracy * 100)}%`, k.attempts, `${(k.avg_ms / 1000).toFixed(1)} s`]);
   board.node.classList.add("heat");
-  return el("div", { class: "card" }, el("h3", {}, t("heatTitle")), board.node, legend,
+  return el("div", { class: "card" }, el("h3", {}, t("heatTitle")), board.node, ...(pad ? [el("h4", {}, "🔢 " + t("world.numbers")), pad.node] : []), legend,
     tableView([t("colKey"), t("colAccuracy"), t("colTries"), t("colSpeed")], rows));
 }
 
@@ -233,6 +241,7 @@ async function settingsTab(body) {
     toggleRow(t("voice"), [[true, t("on")], [false, t("off")]], settings.voice_on, (v) => saveSetting({ voice_on: v })),
     toggleRow(t("sound"), [[true, t("on")], [false, t("off")]], settings.sound_on, (v) => saveSetting({ sound_on: v })),
     toggleRow(t("setFont"), [[1, "A"], [1.125, "A+"], [1.25, "A++"]], settings.font_scale || 1, (v) => saveSetting({ font_scale: v })),
+    toggleRow(t("setNumpad"), [[true, t("on")], [false, t("off")]], !!settings.has_numpad, (v) => saveSetting({ has_numpad: v })),
     toggleRow(t("setMotion"), [[false, t("on")], [true, t("off")]], !!settings.reduce_motion, (v) => saveSetting({ reduce_motion: v })),
     el("div", { class: "row" }, el("span", {}, t("setPin")), el("button", { class: "big-btn blue small-btn", onclick: changePinFlow }, "🔑 " + t("setPinBtn"))),
     textRow(t("childName"), "child_name", settings.child_name, 20),

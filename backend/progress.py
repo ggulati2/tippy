@@ -12,10 +12,25 @@ from backend import db
 from backend.config import CONTENT_DIR
 
 # Worlds in the order they unlock. A world unlocks when the one before it is complete.
-WORLD_ORDER = ["mouse", "keyboard", "letters", "words", "sentences", "basics", "free"]
+WORLD_ORDER = ["mouse", "keyboard", "letters", "words", "sentences", "basics", "free", "numbers"]
 
 # How many levels each *built* world has. Add a world here when it is built.
-LEVEL_COUNTS = {"mouse": 4, "keyboard": 5, "letters": 5, "words": 5, "sentences": 5, "basics": 6, "free": 1}
+LEVEL_COUNTS = {"mouse": 4, "keyboard": 5, "letters": 5, "words": 5, "sentences": 5, "basics": 6, "free": 1, "numbers": 6}
+
+# Bonus levels come after the core levels of a world. They give stars and stickers, but they never
+# change whether the world counts as complete, so adding them cannot re-lock anything for a child
+# who has already played. Some bonus levels only appear for one language (decided in the browser).
+BONUS_LEVELS: dict[str, int] = {}
+
+# By default a world opens when the one before it in WORLD_ORDER is complete. A world listed here
+# opens after the named world instead. Number Land (added later) opens after Keyboard Kingdom; putting it
+# in the middle of the chain would have re-locked worlds for children who were already further on.
+UNLOCK_AFTER = {"numbers": "keyboard"}
+
+
+def max_level(world: str) -> int:
+    """The highest level number a world has (core levels plus bonus levels)."""
+    return LEVEL_COUNTS.get(world, 0) + BONUS_LEVELS.get(world, 0)
 
 MAX_STARS_PER_LEVEL = 3
 
@@ -87,7 +102,7 @@ def unlock_world(db_path: Path, world: str) -> None:
 def record_completion(db_path: Path, world: str, level: int, stars: int, today: date | None = None) -> dict:
     """Save a finished level. Returns the ids of any newly earned stickers."""
     today = today or date.today()
-    if world not in LEVEL_COUNTS or not 1 <= level <= LEVEL_COUNTS[world]:
+    if world not in LEVEL_COUNTS or not 1 <= level <= max_level(world):
         raise ValueError("unknown level")
     if not 0 <= stars <= MAX_STARS_PER_LEVEL:
         raise ValueError("bad star count")
@@ -101,7 +116,8 @@ def record_completion(db_path: Path, world: str, level: int, stars: int, today: 
             "ON CONFLICT(world, level) DO UPDATE SET status = 'done', stars = MAX(stars, excluded.stars)",
             (world, level, stars),
         )
-        done = conn.execute("SELECT COUNT(*) FROM progress WHERE world = ? AND status = 'done'", (world,)).fetchone()[0]
+        done = conn.execute("SELECT COUNT(*) FROM progress WHERE world = ? AND status = 'done' AND level <= ?",
+                            (world, LEVEL_COUNTS[world])).fetchone()[0]     # only core levels count towards "world done"
         keys = [f"{world}:{level}"]
         if done >= LEVEL_COUNTS[world]:
             keys.append(f"{world}:done")
@@ -126,11 +142,13 @@ def get_progress(db_path: Path, today: date | None = None) -> dict:
         levels[row["world"]][str(row["level"])] = row["stars"]
 
     def complete(world: str) -> bool:
-        return world in LEVEL_COUNTS and len(levels[world]) >= LEVEL_COUNTS[world]
+        core = [level for level in levels[world] if int(level) <= LEVEL_COUNTS.get(world, 0)]
+        return world in LEVEL_COUNTS and len(core) >= LEVEL_COUNTS[world]
 
     worlds = {}
     for i, world in enumerate(WORLD_ORDER):
-        unlocked = i == 0 or world in manual or complete(WORLD_ORDER[i - 1])
+        before = UNLOCK_AFTER.get(world) or (WORLD_ORDER[i - 1] if i else None)
+        unlocked = before is None or world in manual or complete(before)
         worlds[world] = {"unlocked": unlocked, "complete": complete(world), "built": world in LEVEL_COUNTS,
                          "levels": levels[world]}
     return {

@@ -88,6 +88,8 @@ T.act = async ({ mistakes = false, doubleClickClose = false } = {}) => {
   else if (n.startsWith("basics-")) {
     const cards = [...document.querySelectorAll(".choice:not(:disabled)")];
     if (cards.length) cards[Math.floor(Math.random() * cards.length)].click();   // wrong ones must be harmless
+  } else if (n.startsWith("nums-") && document.querySelector("#screen").dataset.answer) {
+    T.key(document.querySelector("#screen").dataset.answer);   // counting and adding: the page tells the test the answer
   } else if (n === "free") { for (const c of "cat") T.key(c); T.key("Enter"); await T.wait(200); }
   else {
     const k = T.goalKey(); if (!k) return;

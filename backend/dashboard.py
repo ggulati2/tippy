@@ -91,7 +91,7 @@ def dashboard(db_path: Path, today: date | None = None) -> dict:
     total_correct = sum(k["correct"] for k in keys)
     return {
         "streak": state["streak"], "total_stars": state["total_stars"], "sticker_count": len(state["stickers"]),
-        "worlds": {w: {"done": len(info["levels"]), "total": progress.LEVEL_COUNTS.get(w, 0), "unlocked": info["unlocked"]}
+        "worlds": {w: {"done": len([l for l in info["levels"] if int(l) <= progress.LEVEL_COUNTS.get(w, 0)]), "total": progress.LEVEL_COUNTS.get(w, 0), "unlocked": info["unlocked"]}
                    for w, info in state["worlds"].items()},
         "letters": {"unlocked": unlocked, "mastered": mastered},
         "keys": keys, "trend": trend, "play_minutes": minutes,

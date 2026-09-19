@@ -7,6 +7,7 @@
 // Which on-screen key does this character need? (null = we cannot ask a child to type it)
 function keyForChar(ch) {
   if (ch === " ") return "SPACE";
+  if (/^[0-9]$/.test(ch)) return ch;
   const upper = ch.toUpperCase();
   if (/^[A-Z]$/.test(upper)) return upper;
   // Ä, Ö and Ü are real keys on a German keyboard only.
@@ -34,14 +35,14 @@ function foldForKeyboard(text) {
 const isTypable = (text) => text.length > 0 && [...text].every((ch) => keyForChar(ch) !== null);
 
 // Only these key names are accepted by the server's statistics.
-const STAT_KEY = /^([A-Z]|SPACE)$/;
+const STAT_KEY = /^([A-Z]|[0-9]|SPACE)$/;
 
 const showLetter = (ch) => (settings.letter_case === "lower" ? ch.toLowerCase() : ch.toUpperCase());
 
 // items: [{ text: "cat", speak: "cat", picture: "🐱" (optional) }, ...]
 // Plays them one after another, then calls onDone().
-function typingRound({ screen, icon, text, items, onDone }) {
-  const board = renderKeyboard();
+function typingRound({ screen, icon, text, items, onDone, numpad = false }) {
+  const board = numpad ? renderNumpad() : renderKeyboard();
   const hasPictures = items.some((item) => item.picture);
   const picture = el("button", { class: "picture", onclick: () => speak(items[index].speak) });
   const line = el("div", { class: "typing-line" });
@@ -50,6 +51,7 @@ function typingRound({ screen, icon, text, items, onDone }) {
   if (hasPictures) nodes.push(picture);
   nodes.push(line, dots, board.node);
   setScreen(screen, ...nodes);
+  padOnlyScreen = numpad;
 
   let index = 0, pos = 0, slots = [], events = [], shownAt = 0, busy = false;
 

@@ -87,7 +87,7 @@ def create_app() -> FastAPI:
         stored = db.get_settings(family.db_path)
         out = {key: stored.get(key, "") for key in db.CHILD_SETTINGS}
         out["font_scale"] = float(stored.get("font_scale") or 1)
-        for flag in ("voice_on", "sound_on", "ask_tippy", "reduce_motion"):
+        for flag in ("voice_on", "sound_on", "ask_tippy", "reduce_motion", "has_numpad"):
             out[flag] = stored.get(flag) == "1"
         out["online_helper"] = llm.mode == "live"  # the parent area hides the helper tab when off
         out["setup_needed"] = not guard.has_pin
@@ -163,7 +163,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=400, detail="unknown level")
 
     class KeyEvent(BaseModel):
-        key: str = Field(pattern=r"^([A-Z]|SPACE|ENTER|BACKSPACE|SHIFT)$")
+        key: str = Field(pattern=r"^([A-Z]|[0-9]|SPACE|ENTER|BACKSPACE|SHIFT)$")
         correct: bool
         ms: int = Field(ge=0, le=600000)
 
@@ -236,6 +236,7 @@ def create_app() -> FastAPI:
         ask_tippy: bool | None = None
         font_scale: float | None = Field(default=None, ge=1, le=1.25)
         reduce_motion: bool | None = None
+        has_numpad: bool | None = None
         openrouter_model: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._:/\-]{0,80}$")
         interests: list[str] | None = Field(default=None, max_length=4)
 

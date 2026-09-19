@@ -30,7 +30,7 @@ T.run(async () => {
     return true;
   }
 
-  for (const [world, levels] of [["mouse", 4], ["keyboard", 5], ["letters", 5], ["words", 5], ["sentences", 5], ["basics", 6]]) {
+  for (const [world, levels] of [["mouse", 4], ["keyboard", 5], ["letters", 5], ["words", 5], ["sentences", 5], ["basics", 6], ["numbers", 6]]) {
     await loadProgress(); openWorld(world); await T.wait(600);
     for (let i = 0; i < levels; i++) if (!(await playLevel(world, i))) { openWorld(world); await T.wait(600); }
   }
@@ -42,5 +42,5 @@ T.run(async () => {
   const p = await fetch("/api/progress").then((r) => r.json());
   T.check("stickers were earned", p.stickers.length >= 20, p.stickers.length + " stickers");
   const done = Object.fromEntries(Object.entries(p.worlds).map(([k, v]) => [k, Object.keys(v.levels).length]));
-  T.check("every world is complete in the saved progress", JSON.stringify(done) === JSON.stringify({ mouse: 4, keyboard: 5, letters: 5, words: 5, sentences: 5, basics: 6, free: 1 }), JSON.stringify(done));
+  T.check("every world is complete in the saved progress", JSON.stringify(done) === JSON.stringify({ mouse: 4, keyboard: 5, letters: 5, words: 5, sentences: 5, basics: 6, free: 1, numbers: 6 }), JSON.stringify(done));
 });

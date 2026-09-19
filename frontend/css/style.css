@@ -432,3 +432,17 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .avatar-select { font-size: 1.8rem; min-height: 56px; border-radius: 16px; border: 3px solid #cfe6fa; background: #fff; padding: 0 8px; }
 .add-child { display: flex; flex-direction: column; gap: 12px; border-top: 2px solid #e3eefb; padding-top: 12px; }
 .add-child h3 { margin: 0; }
+
+/* ---------- Number Land ---------- */
+#screen[data-name^="nums-"] .key { --size: clamp(44px, min(7vw, 8vh), 88px); font-size: 2rem; }
+#screen[data-name^="nums-"] { gap: min(14px, 1.8vh); }
+#screen[data-name="nums-6"] .scene { height: min(64px, 8vh); }
+#screen[data-name="nums-6"] .big-letter { font-size: min(5rem, 10vh); }
+#screen[data-name="nums-6"] .scene-item { font-size: min(4.5rem, 10vh); }
+#screen[data-name^="nums-"] .keyboard { gap: 8px; }
+.num-scene { min-height: min(120px, 16vh); display: flex; align-items: center; justify-content: center; }
+.count-things { font-size: min(4rem, 8vh); line-height: 1.15; max-width: 760px; letter-spacing: 6px;
+  display: flex; gap: 24px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.count-things .plus { font-weight: 900; color: var(--primary); letter-spacing: 0; }
+.heat-pad { margin-top: 4px; }
+.card h4 { margin: 10px 0 4px; }

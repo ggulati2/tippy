@@ -21,7 +21,7 @@ MAX_ROWS = 20_000
 DATA_TABLES = ("progress", "stickers", "keystroke_stats", "daily_stats", "play_time", "play_days")
 # Settings that are known but deliberately not restored (internal counters, household secrets): ignored without counting.
 IGNORED_SETTINGS = {"letters_changed_at", "weekly_summary", "pin_hash", "openrouter_model"}
-_KEY = re.compile(r"^([A-ZÄÖÜ]|SPACE|ENTER|BACKSPACE|SHIFT)$")
+_KEY = re.compile(r"^([A-ZÄÖÜ]|[0-9]|SPACE|ENTER|BACKSPACE|SHIFT)$")
 
 
 class RestoreError(ValueError):
@@ -56,6 +56,7 @@ def _setting(key: str, value):
         "sound_on": lambda: text if text in ("0", "1") else None,
         "ask_tippy": lambda: text if text in ("0", "1") else None,
         "reduce_motion": lambda: text if text in ("0", "1") else None,
+        "has_numpad": lambda: text if text in ("0", "1") else None,
         "child_name": lambda: text if _name_ok(text, 20, True) else None,
         "favorite_word": lambda: text if _name_ok(text, 15, False) else None,
         "session_minutes": lambda: str(n) if (n := _int(_num(text), 0, 60)) is not None else None,
@@ -110,7 +111,7 @@ def prepare(backup) -> dict:
 
     for r in tables.get("progress", []):
         world, level, stars = r.get("world"), r.get("level"), _int(r.get("stars"), 0, 3)
-        ok = world in progress.LEVEL_COUNTS and _int(level, 1, progress.LEVEL_COUNTS.get(world, 0)) and stars is not None and r.get("status") == "done"
+        ok = world in progress.LEVEL_COUNTS and _int(level, 1, progress.max_level(world)) and stars is not None and r.get("status") == "done"
         keep("progress", (world, int(level), "done", stars) if ok else None)
     for r in tables.get("stickers", []):
         at = r.get("earned_at")
