@@ -254,3 +254,9 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - `frontend/js/profiles.js`: `whoIsPlaying()` (picker, shown at start-up when `settings.profile_count > 1`), `switchChild(id, {checkLimits})` (settles pending play seconds for the outgoing child, selects, resets session counters, reloads settings/limits), `childrenTab()` (parent area), `#who-btn` (only on welcome and map, via `updateWhoButton` called from `show()`). Inside the parent area use `checkLimits: false` so a goodnight pop-up cannot replace the parent panel.
 - Tests: `tests/browser/js/children.js` and `who.js` (verified to fail when the server ignores the selection or the goodnight screen loses its switch button).
 - Lesson: never use `git checkout <file>` to undo a test mutation on a file that also has uncommitted real changes; commit or stash first, or undo the mutation with a reverse edit.
+
+## Restore
+
+- `backend/restore.py`: `prepare(backup)` validates everything and returns a plan (skipped items are counted; `RestoreError` for files that are not usable), `apply(db_path, plan)` writes a safety copy (`<id>.before-restore-<time>.db`, via the sqlite backup API) then replaces the child's data in ONE transaction. Only per-child settings and the tables in `DATA_TABLES` come back; PIN hash, helper model, usage, cache and unknown keys never do (`IGNORED_SETTINGS` are dropped silently). Size limit 5 MB (`MAX_BACKUP_BYTES`, also checked in the browser), 20,000 rows per table.
+- Endpoint `POST /api/parent/import?target=current|new` (raw JSON body; validation happens before a new child is created, so a bad file never leaves a stray child). When you add a table or setting to the export, add its validation to `restore.py` and a case to `tests/test_restore.py`.
+- Browser test `restore.js` uses `T.until(...)` to wait for file reads: Chrome's fake clock can run ahead of real work such as `file.text()`, so never rely on fixed waits after file input.

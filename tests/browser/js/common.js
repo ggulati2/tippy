@@ -15,6 +15,9 @@ Element.prototype.setPointerCapture = () => {};   // synthetic pointer events ha
 
 T.check = (label, ok, detail = "") => { T.results.push({ label, ok: !!ok, detail: String(detail) }); render(); };
 T.wait = (ms) => new Promise((r) => setTimeout(r, ms));
+// Wait until something is true (checked every 50 ms, at most `ms`). Needed for things the fake clock cannot
+// speed up, such as reading a file: the clock may run ahead while the browser is still doing real work.
+T.until = async (condition, ms = 5000) => { for (let t = 0; t < ms / 50 && !condition(); t++) await T.wait(50); return !!condition(); };
 T.name = () => document.querySelector("#screen")?.dataset.name || "";
 T.modalCount = () => document.querySelector("#modal-root").children.length;
 T.key = (k, extra = {}) => { const e = new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true, ...extra }); document.dispatchEvent(e); return e; };

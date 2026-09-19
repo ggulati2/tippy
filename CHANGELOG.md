@@ -5,6 +5,7 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 ## [Unreleased]
 
 ### Added
+- Restore a backup (parent area, Data tab): into the shown child or as a new child, with strict validation of the file (bad rows skipped and counted, no PIN or household settings can come in), a safety copy of the replaced data, and an all-or-nothing transaction. Backups from 0.9.x still work.
 - Several children: a Children tab in the parent area (add, rename, change picture, remove, choose which child to show), a "Who is playing?" screen at start-up and a switch button, separate progress, language and play limits per child, and a switch button on the goodnight screen so a sibling can still play.
 
 ### Changed

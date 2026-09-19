@@ -3,6 +3,7 @@
 It only listens on 127.0.0.1, so nobody else on the network can reach it.
 It serves the frontend files and a few small JSON endpoints under /api.
 """
+import json
 import logging
 import os
 import threading
@@ -14,7 +15,7 @@ from pydantic import BaseModel, Field
 
 from datetime import date
 
-from backend import bank, dashboard, db, difficulty, progress, summary
+from backend import bank, dashboard, db, difficulty, progress, restore, summary
 from backend.config import FRONTEND_DIR, LOG_DIR, PORT, load_settings
 from backend.content import ContentService
 from backend.llm.client import LLMClient
@@ -354,6 +355,33 @@ def create_app() -> FastAPI:
     def parent_export(x_parent_token: str | None = Header(default=None)):
         require_parent(x_parent_token)
         return dashboard.export_data(family.db_path)
+
+    @app.post("/api/parent/import")
+    async def import_backup(request: Request, target: str = Query(default="current", pattern="^(current|new)$"),
+                            x_parent_token: str | None = Header(default=None)):
+        """Restore a backup file into the child who is shown (`current`) or into a new child (`new`)."""
+        require_parent(x_parent_token)
+        raw = await request.body()
+        if len(raw) > restore.MAX_BACKUP_BYTES:
+            raise HTTPException(status_code=413, detail="too-big")
+        try:
+            plan = restore.prepare(json.loads(raw))       # everything is checked before anything is changed
+        except (ValueError, RecursionError) as error:      # json errors are ValueErrors too
+            raise HTTPException(status_code=422, detail=str(error) if isinstance(error, restore.RestoreError) else "bad-file")
+        try:
+            if target == "new":
+                child = family.create(restore.suggested_name(plan) or "Restored", AVATARS[len(family.list()) % len(AVATARS)],
+                                      plan["settings"].get("language"))
+                path = family.path_for(child["id"])
+            else:
+                path = family.db_path
+            result = restore.apply(path, plan)
+        except ProfileError as error:
+            raise HTTPException(status_code=422, detail=str(error))
+        if target == "current" and plan["settings"].get("child_name") is not None:
+            family.rename_active(plan["settings"]["child_name"])
+        log.info("Backup restored (%s): %s", target, result["restored"])
+        return {**result, "target": target}
 
     class ResetBody(BaseModel):
         confirm: str

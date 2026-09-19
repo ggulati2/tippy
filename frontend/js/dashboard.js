@@ -292,8 +292,11 @@ function llmSection(status) {
 
 // ---------- Tab: Data ----------
 
+let restoreNotice = "";   // shown once after a restore, because restoring redraws the parent area
+
 async function dataTab(body) {
-  const message = el("span", { class: "llm-result" }, "");
+  const message = el("span", { class: "llm-result" }, restoreNotice);
+  restoreNotice = "";
   const resetBox = el("div", { class: "reset-box" });
 
   async function exportBackup() {
@@ -313,9 +316,40 @@ async function dataTab(body) {
       el("button", { class: "big-btn blue small-btn", onclick: () => resetBox.replaceChildren() }, t("dataCancel"))));
   }
 
+  // Restore: pick a file, then choose between replacing the shown child and adding a new one.
+  const restoreBox = el("div", { class: "reset-box restore-box" });
+  const fileInput = el("input", { type: "file", accept: ".json,application/json", hidden: "hidden", "aria-label": t("dataRestore") });
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files[0];
+    fileInput.value = "";
+    if (!file) return;
+    restoreBox.replaceChildren();
+    if (file.size > 5 * 1024 * 1024) { message.textContent = "⚠️ " + t("dataRestoreBig"); return; }
+    const text = await file.text();
+    try { JSON.parse(text); } catch (e) { message.textContent = "⚠️ " + t("dataRestoreBad"); return; }
+    const name = settings.child_name || t("child.unnamed");
+    async function restoreInto(target) {
+      const { status, body: reply } = await api("/api/parent/import?target=" + target, { method: "POST", body: text });
+      if (status !== 200) {
+        message.textContent = "⚠️ " + (status === 413 ? t("dataRestoreBig") : ["bad-file", "empty", "too-big"].includes(reply.detail) || typeof reply.detail !== "string" ? t("dataRestoreBad") : reply.detail);
+        restoreBox.replaceChildren();
+        return;
+      }
+      restoreNotice = "✓ " + t("dataRestored").replace("{levels}", reply.restored.progress).replace("{stickers}", reply.restored.stickers);
+      await reloadSettings();
+      parentPanel();
+    }
+    restoreBox.replaceChildren(el("p", {}, "⚠️ " + t("dataRestoreAsk").replace("{name}", name)), el("div", { class: "panel-actions inline" },
+      el("button", { class: "big-btn exit-btn small-btn", onclick: () => restoreInto("current") }, t("dataRestoreReplace").replace("{name}", name)),
+      el("button", { class: "big-btn blue small-btn", onclick: () => restoreInto("new") }, t("dataRestoreNew")),
+      el("button", { class: "big-btn small-btn", onclick: () => restoreBox.replaceChildren() }, t("dataCancel"))));
+  });
+
   body.replaceChildren(
     el("p", {}, "🔒 " + t("dataWhere")),
     el("div", { class: "row" }, el("button", { class: "big-btn blue small-btn", onclick: exportBackup }, "💾 " + t("dataExport")), message),
+    el("div", { class: "row" }, el("button", { class: "big-btn blue small-btn", onclick: () => fileInput.click() }, "📂 " + t("dataRestore")), fileInput),
+    restoreBox,
     el("div", { class: "row" }, el("button", { class: "big-btn small-btn danger", onclick: askReset }, "🗑️ " + t("dataReset"))),
     resetBox);
 }

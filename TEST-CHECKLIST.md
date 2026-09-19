@@ -39,6 +39,11 @@ These checks need a person. Tick them off on the computer Tippy will really be u
 - [ ] Set one child's daily limit very low and reach it: the goodnight screen has a 👥 button and the other child can still play.
 - [ ] Removing a child asks first, and cannot remove the last one.
 
+## Backup and restore (3 minutes)
+- [ ] Data tab: save a backup, then reset a child's progress, then restore the file. Stars, stickers and settings come back.
+- [ ] Restore the same file as a new child on the Children tab: a second child appears with the same progress.
+- [ ] Try restoring some other JSON file (for example a photo's name changed to .json): Tippy says it is not a Tippy backup and changes nothing.
+
 ## With your child (15 minutes, most important)
 - [ ] He starts and finishes a game without help and without reading.
 - [ ] He is not frustrated by a wrong key. He understands what to do next.

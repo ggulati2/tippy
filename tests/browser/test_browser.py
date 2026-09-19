@@ -46,3 +46,7 @@ def test_start_with_several_children_asks_who_is_playing(server):
     avatars = call(server, "/api/profiles")["avatars"]
     call(server, "/api/parent/profiles", {"name": "Lea", "avatar": avatars[1], "language": "de"}, token)
     assert_clean(run_script(server, "who.js", budget_ms=300_000))
+
+
+def test_backup_and_restore_through_the_screens(server):
+    assert_clean(run_script(server, "restore.js", budget_ms=600_000))
