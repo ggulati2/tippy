@@ -4,8 +4,11 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+### Added
+- Several children: a Children tab in the parent area (add, rename, change picture, remove, choose which child to show), a "Who is playing?" screen at start-up and a switch button, separate progress, language and play limits per child, and a switch button on the goodnight screen so a sibling can still play.
+
 ### Changed
-- Storage is now one database per child (`data/profiles/<id>.db`) plus a family database (`data/family.db`) for the PIN, the helper model and the shared online-helper usage counter. An existing single-child `data/tippy.db` is moved into the first child automatically; a safety copy `tippy.db.before-profiles-<time>` is kept. Screens for choosing and managing children follow in the next changes.
+- Storage is now one database per child (`data/profiles/<id>.db`) plus a family database (`data/family.db`) for the PIN, the helper model and the shared online-helper usage counter. An existing single-child `data/tippy.db` is moved into the first child automatically; a safety copy `tippy.db.before-profiles-<time>` is kept. 
 - Importing `backend.app` no longer creates the app (and no longer opens the data folder); tests never touch real data.
 
 ### Added

@@ -248,3 +248,9 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - `ContentService` takes the `Family` (or a path) and snapshots the child's path before a background refill, so a refill lands in the right child's cache. `LLMClient(settings, state_db=...)` keeps usage and the model in the family database.
 - `backend.app.app` is created lazily (module `__getattr__`), so importing the module never opens real data. Keep it that way: tests must only use temp folders (`TIPPY_DB_PATH`).
 - Endpoints: `GET /api/profiles`, `POST /api/profiles/select` (child, no PIN), `POST /api/parent/profiles`, `/{id}`, `/{id}/delete` (`confirm: "DELETE"`). `/api/settings` now also returns `profile_id` and `profile_count`.
+
+## Profiles - screens
+
+- `frontend/js/profiles.js`: `whoIsPlaying()` (picker, shown at start-up when `settings.profile_count > 1`), `switchChild(id, {checkLimits})` (settles pending play seconds for the outgoing child, selects, resets session counters, reloads settings/limits), `childrenTab()` (parent area), `#who-btn` (only on welcome and map, via `updateWhoButton` called from `show()`). Inside the parent area use `checkLimits: false` so a goodnight pop-up cannot replace the parent panel.
+- Tests: `tests/browser/js/children.js` and `who.js` (verified to fail when the server ignores the selection or the goodnight screen loses its switch button).
+- Lesson: never use `git checkout <file>` to undo a test mutation on a file that also has uncommitted real changes; commit or stash first, or undo the mutation with a reverse edit.

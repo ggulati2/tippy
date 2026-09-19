@@ -157,7 +157,8 @@ async function mascotLine(event) {
 function show(...nodes) {
   const screen = $("#screen");
   screen.replaceChildren(...nodes);
-  $("#home-btn").hidden = nodes.length === 0 || screen.dataset.name === "welcome";
+  $("#home-btn").hidden = nodes.length === 0 || ["welcome", "who"].includes(screen.dataset.name);
+  updateWhoButton(screen.dataset.name);
 }
 
 // Every new screen gets a new number. A game that waits before moving on (a short pause after
@@ -359,6 +360,7 @@ $("#mute-btn").addEventListener("click", () => {
   $("#mute-btn").textContent = muted ? "🔇" : "🔊";
   sfx("tap");
 });
+$("#who-btn").addEventListener("click", () => { sfx("tap"); whoIsPlaying(); });
 $("#parent-btn").addEventListener("click", () => openModal(pinPad()));
 
 (async function start() {
@@ -368,8 +370,9 @@ $("#parent-btn").addEventListener("click", () => openModal(pinPad()));
     applyLook();
     api("/api/visit", { method: "POST" }); // counts today for the streak
     if (settings.setup_needed) { await welcomeScreen(); setupWizard(); return; }
-    startLimits();
-    await welcomeScreen();
+    const several = settings.profile_count > 1;
+    startLimits(!several);            // with several children the limits are checked once one is chosen
+    if (several) await whoIsPlaying(); else await welcomeScreen();
   } catch (e) {
     errorScreen(e);
   }

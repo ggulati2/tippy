@@ -112,6 +112,16 @@ def _run_until_dumped(command: list[str], timeout: float) -> str:
     return "".join(chunks)
 
 
+def call(srv: Server, path: str, body: dict | None = None, token: str | None = None) -> dict:
+    """A small helper for the tests to prepare state through the web API (POST when a body is given)."""
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["X-Parent-Token"] = token
+    data = json.dumps(body).encode() if body is not None else None
+    request = urllib.request.Request(srv.url + path, data=data, headers=headers, method="POST" if body is not None else "GET")
+    return json.loads(urllib.request.urlopen(request, timeout=10).read())
+
+
 def run_script(srv: Server, script: str, arg: str = "", budget_ms: int = 3_000_000, width: int = 1280, height: int = 720) -> dict:
     """Load the test page in headless Chrome, let the script run (with a fast fake clock) and return its report."""
     index = (srv.frontend / "index.html").read_text(encoding="utf-8")

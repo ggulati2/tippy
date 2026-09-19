@@ -33,6 +33,12 @@ These checks need a person. Tick them off on the computer Tippy will really be u
 - [ ] In Settings choose "Suggest a break after 5 min" and a daily limit of 30 min. After play, Tippy suggests a break; "keep playing" gives 5 more minutes.
 - [ ] Reach the daily limit (use a very short limit to try it). The goodnight screen cannot be closed by clicking or by keys. The PIN opens the parent area, where the limit can be lifted.
 
+## Several children (5 minutes)
+- [ ] Parent area, Children tab: add a second child with a picture. Start Tippy again: the big "Who is playing?" pictures appear.
+- [ ] Each child sees only their own stars, stickers and settings. Language and limits can differ.
+- [ ] Set one child's daily limit very low and reach it: the goodnight screen has a 👥 button and the other child can still play.
+- [ ] Removing a child asks first, and cannot remove the last one.
+
 ## With your child (15 minutes, most important)
 - [ ] He starts and finishes a game without help and without reading.
 - [ ] He is not frustrated by a wrong key. He understands what to do next.

@@ -23,8 +23,8 @@ for (const type of ["keydown", "pointerdown", "pointermove", "wheel"]) {
   document.addEventListener(type, () => { lastActivity = Date.now(); }, true);
 }
 
-function startLimits() {
-  refreshLimits();
+function startLimits(checkNow = true) {
+  if (checkNow) refreshLimits();
   setInterval(limitTick, 1000);
 }
 
@@ -99,6 +99,11 @@ function showLimit() {
   limitShown = true;
   keyHandler = null;
   const panel = el("div", { class: "panel" }, mascotSVG(), el("h2", {}, "😴 " + t("limitDone")));
+  if (settings.profile_count > 1) {   // a brother or sister can still play
+    panel.append(el("button", { class: "big-btn blue", "aria-label": t("who.title"), onclick: () => {
+      limitReached = false; limitShown = false; closeModal(); whoIsPlaying();
+    } }, "👥"));
+  }
   openModal(panel);
   if (first) speak(t("limitDone"));
 }

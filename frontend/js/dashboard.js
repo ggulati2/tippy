@@ -2,7 +2,7 @@
 // Everything here is for the parent only. The child never sees these numbers.
 
 let parentTab = "progress";
-const TABS = [["progress", "📊", "tabProgress"], ["settings", "⚙️", "tabSettings"], ["helper", "🤖", "tabHelper"], ["data", "🗄️", "tabData"]];
+const TABS = [["progress", "📊", "tabProgress"], ["settings", "⚙️", "tabSettings"], ["children", "👧", "tabChildren"], ["helper", "🤖", "tabHelper"], ["data", "🗄️", "tabData"]];
 
 async function parentPanel() {
   const body = el("div", { class: "tab-body" });
@@ -12,13 +12,13 @@ async function parentPanel() {
   const tabs = el("div", { class: "tabs" }, ...visibleTabs.map(([id, icon, key]) =>
     el("button", { class: "tab" + (id === parentTab ? " on" : ""), onclick: () => { parentTab = id; parentPanel(); } }, `${icon} ${t(key)}`)));
   const panel = el("div", { class: "panel wide" },
-    el("h2", {}, "🔓 " + t("parentArea")), tabs, body,
+    el("h2", {}, "🔓 " + t("parentArea") + (settings.profile_count > 1 ? ` · ${avatarOf(settings.profile_id)} ${settings.child_name || t("child.unnamed")}` : "")), tabs, body,
     // Exit and Back stay visible at the bottom even when the tab scrolls.
     el("div", { class: "panel-actions" },
       el("button", { class: "big-btn exit-btn small-btn", onclick: exitApp }, t("exitApp")),
       el("button", { class: "big-btn blue small-btn", onclick: leaveParentArea }, t("back"))));
   openModal(panel);
-  const render = { progress: progressTab, settings: settingsTab, helper: helperTab, data: dataTab }[parentTab];
+  const render = { progress: progressTab, settings: settingsTab, children: childrenTab, helper: helperTab, data: dataTab }[parentTab];
   await render(body);
 }
 

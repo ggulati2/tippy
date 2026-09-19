@@ -54,7 +54,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .big-btn.round { width: 80px; height: 80px; padding: 0; font-size: 2.4rem; background: var(--sun); }
 .big-btn.blue { background: var(--primary); }
 
-#home-btn { position: fixed; top: 20px; left: 20px; z-index: 5; }
+#home-btn, #who-btn { position: fixed; top: 20px; left: 20px; z-index: 5; }
+#who-btn { background: #fff; font-size: 2.6rem; }
 
 /* Deliberately small and pale: a child should not be drawn to it. */
 #parent-btn {
@@ -423,3 +424,11 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 #modal-root .panel .mascot { width: min(22vh, 190px); }
 #modal-root .panel .choices { gap: 20px; }
 #modal-root .panel .choice { min-width: 140px; min-height: 140px; font-size: 4.2rem; padding: 8px 16px; }
+
+/* ---------- Children ---------- */
+.child-card .icon { font-size: min(5.5rem, 13vh); }
+.child-row { gap: 12px; flex-wrap: nowrap; }
+.child-row .text-input { flex: 1; max-width: none; min-width: 0; }
+.avatar-select { font-size: 1.8rem; min-height: 56px; border-radius: 16px; border: 3px solid #cfe6fa; background: #fff; padding: 0 8px; }
+.add-child { display: flex; flex-direction: column; gap: 12px; border-top: 2px solid #e3eefb; padding-top: 12px; }
+.add-child h3 { margin: 0; }
