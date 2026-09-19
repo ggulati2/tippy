@@ -1,0 +1,81 @@
+# Continuous integration: runs on every pull request and every push to main.
+# It runs exactly what the git hooks run (scripts/check.sh), so "green" here means
+# "the same checks you ran on your own computer passed on a clean machine".
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:        # lets you start it by hand from the Actions tab
+
+# The workflow only needs to read the code.
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the older, now pointless run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Checks (Python ${{ matrix.python }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, python: "3.11" }   # the oldest Python the README promises
+          - { os: ubuntu-latest, python: "3.13" }   # the one used for development
+          - { os: macos-latest,  python: "3.13" }   # the parent's operating system
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - uses: actions/setup-node@v7        # for the JavaScript and text checks
+        with:
+          node-version: 22
+      - name: Install
+        run: pip install -r requirements-dev.txt
+      - name: Run all checks (secrets, syntax, texts, tests)
+        run: scripts/check.sh
+
+  package:
+    name: Build the zip
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Build Tippy-<version>.zip
+        run: python scripts/make_zip.py
+      - name: Check the zip contents
+        run: |
+          zip=$(ls Tippy-*.zip)
+          echo "Built $zip"
+          list=$(unzip -Z1 "$zip")
+          # Must contain the app and the double-click starters ...
+          for f in Tippy/VERSION Tippy/start.command Tippy/start.bat Tippy/start.sh Tippy/backend/app.py Tippy/frontend/index.html Tippy/.env.example; do
+            echo "$list" | grep -qx "$f" || { echo "MISSING from zip: $f"; exit 1; }
+          done
+          # ... and nothing private or developer-only.
+          if echo "$list" | grep -Eq '(^|/)\.env$|\.db|/data/|/logs/|/tests/|\.githooks|check\.sh'; then
+            echo "Something private or developer-only is in the zip:"
+            echo "$list" | grep -E '(^|/)\.env$|\.db|/data/|/logs/|/tests/|\.githooks|check\.sh'
+            exit 1
+          fi
+          # The start scripts must stay double-clickable.
+          unzip -Z "$zip" Tippy/start.command | grep -q '^-rwx' || { echo "start.command lost its execute bit"; exit 1; }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tippy-zip
+          path: Tippy-*.zip
+          retention-days: 14

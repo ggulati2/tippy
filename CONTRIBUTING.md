@@ -50,6 +50,10 @@ Bad: `fixed stuff`, `Update`, `wip`
 
 The body (optional) says **why**, not what. Keep secrets, the child's name and real API keys out of messages and code.
 
+## What the CI pipeline checks
+
+On every pull request and every push to `main`, GitHub Actions (`.github/workflows/ci.yml`) runs `scripts/check.sh` on a clean machine (Python 3.11 and 3.13 on Linux, 3.13 on macOS), then builds the zip and checks that it contains the app and nothing private. Look at the **Actions** tab, or the green tick or red cross on your pull request. Fix red before merging. The built zip is kept for 14 days under the run's *Artifacts*.
+
 ## What the hooks check
 
 | When | What | Command |

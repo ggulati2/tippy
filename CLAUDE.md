@@ -218,3 +218,8 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - Conventional Commits are enforced by `.githooks/commit-msg` (`type(scope): summary`, max 72 chars). Hooks are switched on with `scripts/setup-dev.sh` (`core.hooksPath=.githooks`). `scripts/check.sh` (fast = pre-commit, full = pre-push and future CI) is the single definition of "good enough to merge"; CI must call it rather than duplicate its steps.
 - Version lives in `VERSION` and `CHANGELOG.md`; releases are annotated tags `vX.Y.Z`. `scripts/make_zip.py` names the zip from `VERSION` and leaves developer-only files out.
 - Never `git add -f` an ignored file, never use `--no-verify`. Work on a branch; squash-merge into `main` once a remote exists.
+
+## CI notes
+
+- `.github/workflows/ci.yml` runs `scripts/check.sh` (Python 3.11 and 3.13 on Ubuntu, 3.13 on macOS) and a `package` job that builds the zip and asserts its contents. Do not duplicate check steps in the workflow: add them to `scripts/check.sh` so hooks and CI stay identical. Dependabot (`.github/dependabot.yml`) opens monthly update PRs.
+- The repo is public, so Actions minutes are free. Never put secrets in workflow files; if the pipeline ever needs a key, use GitHub repository secrets.

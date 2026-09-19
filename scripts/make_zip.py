@@ -29,7 +29,7 @@ def main() -> None:
                 sys.exit(f"Stopped: {name} contains something that looks like an API key.")
             info = zipfile.ZipInfo(f"Tippy/{name}", date_time=(2026, 1, 1, 0, 0, 0))
             executable = name.endswith((".command", ".sh"))
-            info.external_attr = (0o755 if executable else 0o644) << 16  # keep double-click scripts runnable
+            info.external_attr = (0o100000 | (0o755 if executable else 0o644)) << 16  # regular file + permissions  # keep double-click scripts runnable
             info.compress_type = zipfile.ZIP_DEFLATED
             z.writestr(info, data)
     print(f"Created {out.name} with {len(files)} files ({out.stat().st_size // 1024} KB).")

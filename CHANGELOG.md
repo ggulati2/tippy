@@ -4,6 +4,9 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+### Added
+- CI pipeline (GitHub Actions): checks on Linux and macOS, zip build and content check, Dependabot, pull request template.
+
 ## [0.9.0] - 2026-09-19
 
 First feature-complete version. Everything below was built in eight milestones and then tested with scripted browser play-throughs; the manual checks in `TEST-CHECKLIST.md` are still open.
