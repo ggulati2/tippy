@@ -97,7 +97,7 @@ Change the mascot's name and colours in `frontend/js/config.js`.
 
 ## License
 
-Tippy is free software under the [MIT License](LICENSE): you may use, copy and change it, including for your own children, and share it. The bundled font Nunito is under the SIL Open Font License (`frontend/assets/fonts/OFL.txt`). Tippy comes with no warranty.
+Tippy is free software under the [MIT License](LICENSE): you may use, copy and change it, including for your own children, and share it. The bundled font Nunito is under the SIL Open Font License; see `THIRD-PARTY-NOTICES.md`. Tippy comes with no warranty.
 
 ## Limits to know about
 

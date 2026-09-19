@@ -8,7 +8,7 @@ echo "Checking $zip"
 list=$(unzip -Z1 "$zip")
 fail=0
 for f in Tippy/VERSION Tippy/start.command Tippy/start.bat Tippy/start.sh Tippy/backend/app.py \
-         Tippy/frontend/index.html Tippy/.env.example Tippy/requirements.txt Tippy/README.md Tippy/LICENSE Tippy/frontend/assets/fonts/OFL.txt; do
+         Tippy/frontend/index.html Tippy/.env.example Tippy/requirements.txt Tippy/README.md Tippy/LICENSE Tippy/THIRD-PARTY-NOTICES.md Tippy/frontend/assets/fonts/OFL.txt; do
   echo "$list" | grep -qx "$f" || { echo "  ✗ missing from zip: $f"; fail=1; }
 done
 private='(^|/)\.env$|\.db|/data/|/logs/|/tests/|\.githooks|check\.sh|check_zip|\.github/'
