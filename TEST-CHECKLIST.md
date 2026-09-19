@@ -1,0 +1,43 @@
+# Tippy: things to check by hand
+
+The automated tests (`python -m pytest`) and the scripted play-throughs cannot hear, feel or watch a child.
+These checks need a person. Tick them off on the computer Tippy will really be used on.
+
+## Sound and voice (2 minutes)
+- [ ] Sounds are pleasant, not too loud, not crackly (tap a balloon, press a key in Letter Land).
+- [ ] The voice reads the instruction at the top of a game. Tap the 🔊 bubble to hear it again.
+- [ ] German: switch the language in the parent area and check a German voice speaks. If it sounds English, install a German voice (macOS: System Settings, Accessibility, Spoken Content, System Voice, Manage Voices).
+- [ ] The 🔊 button next to the gear silences everything and shows 🔇; tapping again brings sound back.
+
+## Real keyboard and mouse (5 minutes)
+- [ ] Letter Land: type the big letter on the real keyboard. Caps Lock on or off makes no difference.
+- [ ] A wrong key only wiggles and points at the right key. No red, no buzzer.
+- [ ] Space, Enter, Backspace and Shift games react to the real keys.
+- [ ] Mouse Meadow with your trackpad or mouse: pop balloons, drag shapes, double-click an egg (is the speed forgiving?), scroll to the treasure with two fingers or the wheel.
+- [ ] Word Woods and Sentence Sky: type a whole sentence. The keys feel instant.
+- [ ] Free Play: type `cat`, press Enter. Try a word that is not known: the letters dance.
+
+## Fullscreen and accidental exits (3 minutes)
+- [ ] Double-click the start file: Tippy opens fullscreen with no address bar.
+- [ ] Try Cmd+W (Ctrl+W), Cmd+R (F5), Esc, Tab, Alt+F4 while playing. Tippy stays open. (Cmd+Q and Alt+F4 may still close the window on some systems; if so, double-click the start file again: progress and the daily limit are kept.)
+- [ ] The gear opens the parent area only with the PIN. Exit Tippy needs the PIN too.
+- [ ] Closing from the parent area also closes the Terminal window's server (the window says the server stopped).
+
+## First start on a clean computer (10 minutes)
+- [ ] Unzip, double-click the start file. First start installs (needs internet once), then the setup screens appear: language, PIN twice, name, daily limit.
+- [ ] Quit, switch off Wi-Fi, start again. Tippy still opens and plays.
+- [ ] Double-click the start file a second time while Tippy runs: it just opens the window again.
+- [ ] Windows: `start.bat`. Linux: `./start.sh`. (Only macOS was run during development.)
+
+## Limits (3 minutes)
+- [ ] In Settings choose "Suggest a break after 5 min" and a daily limit of 30 min. After play, Tippy suggests a break; "keep playing" gives 5 more minutes.
+- [ ] Reach the daily limit (use a very short limit to try it). The goodnight screen cannot be closed by clicking or by keys. The PIN opens the parent area, where the limit can be lifted.
+
+## With your child (15 minutes, most important)
+- [ ] He starts and finishes a game without help and without reading.
+- [ ] He is not frustrated by a wrong key. He understands what to do next.
+- [ ] Nothing is too fast, too loud or too scary. Note what he asks for or clicks that does nothing.
+- [ ] The sounds and animations feel fun, not overwhelming. If they do, turn animations off in Settings.
+- [ ] Are the letters and text big enough from where he sits? Use *Text size* in Settings.
+
+Write down anything odd (a screenshot helps) and send it to the developer.

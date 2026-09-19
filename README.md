@@ -95,6 +95,16 @@ Change the mascot's name and colours in `frontend/js/config.js`.
 - **No sound or voice:** check the 🔊 button is not showing 🔇, the Mac volume, and Settings *Voice* / *Sounds*. Voices come from macOS (System Settings, Accessibility, Spoken Content); a German voice must be installed to hear German.
 - **Reset everything (stars, stickers, settings):** stop Tippy and delete the `data/` folder.
 
+## Limits to know about
+
+- One child profile per copy of Tippy (progress is shared by everyone who uses that computer's Tippy).
+- Languages: English and German. Keyboard shapes: QWERTY and QWERTZ (no AZERTY yet).
+- Tested with Chrome. Without Chrome or Edge Tippy opens your normal browser (not fullscreen; voices differ).
+
+## Testing
+
+`python -m pytest` runs the automatic tests. `TEST-CHECKLIST.md` lists what only a person can check (sound, real typing, fullscreen, a real child).
+
 ## For developers
 
 ```

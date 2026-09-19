@@ -205,3 +205,10 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - `LLM_MODE` now has `off` (default: built-in content only, no helper tab), `mock` (development) and `live`. The parent's own `.env` may keep `live`.
 - First start with no PIN: `setup_needed` is true in `/api/settings`, and `frontend/js/setup.js` runs the wizard (language, PIN, name, daily limit, default 30 min) via `POST /api/setup` (works once). The PIN is stored as a salted PBKDF2 hash in the `pin_hash` setting (private, not in `CHILD_SETTINGS`); `PARENT_PIN` in `.env` is optional and the saved hash wins. Change PIN: `POST /api/parent/pin`.
 - Keep `.env.example` free of secrets and with `LLM_MODE=off`.
+
+## Testing notes (thorough test pass)
+
+- Besides pytest, the app was tested with throwaway headless-Chrome scripts (kept out of the repo): a bot that plays every level in en and de (with deliberate mistakes), a stress test (key mashing, Home-button spam, shortcuts), break and daily-limit checks, and a parent-area walkthrough. Headless Chrome's viewport is about 87 px shorter than `--window-size` (720 gives 633), so results are pessimistic.
+- Bugs found and fixed that way: double-clicking the window lesson's close button crashed the lesson; pending steps (`setTimeout`) fired after the child pressed Home, popping up a stale "level done" screen (now every delayed game step uses `later()` from `app.js`, which drops it if the screen changed; use `later()` for any new delayed game step); names with accents were silently rejected; the backup file contained the PIN hash; a goodnight screen never cleared at midnight; start scripts needed internet on every start; a damaged database stopped the app from starting (now moved aside); layout overflow on short screens (base text size and several sizes now scale with viewport height).
+- Rule: `sendKeys` and other child-side calls must never throw to the child; the error screen ("Let's try another game!") is the only failure the child may see.
+- Manual checks that cannot be scripted are in `TEST-CHECKLIST.md`.

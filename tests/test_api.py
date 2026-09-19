@@ -234,3 +234,12 @@ def test_backup_never_contains_the_pin_hash(client):
     token = client.post("/api/parent/verify", json={"pin": "7777"}).json()["token"]
     backup = client.get("/api/parent/export", headers={"X-Parent-Token": token}).text
     assert "pin_hash" not in backup and "7777" not in backup
+
+
+def test_damaged_database_is_moved_aside_and_app_starts(tmp_path):
+    from backend import db
+    path = tmp_path / "tippy.db"
+    path.write_bytes(b"this is not a sqlite file" * 100)
+    db.init_db(path)
+    assert db.get_settings(path)["language"] == "en"        # fresh database works
+    assert list(tmp_path.glob("tippy.db.damaged-*"))          # the old file was kept, not deleted

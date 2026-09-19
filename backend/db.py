@@ -4,8 +4,12 @@ All tables are created with "IF NOT EXISTS", so starting the app is always safe
 and no separate migration tool is needed. If a table changes later, add a new
 column with ALTER TABLE inside init_db().
 """
+import logging
 import sqlite3
+from datetime import datetime
 from pathlib import Path
+
+log = logging.getLogger("tippy.db")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS settings (
@@ -103,6 +107,18 @@ def connect(db_path: Path) -> sqlite3.Connection:
 
 
 def init_db(db_path: Path, default_language: str = "en") -> None:
+    """Create the tables if needed. A damaged database file (for example after a power cut) is moved
+    aside, not deleted, and Tippy starts fresh, so the app never gets stuck unable to start."""
+    try:
+        _init_db(db_path, default_language)
+    except sqlite3.DatabaseError:
+        aside = db_path.with_name(f"{db_path.name}.damaged-{datetime.now():%Y%m%d-%H%M%S}")
+        log.error("Database is damaged. Moving it to %s and starting fresh.", aside)
+        db_path.rename(aside)
+        _init_db(db_path, default_language)
+
+
+def _init_db(db_path: Path, default_language: str = "en") -> None:
     with connect(db_path) as conn:
         conn.executescript(SCHEMA)
         conn.execute("INSERT OR IGNORE INTO child_profile (id) VALUES (1)")
