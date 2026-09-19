@@ -31,24 +31,50 @@ async function api(path, options = {}) {
 
 // ---------- Sound and voice ----------
 let audio = null;
-function beep(freq = 660, ms = 120) {
+
+// One musical note. "bell" adds a shimmering overtone (like a xylophone),
+// "glide" slides the pitch up or down (springy, cartoon-like sounds).
+// Every note fades in and out quickly: abrupt starts and stops cause clicks.
+function tone(freq, when, dur, { gain = 0.12, bell = true, glideTo = null } = {}) {
+  const start = audio.currentTime + when;
+  const partials = bell ? [[1, 1], [2.76, 0.25], [5.4, 0.08]] : [[1, 1]];
+  for (const [ratio, level] of partials) {
+    const osc = audio.createOscillator();
+    const amp = audio.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq * ratio, start);
+    if (glideTo) osc.frequency.exponentialRampToValueAtTime(glideTo * ratio, start + dur);
+    amp.gain.setValueAtTime(0.0001, start);
+    amp.gain.linearRampToValueAtTime(gain * level, start + 0.008);
+    amp.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    osc.connect(amp).connect(audio.destination);
+    osc.start(start);
+    osc.stop(start + dur + 0.02);
+  }
+}
+
+// C major pentatonic: any mix of these notes sounds happy, never sour.
+const C5 = 523.25, D5 = 587.33, E5 = 659.25, G5 = 783.99, A5 = 880, C6 = 1046.5, E6 = 1318.5;
+const PENTATONIC = [C5, D5, E5, G5, A5, C6];
+
+const SFX = {
+  tap:     () => tone(PENTATONIC[Math.floor(Math.random() * PENTATONIC.length)], 0, 0.35),
+  key:     () => tone(900, 0, 0.07, { bell: false, glideTo: 450, gain: 0.08 }),        // soft "pop"
+  play:    () => [C5, E5, G5, C6].forEach((f, i) => tone(f, i * 0.08, 0.45)),          // going up!
+  home:    () => [G5, E5, C5].forEach((f, i) => tone(f, i * 0.09, 0.4)),               // coming down
+  boing:   () => { tone(260, 0, 0.32, { bell: false, glideTo: 620, gain: 0.14 });      // springy jump
+                   tone(1200, 0.28, 0.15, { glideTo: 1800, gain: 0.06 }); },
+  success: () => [C5, E5, G5, C6, E6].forEach((f, i) => tone(f, i * 0.09, 0.5)),       // for later worlds
+  sparkle: () => [C6, E6, G5 * 2, C6 * 2].forEach((f, i) => tone(f, i * 0.06, 0.3, { gain: 0.07 })),
+};
+
+// Usage: sfx("tap"). Silent when the parent has turned sounds off.
+function sfx(name) {
   if (!settings.sound_on) return;
   try {
     audio = audio || new AudioContext();
-    const osc = audio.createOscillator();
-    const gain = audio.createGain();
-    const now = audio.currentTime;
-    const end = now + ms / 1000;
-    osc.type = "sine"; // the softest tone: no harsh buzz
-    osc.frequency.value = freq;
-    // Fade in and out quickly. Starting or stopping a tone abruptly makes
-    // a "click" that sounds like a broken speaker.
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(0.06, now + 0.01);
-    gain.gain.linearRampToValueAtTime(0.0001, end);
-    osc.connect(gain).connect(audio.destination);
-    osc.start(now);
-    osc.stop(end + 0.02);
+    if (audio.state === "suspended") audio.resume();
+    SFX[name]();
   } catch (e) { /* no sound available: the app still works */ }
 }
 
@@ -81,6 +107,7 @@ function speak(text) {
   const voice = pickVoice(lang);
   if (voice) u.voice = voice;
   u.rate = 0.95; // slightly slow; lower values make many voices sound robotic
+  u.pitch = 1.1; // a touch brighter and friendlier for a child
   speechSynthesis.speak(u);
 }
 // The voice list loads a moment after the page opens; touching it early wakes it up.
@@ -136,14 +163,14 @@ function setScreen(name, ...nodes) {
 async function welcomeScreen() {
   const mascot = mascotSVG();
   const bubble = el("div", { class: "bubble" }, "…");
-  const play = el("button", { class: "big-btn play-btn", onclick: () => { beep(880); mapScreen(); } }, "▶ " + t("play"));
+  const play = el("button", { class: "big-btn play-btn", onclick: () => { sfx("play"); mapScreen(); } }, "▶ " + t("play"));
   setScreen("welcome", el("h1", { class: "title" }, window.TIPPY_CONFIG.mascotName), mascot, bubble, play);
   const line = await mascotLine("welcome");
   bubble.textContent = line;
   // Tapping the mascot repeats the line aloud and makes it jump.
   mascot.addEventListener("click", () => {
     mascot.classList.remove("jump"); void mascot.offsetWidth; mascot.classList.add("jump");
-    beep(520); speak(bubble.textContent);
+    sfx("boing"); speak(bubble.textContent);
   });
   speak(line);
 }
@@ -156,7 +183,7 @@ const WORLDS = [
 function mapScreen() {
   const grid = el("div", { class: "worlds" });
   for (const [id, icon] of WORLDS) {
-    grid.append(el("button", { class: "world", onclick: () => { beep(700); comingSoonScreen(id); } },
+    grid.append(el("button", { class: "world", onclick: () => { sfx("tap"); comingSoonScreen(id); } },
       el("span", { class: "icon" }, icon), t("world." + id)));
   }
   setScreen("map", el("div", { class: "bubble" }, t("chooseWorld")), grid);
@@ -198,7 +225,7 @@ function pinPad() {
   }
   function press(d) {
     if (entered.length >= 8) return;
-    entered += d; refresh(); beep(500, 60);
+    entered += d; refresh(); sfx("key");
   }
 
   const keys = "123456789".split("").map((d) => el("button", { onclick: () => press(d) }, d));
@@ -275,7 +302,7 @@ document.addEventListener("keydown", (e) => {
 document.addEventListener("contextmenu", (e) => e.preventDefault());
 
 // ---------- Start-up ----------
-$("#home-btn").addEventListener("click", () => { beep(600); welcomeScreen(); });
+$("#home-btn").addEventListener("click", () => { sfx("home"); welcomeScreen(); });
 $("#parent-btn").addEventListener("click", () => openModal(pinPad()));
 
 (async function start() {
