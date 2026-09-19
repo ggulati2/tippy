@@ -4,6 +4,10 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-09-19
+
+No change to how Tippy plays. Packaging, licensing and process improvements after the 0.9.0 test pass.
+
 ### Changed
 - Release pipeline: a version tag builds and checks the zip and creates a draft GitHub release; zip checks live in `scripts/check_zip.sh`.
 - Python packages are pinned to exact tested versions (Dependabot proposes bumps, CI must pass).
