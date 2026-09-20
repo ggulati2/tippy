@@ -4,6 +4,9 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+### Added
+- Standalone Mac app: `scripts/build_mac.sh` builds `Tippy.app` (PyInstaller) with icon; family data lives in `~/Library/Application Support/Tippy`; the app quits when its window is closed. `TIPPY_BROWSER` chooses another browser, `TIPPY_HOME` another data folder. The browser test suite can run against the packaged app (`TIPPY_APP_BINARY`).
+
 ## [0.11.0] - 2026-09-19
 
 More to learn, in three languages: a Number Land, Spanish, many bonus levels and German-specific content.

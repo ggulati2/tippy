@@ -82,6 +82,23 @@ Change the mascot's name and colours in `frontend/js/config.js`.
 3. Send the zip. Each family follows "Start it" above: install Python 3.11+ and Chrome, unzip, double-click the start file. Everything else (PIN, language, name, daily limit) is asked on their first start, and their progress stays on their own computer.
 4. Tell them: internet is needed once for the first start; after that Tippy works offline.
 
+## Standalone Mac app (for testing)
+
+Instead of Python and `start.command`, Tippy can be a normal Mac app: **Tippy.app**, with everything inside it. Nothing to install (Chrome or Edge is still used for the fullscreen window).
+
+**Build it** (on the Mac it should run on; one command, about a minute, needs internet once):
+```
+scripts/build_mac.sh
+```
+It creates `dist/Tippy.app` and a zip `dist/Tippy-<version>-macos-<cpu>.zip`. It runs on the kind of Mac it was built on (`x86_64` = Intel, `arm64` = Apple silicon).
+
+**Use it:** double-click `Tippy.app` (or drag it into Applications first). Tippy opens fullscreen. To leave: the gear, the PIN, *Exit Tippy*. Closing the window (for example with Cmd+Q) also quits the app.
+- The first time, macOS may say the app is from an unidentified developer (it is not signed with an Apple developer certificate yet): right-click the app, choose **Open**, then **Open** again.
+- Your family's data is **not** inside the app. It lives in `~/Library/Application Support/Tippy` (database, logs, optional `.env`), so replacing the app with a newer one keeps everything.
+- If you were using Tippy from the source folder and want that progress in the app: quit both, then copy the `data` folder from the source folder into `~/Library/Application Support/Tippy/` (skip `data/browser-profile`). Tippy moves older single-child data into the new format by itself.
+- Stop the source version (`start.command`) before opening the app: both use port 8765.
+- To remove the app: delete `Tippy.app`. To also remove the data: delete `~/Library/Application Support/Tippy`.
+
 ## Keeping it tidy and safe
 
 - **Back up and restore:** the parent area, tab *Data*, saves a JSON file with the shown child's progress, stickers and settings (no PIN, no keys). *Restore a backup* reads such a file into the same child, or into a new child (handy on a new computer). Before anything is replaced Tippy keeps a safety copy next to the child's data (`data/profiles/<n>.before-restore-<time>.db`). Backup files are checked strictly, so a damaged or tampered file is refused or its bad parts skipped. You can also copy the whole `data/` folder while Tippy is closed.

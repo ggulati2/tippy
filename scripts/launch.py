@@ -17,7 +17,10 @@ sys.path.insert(0, str(ROOT))
 
 import uvicorn  # noqa: E402
 
-from backend.config import HOST, PORT  # noqa: E402
+from backend.config import FROZEN, HOME_DIR, HOST, PORT  # noqa: E402
+
+# The browser window's own profile lives with the family's data (a user folder in the packaged app).
+BROWSER_PROFILE = HOME_DIR / "data" / "browser-profile"
 
 URL = f"http://{HOST}:{PORT}/"
 
@@ -33,6 +36,9 @@ BROWSER_CANDIDATES = [
 
 
 def find_browser() -> str | None:
+    # TIPPY_BROWSER=/path/to/browser chooses a browser (for example Brave or Edge, or a stand-in in tests).
+    if os.environ.get("TIPPY_BROWSER") and os.path.exists(os.environ["TIPPY_BROWSER"]):
+        return os.environ["TIPPY_BROWSER"]
     for candidate in BROWSER_CANDIDATES:
         if os.path.isabs(candidate) and os.path.exists(candidate):
             return candidate
@@ -66,7 +72,7 @@ def main() -> None:
         print("Tippy is already running. Opening it again.")
         browser = find_browser()
         if browser:
-            subprocess.Popen([browser, f"--user-data-dir={ROOT / 'data' / 'browser-profile'}", "--kiosk", f"--app={URL}"])
+            subprocess.Popen([browser, f"--user-data-dir={BROWSER_PROFILE}", "--kiosk", f"--app={URL}"])
         else:
             import webbrowser
             webbrowser.open(URL)
@@ -82,7 +88,9 @@ def main() -> None:
     def open_browser() -> None:
         nonlocal browser_process
         if not wait_until_ready():
-            print("The server did not start. See logs/tippy.log")
+            print(f"The server did not start. See {HOME_DIR / 'logs' / 'tippy.log'}")
+            return
+        if os.environ.get("TIPPY_NO_BROWSER"):   # for tests and headless machines: run the server only
             return
         browser = find_browser()
         if browser is None:
@@ -91,11 +99,19 @@ def main() -> None:
             webbrowser.open(URL)
             return
         # Own profile folder = own browser instance, so we can close it on exit.
-        profile = ROOT / "data" / "browser-profile"
         browser_process = subprocess.Popen([
-            browser, f"--user-data-dir={profile}", "--kiosk", f"--app={URL}",
+            browser, f"--user-data-dir={BROWSER_PROFILE}", "--kiosk", f"--app={URL}",
             "--no-first-run", "--no-default-browser-check", "--disable-translate",
         ])
+        if FROZEN:
+            # The packaged app has no Terminal window: when the browser window is closed, Tippy quits.
+            started = time.time()
+
+            def quit_with_browser() -> None:
+                browser_process.wait()
+                if time.time() - started > 10:   # not a browser that handed over to another one and left at once
+                    server.should_exit = True
+            threading.Thread(target=quit_with_browser, daemon=True).start()
 
     threading.Thread(target=open_browser, daemon=True).start()
     print(f"Tippy is running at {URL}  (close it from the parent area, or press Ctrl+C here)")

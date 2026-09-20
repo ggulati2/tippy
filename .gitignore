@@ -21,3 +21,8 @@ data/
 .vscode/
 .idea/
 *.swp
+
+# Mac app build
+.venv-build/
+build/
+dist/

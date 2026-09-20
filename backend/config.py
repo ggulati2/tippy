@@ -4,14 +4,36 @@ We read `.env` with a tiny parser instead of adding a dependency.
 The OpenRouter key is read here, on the backend only. It is never sent to the browser.
 """
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 from backend import languages
 
-ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = ROOT / "data"
-LOG_DIR = ROOT / "logs"
+# The packaged app (built with PyInstaller, see packaging/) keeps its code and content inside the app
+# bundle, which is read-only and replaced on every update. The family's own files (database, logs,
+# the browser window's profile, an optional .env) therefore live in a normal user folder. Running from
+# the source folder works as before: everything stays next to the code.
+FROZEN = bool(getattr(sys, "frozen", False))
+ROOT = Path(sys._MEIPASS) if FROZEN else Path(__file__).resolve().parent.parent   # code and content
+
+
+def _home_dir() -> Path:
+    """Where the family's files live. TIPPY_HOME overrides it (used by the tests)."""
+    if os.environ.get("TIPPY_HOME"):
+        return Path(os.environ["TIPPY_HOME"])
+    if not FROZEN:
+        return ROOT
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "Tippy"
+    if sys.platform == "win32":
+        return Path(os.environ.get("APPDATA", str(Path.home()))) / "Tippy"
+    return Path.home() / ".local" / "share" / "tippy"
+
+
+HOME_DIR = _home_dir()
+DATA_DIR = HOME_DIR / "data"
+LOG_DIR = HOME_DIR / "logs"
 # The two overrides below exist for the automatic browser tests (own port, own copy of the frontend).
 FRONTEND_DIR = Path(os.environ.get("TIPPY_FRONTEND_DIR", ROOT / "frontend"))
 CONTENT_DIR = ROOT / "content"
@@ -61,7 +83,7 @@ class Settings:
 
 def load_settings() -> Settings:
     """Environment variables win over the .env file, so tests can override."""
-    file_values = _read_env_file(ROOT / ".env")
+    file_values = _read_env_file(HOME_DIR / ".env")
 
     def get(key: str, default: str = "") -> str:
         return os.environ.get(key, file_values.get(key, default))

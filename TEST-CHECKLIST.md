@@ -40,6 +40,12 @@ These checks need a person. Tick them off on the computer Tippy will really be u
 - [ ] On a computer with a real number pad: switch on *This computer has a number pad* in Settings. The digit row now gets a hint and the pad keys count. Try all six games (count the animals, add up, the rocket countdown).
 - [ ] The numbers are read aloud one digit at a time ("one two three").
 
+## The Mac app (5 minutes)
+- [ ] Double-click `dist/Tippy.app`: Tippy opens fullscreen with the fox icon in the Dock. (Stop the `start.command` version first.)
+- [ ] First start shows the setup screens; after quitting and reopening, progress is still there.
+- [ ] Exit from the parent area quits the app; so does closing the window with Cmd+Q. No Terminal window appears at any point.
+- [ ] Data is in `~/Library/Application Support/Tippy`. Replacing the app with a new build keeps it.
+
 ## Fullscreen and accidental exits (3 minutes)
 - [ ] Double-click the start file: Tippy opens fullscreen with no address bar.
 - [ ] Try Cmd+W (Ctrl+W), Cmd+R (F5), Esc, Tab, Alt+F4 while playing. Tippy stays open. (Cmd+Q and Alt+F4 may still close the window on some systems; if so, double-click the start file again: progress and the daily limit are kept.)

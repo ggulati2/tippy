@@ -71,10 +71,13 @@ def _start_server(tmp_path, do_setup: bool):
     shutil.copytree(ROOT / "frontend", frontend)
     port = free_port()
     env = dict(os.environ, TIPPY_PORT=str(port), TIPPY_FRONTEND_DIR=str(frontend), TIPPY_DB_PATH=str(tmp_path / "tippy.db"),
-               LLM_MODE="off", PARENT_PIN="", OPENROUTER_API_KEY="")
-    process = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "backend.app:create_app", "--factory", "--host", "127.0.0.1", "--port", str(port)],
-        cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+               TIPPY_HOME=str(tmp_path / "home"), TIPPY_NO_BROWSER="1", LLM_MODE="off", PARENT_PIN="", OPENROUTER_API_KEY="")
+    # TIPPY_APP_BINARY runs the tests against the packaged app instead of the source code, for example
+    #   TIPPY_APP_BINARY=dist/Tippy.app/Contents/MacOS/Tippy python -m pytest -m browser
+    binary = os.environ.get("TIPPY_APP_BINARY")
+    command = [str(Path(binary).resolve())] if binary else [sys.executable, "-m", "uvicorn", "backend.app:create_app", "--factory",
+                                                          "--host", "127.0.0.1", "--port", str(port)]
+    process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     srv = Server(port, frontend, process)
     try:
         deadline = time.time() + 30
