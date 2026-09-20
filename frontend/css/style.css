@@ -485,6 +485,7 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .desk-file { border: none; background: rgba(255,255,255,.8); border-radius: 26px; min-width: min(120px, 15vh); height: min(120px, 15vh); padding: 0 14px;
   display: flex; align-items: center; justify-content: center; font-size: min(3.6rem, 8vh); box-shadow: 0 6px 0 rgba(0,0,0,.12); user-select: none; }
 .desk-file.draggable { cursor: grab; touch-action: none; position: relative; z-index: 3; }
+.desk-file.selected { outline: 6px solid var(--primary); outline-offset: 3px; background: #fff; }
 .desk-file.dragging { cursor: grabbing; z-index: 20; }
 .desk-file[hidden] { display: none; }
 .desk-file.trash.hint, .folder.hint { animation: pulse .6s ease-in-out 3; background: #fff9db; }

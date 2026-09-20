@@ -153,7 +153,18 @@ T.actPaint = async (mistakes) => {
 };
 T.actDesktop = async () => {
   const q = (s) => document.querySelector(s), need = q("#screen").dataset.need;
-  if (need === "dblclick") { const f = q(".file-open"); f.click(); f.dispatchEvent(new MouseEvent("dblclick", { bubbles: true })); await T.wait(60); }
+  if (need === "dblclick") {
+    const f = q(".file-open");
+    if (!T.actDesktop.slow) {                                            // a slow child: two clicks half a second apart still open it
+      T.actDesktop.slow = true;
+      f.click(); await T.wait(1500);
+      T.check("one click only selects the file", !q(".win") && f.classList.contains("selected"));
+      f.click(); await T.wait(500); f.click(); await T.wait(60);         // (no browser double-click event at all)
+      T.check("two slow clicks open the file", !!q(".win"));
+      return;
+    }
+    f.click(); f.dispatchEvent(new MouseEvent("dblclick", { bubbles: true })); await T.wait(60);
+  }
   else if (need === "close") { const x = q(".close-x:not(:disabled)"); x?.click(); x?.click(); }
   else if (need === "sort") {
     const item = q(".desk-file.draggable"); if (!item) return;
@@ -207,5 +218,5 @@ T.actRobot = async (mistakes) => {
     await T.until(() => T.name() === "celebrate" || !q(".rrun"), 20000);
   }
 };
-T.act.resetEveryday = () => { T.actPaint.wrongColour = false; T.actDesktop.missed = false; T.actInternet.wobbled = false; T.actRobot.failed = false; };
+T.act.resetEveryday = () => { T.actPaint.wrongColour = false; T.actDesktop.missed = false; T.actDesktop.slow = false; T.actInternet.wobbled = false; T.actRobot.failed = false; };
 })();

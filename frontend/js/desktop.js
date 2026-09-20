@@ -65,9 +65,10 @@ function deskOpen(done) {
   const bubble = liveInstruction("📄", t("desk.open"));
   setScreen("desktop-1", bubble.node, desk);
   deskNeeds("dblclick");
-  file.addEventListener("click", () => { replayAnimation(file, "wobble"); sfx("key"); });   // one click only selects it
-  file.addEventListener("dblclick", () => {
+  // One click only selects the file (it stays still and gets a coloured edge); a quick second click opens it.
+  onDoubleClick(file, () => {
     if (desk.querySelector(".win")) return;
+    file.classList.remove("selected");
     sfx("boing");
     const win = deskWindow("📄", [el("div", { class: "win-picture" }, "🐱")], {
       onClose: (node) => { node.classList.add("closing"); sfx("home"); deskNeeds(""); later(done, 500); },
@@ -75,7 +76,7 @@ function deskOpen(done) {
     desk.append(win.node);
     bubble.set("✕", t("desk.close"));
     deskNeeds("close");
-  });
+  }, () => { file.classList.add("selected"); sfx("key"); });
 }
 
 // ---------- Level 2: sort into folders ----------

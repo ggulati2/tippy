@@ -18,6 +18,18 @@ function instruction(icon, text) {
   return bubble;
 }
 
+// A double-click that forgives a slow child. The computer's own double-click needs two clicks within about half
+// a second and without moving, which a 6-year-old often misses. Here two clicks within 0.9 seconds count, and the
+// computer's own double-click counts too. `onFirst` runs after a single click (to show that it was seen).
+function onDoubleClick(node, onDouble, onFirst = () => {}, ms = 900) {
+  let last = -Infinity;
+  node.addEventListener("click", () => {
+    const now = performance.now();
+    if (now - last < ms) { last = -Infinity; onDouble(); } else { last = now; onFirst(); }
+  });
+  node.addEventListener("dblclick", () => { last = -Infinity; onDouble(); });
+}
+
 // A row of dots showing how far along the game is.
 function progressDots(done, total) {
   return el("div", { class: "dots" }, "●".repeat(Math.min(done, total)) + "○".repeat(Math.max(0, total - done)));
@@ -153,11 +165,8 @@ function levelDoubleClick(done) {
     const egg = el("button", { class: "target egg", "aria-label": "egg" }, "🥚");
     const hint = el("div", { class: "double-hint" }, "👆👆");
     // A single click only wiggles the egg and shows the hint again. Nothing bad happens.
-    egg.addEventListener("click", () => {
-      egg.classList.remove("wobble"); void egg.offsetWidth; egg.classList.add("wobble");
-      sfx("key");
-    });
-    egg.addEventListener("dblclick", () => {
+    const hatch = () => {
+      if (egg.disabled) return;
       egg.disabled = true;
       egg.textContent = hatchlings[hatched];
       egg.classList.add("hatched");
@@ -166,6 +175,10 @@ function levelDoubleClick(done) {
       hatched++;
       dots.textContent = progressDots(hatched, hatchlings.length).textContent;
       later(() => (hatched === hatchlings.length ? done() : nextEgg()), 1100);
+    };
+    onDoubleClick(egg, hatch, () => {
+      egg.classList.remove("wobble"); void egg.offsetWidth; egg.classList.add("wobble");
+      sfx("key");
     });
     arena.replaceChildren(egg, hint);
   }
