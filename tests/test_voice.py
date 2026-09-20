@@ -19,8 +19,8 @@ SAMPLES = ["Play", "Press the glowing key!", "  Hello   World ", "Ärger über �
 def test_python_and_javascript_make_the_same_file_names():
     """If these two ever differ, the browser looks for files that do not exist and the voice silently stops."""
     script = ("global.window={};global.settings={};global.screenSerial=0;" + (ROOT / "frontend/js/voice.js").read_text(encoding="utf-8")
-              + ";console.log(JSON.stringify(%s.map(voiceKey)))" % json.dumps(SAMPLES, ensure_ascii=False))
-    from_js = json.loads(subprocess.run(["node", "-e", script], capture_output=True, text=True, check=True).stdout)
+              + ";console.log(JSON.stringify(%s.map(voiceKey)))" % json.dumps(SAMPLES))
+    from_js = json.loads(subprocess.run(["node", "-e", script], capture_output=True, encoding="utf-8", check=True).stdout)
     assert from_js == [make_voice.clip_name(text) for text in SAMPLES]
 
 

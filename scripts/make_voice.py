@@ -72,7 +72,7 @@ def load_strings(lang: str) -> dict:
     # 1. Every screen text (instructions, lessons, facts). Read from the real file with node.
     script = ("global.window={};require('./frontend/js/i18n.js');try{require('./frontend/js/i18n-es.js')}catch(e){}"
               "console.log(JSON.stringify(window.STRINGS['%s']))" % lang)
-    ui = json.loads(subprocess.run(["node", "-e", script], cwd=ROOT, capture_output=True, text=True, check=True).stdout)
+    ui = json.loads(subprocess.run(["node", "-e", script], cwd=ROOT, capture_output=True, encoding="utf-8", check=True).stdout)   # utf-8: on Windows the default would garble umlauts
     friend = ui.get("friend", "friend")
     texts.update(ui.values())
 
