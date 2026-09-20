@@ -1,0 +1,102 @@
+# Builds the standalone Windows app: Tippy-Setup-<version>.exe (one installer file to share) and a portable zip.
+# PyInstaller can only build for the system it runs on, so this runs on a Windows machine in the cloud.
+#   - On a version tag (v0.11.0) the files are added to the DRAFT release that release.yml creates.
+#   - By hand (Actions tab, "Run workflow") or in a pull request that touches the packaging: a test build,
+#     with the files kept for 14 days under the run's "Artifacts".
+# The app is not signed (that needs a paid certificate), so Windows shows a blue "protected your PC" warning the
+# first time; the README explains how to continue.
+name: Windows app
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+  pull_request:
+    paths:
+      - "packaging/**"
+      - "scripts/launch.py"
+      - "scripts/smoke_windows.ps1"
+      - "scripts/build_windows.bat"
+      - "backend/config.py"
+      - "requirements*.txt"
+      - ".github/workflows/windows-app.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-app-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build the Windows app
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write        # needed to add files to the release
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install
+        run: pip install -r requirements.txt -r requirements-build.txt
+      - name: Version
+        shell: bash
+        run: echo "TIPPY_VERSION=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_ENV"
+      - name: Build the app folder (PyInstaller)
+        run: pyinstaller --noconfirm --clean --distpath dist --workpath build packaging/tippy.spec
+      - name: Test the app folder
+        run: powershell -File scripts/smoke_windows.ps1 -Exe dist\Tippy\Tippy.exe
+
+      - name: Build the installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
+          if (-not $iscc) { $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" }
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress; $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" }
+          & $iscc packaging\tippy.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
+      - name: Test the installer (install silently, start, uninstall)
+        shell: pwsh
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP "tippy-installed"
+          $setup = Start-Process -FilePath "dist\Tippy-Setup-$env:TIPPY_VERSION.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/NOICONS","/DIR=$target" -Wait -PassThru
+          if ($setup.ExitCode -ne 0) { throw "The installer failed with code $($setup.ExitCode)" }
+          powershell -File scripts/smoke_windows.ps1 -Exe (Join-Path $target "Tippy.exe")
+          if ($LASTEXITCODE -ne 0) { throw "The installed app failed its test" }
+          $un = Start-Process -FilePath (Join-Path $target "unins000.exe") -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES" -Wait -PassThru
+          if ($un.ExitCode -ne 0) { throw "The uninstaller failed" }
+
+      - name: Portable zip and checksums
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist\Tippy -DestinationPath "dist\Tippy-$env:TIPPY_VERSION-windows-portable.zip"
+          Set-Location dist
+          Get-FileHash "Tippy-Setup-$env:TIPPY_VERSION.exe", "Tippy-$env:TIPPY_VERSION-windows-portable.zip" -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content SHA256SUMS-windows.txt
+          Get-Content SHA256SUMS-windows.txt
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tippy-windows-${{ env.TIPPY_VERSION }}
+          path: |
+            dist/Tippy-Setup-*.exe
+            dist/Tippy-*-windows-portable.zip
+            dist/SHA256SUMS-windows.txt
+          retention-days: 14
+
+      - name: Add to the draft release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # release.yml creates the draft; wait for it (up to 15 minutes).
+          for i in $(seq 1 30); do
+            gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1 && break
+            echo "Waiting for the draft release..."; sleep 30
+          done
+          gh release upload "$GITHUB_REF_NAME" "dist/Tippy-Setup-$TIPPY_VERSION.exe" "dist/Tippy-$TIPPY_VERSION-windows-portable.zip" dist/SHA256SUMS-windows.txt --clobber

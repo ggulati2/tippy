@@ -15,6 +15,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+# A Windows app built without a console window has no stdout or stderr at all (they are None), and uvicorn's
+# logging then crashes when it asks whether the output is a terminal. Give it a bin to write to.
+for _name in ("stdout", "stderr"):
+    if getattr(sys, _name) is None:
+        setattr(sys, _name, open(os.devnull, "w"))
+
 import uvicorn  # noqa: E402
 
 from backend.config import FROZEN, HOME_DIR, HOST, PORT  # noqa: E402

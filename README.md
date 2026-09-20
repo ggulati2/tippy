@@ -82,6 +82,26 @@ Change the mascot's name and colours in `frontend/js/config.js`.
 3. Send the zip. Each family follows "Start it" above: install Python 3.11+ and Chrome, unzip, double-click the start file. Everything else (PIN, language, name, daily limit) is asked on their first start, and their progress stays on their own computer.
 4. Tell them: internet is needed once for the first start; after that Tippy works offline.
 
+## Windows installer (to share with other families)
+
+For people who should not have to install Python: **Tippy-Setup-<version>.exe**, one file. It is built automatically on a Windows machine in the cloud (a Mac cannot build it), so you do not need Windows yourself.
+
+**Get the file:** on GitHub open **Releases**, open the draft for the version, and download `Tippy-Setup-<version>.exe` (a release tag such as `v0.11.0` builds it by itself). For a test build without a release: **Actions**, **Windows app**, **Run workflow**, then download the file under the run's *Artifacts* (kept 14 days). There is also a `-windows-portable.zip` (unzip and double-click `Tippy.exe`) for computers where installing is not allowed.
+
+**What to tell the people you send it to** (copy this):
+1. Double-click **Tippy-Setup**. No administrator password is needed.
+2. Windows shows a blue box **"Windows protected your PC"** because the app is new and not signed by a paid certificate. Click **More info**, then **Run anyway**. You only do this once.
+3. Click **Next** until the installer finishes. Leave "Start Tippy now" ticked.
+4. Tippy opens fullscreen in Edge or Chrome (one of them is on every Windows PC). The first time, a grown-up chooses a PIN and the language.
+5. Later, start Tippy with the **Tippy** icon on the desktop or in the Start menu. To leave: the small gear, the PIN, *Exit Tippy*.
+
+Good to know:
+- Works on Windows 10 and 11 (64-bit), offline. Progress, the PIN and settings are stored in `%APPDATA%\Tippy` and are kept when Tippy is updated or uninstalled: to update, just run the newer Setup file.
+- To uninstall: Windows Settings, Apps, Tippy. (To also delete the family's data, delete the folder `%APPDATA%\Tippy`.)
+- Flags on the "countries" levels show as letters (JP, BR ...) on Windows, which has no flag pictures. Everything else looks the same.
+- Some virus scanners are wary of new unsigned programs. If one complains, the *portable* zip is the same app; the checksums in `SHA256SUMS-windows.txt` prove the file was not changed.
+- Building it yourself on a Windows PC: `scripts\build_windows.bat` (needs Python and, for the single installer file, Inno Setup).
+
 ## Standalone Mac app (for testing)
 
 Instead of Python and `start.command`, Tippy can be a normal Mac app: **Tippy.app**, with everything inside it. Nothing to install (Chrome or Edge is still used for the fullscreen window).

@@ -5,6 +5,7 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 ## [Unreleased]
 
 ### Added
+- Windows installer: `.github/workflows/windows-app.yml` builds `Tippy-Setup-<version>.exe` (Inno Setup, no administrator rights, desktop and Start menu icons, data in `%APPDATA%\Tippy` kept on update and uninstall) and a portable zip on a Windows machine in CI, tests both (starts the app and checks it serves the pages; installs and uninstalls silently), and adds them to the draft release when a version tag is pushed.
 - Security scans in CI (`security.yml`): pip-audit on every pinned package, bandit on our code, dependency review on pull requests, and an OWASP ZAP attack on a running server (report only). All also run every Monday.
 - Performance tests in CI (`performance.yml`): a server load test (20 children at once, a year of saved play, memory growth; `scripts/loadtest.py`) and browser speed tests (first screen, key-to-screen delay, smooth animation, no memory leaks; `pytest -m perf`). Results show on the run's summary page.
 - Security regression tests (`tests/test_security.py`) and a browser test that the page policy is really enforced.

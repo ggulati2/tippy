@@ -302,6 +302,12 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - `backend/app.py` sets the CSP and other headers on every response (`SECURITY_HEADERS`; no inline script or style anywhere in the frontend, so keep it that way: no `style=` attributes in HTML strings, use classes or `el.style.x = ...`). Every parent endpoint takes `_parent: None = Depends(parent_only)`; `tests/test_security.py` fails otherwise.
 - SQLite runs in WAL mode (`db.connect`); after renaming a damaged database call `db.discard_wal_files`.
 
+## Packaged Windows app
+
+- Built only in CI (`.github/workflows/windows-app.yml`, windows-latest): PyInstaller with the same `packaging/tippy.spec` (icon `packaging/Tippy.ico`, generated once from the .icns with Pillow), then Inno Setup (`packaging/tippy.iss`, per-user install, no admin) -> `Tippy-Setup-<version>.exe` plus a portable zip. `scripts/smoke_windows.ps1` starts an exe with `TIPPY_NO_BROWSER=1` and checks pages, headers and content; the workflow runs it on the folder and on a silent install. On a version tag the files are uploaded to the draft release made by `release.yml` (it waits for the draft). `scripts/build_windows.bat` does the same locally on Windows.
+- A windowed Windows exe has `sys.stdout`/`sys.stderr` = None, which crashes uvicorn logging: `scripts/launch.py` replaces them with devnull at start-up. Keep that when touching the launcher.
+- Not signed (needs a paid code-signing certificate), so SmartScreen warns once; the README has the instructions for recipients. Never tested on a real Windows PC by the assistant (only CI): when a user reports a Windows problem, ask for `%APPDATA%\Tippy\logs\tippy.log`.
+
 ## Packaged Mac app
 
 - `scripts/build_mac.sh` -> `packaging/tippy.spec` (PyInstaller, entry `scripts/launch.py`, data: `frontend/`, `content/`, `VERSION`; hidden imports for uvicorn) -> `dist/Tippy.app` + zip. Icon `packaging/Tippy.icns` (the mascot, rendered once). `requirements-build.txt` pins PyInstaller. Built for the CPU of the Mac that builds it (this project's Mac is Intel x86_64; CI runners are arm64, so a CI-built app would not run on an Intel Mac).

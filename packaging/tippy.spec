@@ -1,8 +1,10 @@
-# PyInstaller recipe for the Tippy macOS app.  Build it with:  scripts/build_mac.sh
+# PyInstaller recipe for the Tippy standalone apps.  Build it with:  scripts/build_mac.sh (Mac)  or  scripts/build_windows.bat (Windows).
+# PyInstaller cannot build for another system: the Mac app is built on a Mac, the Windows app on Windows (in CI: windows-app.yml).
 #
-# The app is a normal folder of files inside Tippy.app: a copy of Python, Tippy's libraries, and Tippy's own
+# The app is a normal folder of files (inside Tippy.app on the Mac, dist\Tippy on Windows): a copy of Python, Tippy's libraries, and Tippy's own
 # frontend/ and content/ folders. Nothing needs to be installed on the Mac. The family's data is NOT in the
 # app; it goes to ~/Library/Application Support/Tippy (see backend/config.py), so updating the app keeps it.
+import sys
 from pathlib import Path
 
 ROOT = Path(SPECPATH).parent
@@ -19,20 +21,23 @@ analysis = Analysis(
     excludes=["tkinter", "pytest", "unittest.mock"],
 )
 archive = PYZ(analysis.pure)
-executable = EXE(archive, analysis.scripts, [], exclude_binaries=True, name="Tippy", console=False)
+# console=False: no black terminal window behind the app.
+executable = EXE(archive, analysis.scripts, [], exclude_binaries=True, name="Tippy", console=False,
+                 icon=str(ROOT / "packaging" / "Tippy.ico") if sys.platform == "win32" else None)
 collected = COLLECT(executable, analysis.binaries, analysis.datas, name="Tippy")
-app = BUNDLE(
-    collected,
-    name="Tippy.app",
-    icon=str(ROOT / "packaging" / "Tippy.icns"),
-    bundle_identifier="com.ggulati.tippy",
-    version=VERSION,
-    info_plist={
-        "CFBundleName": "Tippy",
-        "CFBundleDisplayName": "Tippy",
-        "CFBundleShortVersionString": VERSION,
-        "NSHighResolutionCapable": True,
-        "LSMinimumSystemVersion": "10.15",
-        "LSApplicationCategoryType": "public.app-category.education",
-    },
-)
+if sys.platform == "darwin":
+  app = BUNDLE(
+      collected,
+      name="Tippy.app",
+      icon=str(ROOT / "packaging" / "Tippy.icns"),
+      bundle_identifier="com.ggulati.tippy",
+      version=VERSION,
+      info_plist={
+          "CFBundleName": "Tippy",
+          "CFBundleDisplayName": "Tippy",
+          "CFBundleShortVersionString": VERSION,
+          "NSHighResolutionCapable": True,
+          "LSMinimumSystemVersion": "10.15",
+          "LSApplicationCategoryType": "public.app-category.education",
+      },
+  )

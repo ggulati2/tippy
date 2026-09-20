@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 LEFT_OUT = ("tests/", "scripts/try_models.py", "scripts/make_zip.py", "scripts/check.sh", "scripts/check_i18n.js",
             "scripts/setup-dev.sh", "scripts/check_zip.sh", "scripts/release_notes.sh", ".githooks/", ".github/", ".gitignore", ".gitattributes", ".editorconfig", "CLAUDE.md",
             "CONTRIBUTING.md", "CHANGELOG.md", "SECURITY.md", "pytest.ini", "packaging/", "scripts/build_mac.sh",
-            "requirements-build.txt", "requirements-perf.txt", "requirements-security.txt", "scripts/loadtest.py")
+            "requirements-build.txt", "requirements-perf.txt", "requirements-security.txt", "scripts/loadtest.py", "scripts/build_windows.bat", "scripts/smoke_windows.ps1")
 SECRET = re.compile(rb"sk-or-[A-Za-z0-9_-]{20,}")
 
 
