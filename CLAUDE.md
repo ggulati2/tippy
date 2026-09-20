@@ -303,6 +303,13 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - Never write a synchronous `while` loop that waits for the page to change in a browser test: it freezes the page and the test then runs for the whole 10 minute limit (happened with the robot level).
 - A CSS rule that sets `display` on an element overrides the `hidden` attribute: give such elements a `[hidden] { display: none }` rule (the Back button showed on every screen because of this).
 
+## Tippy's recorded voice
+
+- `frontend/js/voice.js`: `speak()` (app.js) asks `speakRecorded()` first; no recording -> `speakWithSystemVoice()`. A recording is `frontend/voice/<lang>/<cyrb53 of the tidied text in base 36>.ogg`; `index.json` lists them (plus the "before/after" pieces of mascot lines that contain the child's name; the name itself is always said by the system voice). `stopSpeaking()` silences both kinds and is what `setScreen()` and the mute button call.
+- Made by `scripts/make_voice.py` (developer tool; needs Piper, which is GPL, in a separate virtualenv outside the repo; see its header). English is recorded with `en_US-hfc_female-medium` at pitch 1.12 and length scale 1.1. The owner picked it from samples; it is CC BY-NC-SA, so the recordings carry their own licence (`frontend/voice/LICENSE.md`) and Tippy must not be sold with them. German and Spanish are not recorded yet (the owner has not chosen voices; candidates were thorsten-medium or kerstin-low for German and sharvard-medium, davefx-medium for Spanish: all CC0 or CC-BY).
+- Re-record (`make_voice.py --lang en ...`, finished clips are kept) after adding words, sentences or screen texts; `tests/test_voice.py` fails when more than 3% of the app's texts have no recording. The Python and JavaScript hashes must stay identical (a test checks it).
+- CSP needs `media-src 'self'` (already set). The kiosk browser is started with `--autoplay-policy=no-user-gesture-required` so the first sentence can play before any click.
+
 ## Security and performance (CI)
 
 - `security.yml` (pip-audit, bandit -ll, dependency review, ZAP baseline = report only) and `performance.yml` (`scripts/loadtest.py`, `pytest -m perf`, report only at first). Tools are pinned in `requirements-security.txt` and `requirements-perf.txt`; both are left out of the zip (`make_zip.py`).

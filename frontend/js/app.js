@@ -126,8 +126,16 @@ function voiceTag() {
 // on whatever screen was showing: "press the glowing key", "welcome"... at random.)
 let pendingSpeech = null;
 function speak(text) {
-  if (!settings.voice_on || muted || !("speechSynthesis" in window)) return;
+  if (!settings.voice_on || muted) return;
+  if (speakRecorded(text)) return;                 // Tippy's own recorded voice (voice.js)
+  speakWithSystemVoice(text);
+}
+
+// The computer's own voice: used for anything that has no recording. `onEnd` runs when it has finished speaking.
+function speakWithSystemVoice(text, onEnd) {
+  if (!("speechSynthesis" in window)) return onEnd && onEnd();
   if (speechSynthesis.getVoices().length === 0) { // list not loaded yet: try again when it is
+    if (onEnd) return onEnd();
     const first = pendingSpeech === null;
     pendingSpeech = { text, serial: screenSerial };
     if (first) speechSynthesis.addEventListener("voiceschanged", () => {
@@ -140,6 +148,7 @@ function speak(text) {
   const serial = screenSerial;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
+  if (onEnd) { u.onend = onEnd; u.onerror = onEnd; }
   const tag = voiceTag();
   u.lang = tag;
   const voice = pickVoice(tag);
@@ -210,7 +219,7 @@ function later(fn, ms) {
 function setScreen(name, ...nodes) {
   screenSerial++;
   pendingSpeech = null;
-  if ("speechSynthesis" in window) speechSynthesis.cancel();   // what was said on the last screen must not go on over this one
+  stopSpeaking();   // what was said on the last screen must not go on over this one
   keyHandler = null;
   padOnlyScreen = false;
   delete $("#screen").dataset.answer;   // Number Land sets this so the tests know the right answer
@@ -356,6 +365,7 @@ function textRow(label, key, value, maxLength) {
 // Language, text size and reduced motion are applied to the page here.
 function applyLook() {
   document.documentElement.lang = settings.language;
+  if (voice.lang !== settings.language) voice.loading = loadVoice(settings.language);   // the recordings for this language
   document.documentElement.style.setProperty("--font-scale", settings.font_scale || 1);
   document.body.classList.toggle("reduce-motion", !!settings.reduce_motion);
 }
@@ -429,7 +439,7 @@ $("#back-btn").addEventListener("click", () => {
 });
 $("#mute-btn").addEventListener("click", () => {
   muted = !muted;
-  if (muted && "speechSynthesis" in window) speechSynthesis.cancel();
+  if (muted) stopSpeaking();
   $("#mute-btn").textContent = muted ? "🔇" : "🔊";
   sfx("tap");
 });
@@ -443,6 +453,7 @@ $("#parent-btn").addEventListener("click", () => openModal(pinPad()));
     const languages = await api("/api/languages");
     if (languages.status === 200) LANGUAGES = languages.body.languages;
     applyLook();
+    await voice.loading;                  // so the very first sentence already has Tippy's voice
     api("/api/visit", { method: "POST" }); // counts today for the streak
     if (settings.setup_needed) { await welcomeScreen(); setupWizard(); return; }
     const several = settings.profile_count > 1;

@@ -108,6 +108,7 @@ def main() -> None:
         browser_process = subprocess.Popen([
             browser, f"--user-data-dir={BROWSER_PROFILE}", "--kiosk", f"--app={URL}",
             "--no-first-run", "--no-default-browser-check", "--disable-translate",
+            "--autoplay-policy=no-user-gesture-required",   # Tippy's recorded voice may speak before the first click
         ])
         if FROZEN:
             # The packaged app has no Terminal window: when the browser window is closed, Tippy quits.

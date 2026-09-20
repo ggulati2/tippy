@@ -5,6 +5,7 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 ## [Unreleased]
 
 ### Added
+- Tippy's own voice: every sentence the app can say in English (about 830, 2.7 MB) is now a recording made with the Piper "hfc_female" voice, pitched up to sound lighter and friendlier, instead of the computer's robotic voice. The child's own name and anything without a recording (lines written by the online helper, unusual typed words) are still said by the computer's voice. German and Spanish keep the computer's voice for now. The recordings are for non-commercial use (CC BY-NC-SA, see `frontend/voice/LICENSE.md`). Made with `scripts/make_voice.py` (a developer tool).
 - Four new worlds about everyday computer use, five levels each, in English, German and Spanish, with stickers: **Paint Place** (mouse painting, colours, sizes, stamps, Undo), **Desktop Dock** (a pretend desktop: double-click, sorting into folders, naming a file, trash bin and restore, saving), **Internet Island** (a pretend browser: links, Back, search, pop-ups and strangers, favourites) and **Robot Helper** (arrow-card programs, a first taste of coding). They open after Mouse Meadow, Computer Cove, Sentence Sky and Keyboard Kingdom respectively. Nothing in them touches real files or the internet.
 
 ### Fixed

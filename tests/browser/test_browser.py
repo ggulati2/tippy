@@ -23,6 +23,10 @@ def test_the_everyday_computer_worlds_can_be_played(server, worlds):
     assert_clean(run_script(server, "everyday.js", worlds, budget_ms=400_000))
 
 
+def test_recorded_voice_is_used_and_falls_back(server):
+    assert_clean(run_script(server, "voice.js"))
+
+
 def test_every_level_can_be_played_with_larger_text(server):
     # With the biggest text on a short screen a few screens may scroll, so fit is not enforced here.
     report = run_script(server, "playthrough.js", "en:1.25", budget_ms=1_500_000)

@@ -82,6 +82,10 @@ Change the mascot's name and colours in `frontend/js/config.js`.
 3. Send the zip. Each family follows "Start it" above: install Python 3.11+ and Chrome, unzip, double-click the start file. Everything else (PIN, language, name, daily limit) is asked on their first start, and their progress stays on their own computer.
 4. Tell them: internet is needed once for the first start; after that Tippy works offline.
 
+## Tippy's voice
+
+Tippy speaks with recorded audio (a friendly female voice, English for now) rather than the computer's built-in voice, so it sounds the same on every computer. The recordings are in `frontend/voice` and are free for non-commercial use (see `frontend/voice/LICENSE.md`): you can share Tippy with other families, but not sell it. The child's own name and a few unusual words are still said by the computer's voice. German and Spanish still use the computer's voice. To record more or change the voice, see the notes at the top of `scripts/make_voice.py`.
+
 ## Windows installer (to share with other families)
 
 For people who should not have to install Python: **Tippy-Setup-<version>.exe**, one file. It is built automatically on a Windows machine in the cloud (a Mac cannot build it), so you do not need Windows yourself.

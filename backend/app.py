@@ -44,7 +44,7 @@ MAX_REQUEST_BYTES = restore.MAX_BACKUP_BYTES + 256 * 1024
 SECURITY_HEADERS = {
     # Only our own files, and only talking to ourselves. No inline scripts, no frames, no forms sent elsewhere.
     "Content-Security-Policy": ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; "
-                                "connect-src 'self'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; "
+                                "connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; "
                                 "frame-ancestors 'none'"),
     "X-Frame-Options": "DENY",                                  # nobody may show Tippy inside another page
     "X-Content-Type-Options": "nosniff",                        # a file is what its type says it is

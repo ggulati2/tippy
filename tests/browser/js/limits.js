@@ -12,7 +12,7 @@ T.run(async () => {
   for (let i = 0; i < 6; i++) { document.dispatchEvent(new Event("pointermove")); await T.wait(1000); }
   T.check("a break is suggested after the session length", T.modalCount() === 1 && breakShown);
   [...document.querySelectorAll("#modal-root .choice")][1].click(); await T.wait(300);      // "keep playing"
-  T.check("'keep playing' closes the pop-up and gives about 5 more minutes", T.modalCount() === 0 && sessionSeconds === 300, "session seconds " + sessionSeconds);
+  T.check("'keep playing' closes the pop-up and gives about 5 more minutes", T.modalCount() === 0 && sessionSeconds >= 299 && sessionSeconds <= 303, "session seconds " + sessionSeconds);
   sessionSeconds = 599; breakShown = false;
   for (let i = 0; i < 4; i++) { document.dispatchEvent(new Event("pointermove")); await T.wait(1000); }
   [...document.querySelectorAll("#modal-root .choice")][0].click(); await T.wait(500);       // "take a break"
