@@ -30,7 +30,7 @@ async function mouseMeadow() {
   const cards = MOUSE_LEVELS.map((level, i) => {
     const n = i + 1;
     const earned = stars[n] || 0;
-    return el("button", { class: "world level", onclick: () => { sfx("tap"); startMouseLevel(n); } },
+    return el("button", { class: "world level", onclick: () => { sfx("tap"); reopenPicker = mouseMeadow; startMouseLevel(n); } },
       el("span", { class: "icon" }, level.icon),
       el("span", { class: "stars" }, earned ? "⭐".repeat(earned) : "☆☆☆"));
   });

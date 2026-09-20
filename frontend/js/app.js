@@ -13,6 +13,7 @@ let parentToken = null; // set after the correct PIN, kept only in memory
 // The game that is running sets this to receive key presses. It is cleared
 // whenever the screen changes, so a finished game can never react to keys.
 let keyHandler = null;
+let reopenPicker = null;   // how the Back button gets from a game to the level picker it came from
 
 const t = (key) => (STRINGS[settings.language] || STRINGS.en)[key] || STRINGS.en[key] || key;
 
@@ -120,10 +121,20 @@ function voiceTag() {
   return info ? info.voice : "en-US";
 }
 
+// While the voice list is still loading, only the newest sentence is kept, and only if the child is
+// still on the same screen. (Before, every early sentence was queued and all of them were spoken later,
+// on whatever screen was showing: "press the glowing key", "welcome"... at random.)
+let pendingSpeech = null;
 function speak(text) {
   if (!settings.voice_on || muted || !("speechSynthesis" in window)) return;
   if (speechSynthesis.getVoices().length === 0) { // list not loaded yet: try again when it is
-    speechSynthesis.addEventListener("voiceschanged", () => speak(text), { once: true });
+    const first = pendingSpeech === null;
+    pendingSpeech = { text, serial: screenSerial };
+    if (first) speechSynthesis.addEventListener("voiceschanged", () => {
+      const waiting = pendingSpeech;
+      pendingSpeech = null;
+      if (waiting && waiting.serial === screenSerial) speak(waiting.text);
+    }, { once: true });
     return;
   }
   speechSynthesis.cancel();
@@ -179,6 +190,7 @@ function show(...nodes) {
   const screen = $("#screen");
   screen.replaceChildren(...nodes);
   $("#home-btn").hidden = nodes.length === 0 || ["welcome", "who"].includes(screen.dataset.name);
+  $("#back-btn").hidden = nodes.length === 0 || ["welcome", "who", "map"].includes(screen.dataset.name);
   updateWhoButton(screen.dataset.name);
 }
 
@@ -194,6 +206,8 @@ function later(fn, ms) {
 
 function setScreen(name, ...nodes) {
   screenSerial++;
+  pendingSpeech = null;
+  if ("speechSynthesis" in window) speechSynthesis.cancel();   // what was said on the last screen must not go on over this one
   keyHandler = null;
   padOnlyScreen = false;
   delete $("#screen").dataset.answer;   // Number Land sets this so the tests know the right answer
@@ -206,7 +220,9 @@ async function welcomeScreen() {
   const bubble = el("div", { class: "bubble" }, "…");
   const play = el("button", { class: "big-btn play-btn", onclick: () => { sfx("play"); mapScreen(); } }, "▶ " + t("play"));
   setScreen("welcome", el("h1", { class: "title" }, window.TIPPY_CONFIG.mascotName), mascot, bubble, play);
+  const serial = screenSerial;
   const line = await mascotLine("welcome");
+  if (serial !== screenSerial) return;   // the child already left this screen
   bubble.textContent = line;
   // Tapping the mascot repeats the line aloud and makes it jump.
   mascot.addEventListener("click", () => {
@@ -223,6 +239,7 @@ const WORLDS = [
 ];
 
 async function mapScreen() {
+  reopenPicker = null;
   await loadProgress();
   const grid = el("div", { class: "worlds" });
   for (const [id, icon] of WORLDS) {
@@ -241,6 +258,7 @@ async function mapScreen() {
 }
 
 function openWorld(id) {
+  reopenPicker = null;
   if (!progress.worlds[id].unlocked) { sfx("key"); speak(t("lockedWorld")); return; }
   sfx("tap");
   if (id === "mouse") mouseMeadow();
@@ -367,6 +385,7 @@ document.addEventListener("keydown", (e) => {
   const isFunctionKey = /^F([1-9]|1[0-2])$/.test(e.key);
   // A game is running: it gets every normal key (and the browser gets none,
   // so Space does not scroll and Backspace does not go "back").
+  if (e.key === "CapsLock" && keyHandler) return;   // handled by capsLockChanged below
   if (keyHandler && !isShortcut && !isFunctionKey && e.key !== "Escape" && e.key !== "Tab"
       && $("#modal-root").children.length === 0) {
     e.preventDefault();
@@ -375,10 +394,31 @@ document.addEventListener("keydown", (e) => {
   }
   if (isShortcut || isFunctionKey || e.key === "Escape" || e.key === "Tab") e.preventDefault();
 }, true);
+// Caps Lock is special: on a Mac the browser reports only turning it ON as a key press (turning it OFF
+// arrives as a key release), on Windows both come as presses and releases. So we watch the light itself and
+// tell the game whenever it changed.
+let capsOn = null;
+function capsLockChanged(e) {
+  if (e.key !== "CapsLock" || !keyHandler || $("#modal-root").children.length) return;
+  e.preventDefault();
+  const now = e.getModifierState("CapsLock");
+  if (now === capsOn) return;
+  capsOn = now;
+  keyHandler({ key: "CapsLock", code: "CapsLock", capsOn: now });
+}
+document.addEventListener("keydown", capsLockChanged, true);
+document.addEventListener("keyup", capsLockChanged, true);
+document.addEventListener("keydown", (e) => { if (e.key !== "CapsLock") capsOn = e.getModifierState("CapsLock"); }, true);
 document.addEventListener("contextmenu", (e) => e.preventDefault());
 
 // ---------- Start-up ----------
 $("#home-btn").addEventListener("click", () => { sfx("home"); welcomeScreen(); });
+// Back goes one step up: a game returns to its level picker, a level picker (or the album, ...) to the world map.
+$("#back-btn").addEventListener("click", () => {
+  sfx("tap");
+  const onPicker = WORLDS.some(([id]) => id === $("#screen").dataset.name);
+  if (!onPicker && reopenPicker) reopenPicker(); else mapScreen();
+});
 $("#mute-btn").addEventListener("click", () => {
   muted = !muted;
   if (muted && "speechSynthesis" in window) speechSynthesis.cancel();

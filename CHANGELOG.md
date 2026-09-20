@@ -9,6 +9,13 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 - Performance tests in CI (`performance.yml`): a server load test (20 children at once, a year of saved play, memory growth; `scripts/loadtest.py`) and browser speed tests (first screen, key-to-screen delay, smooth animation, no memory leaks; `pytest -m perf`). Results show on the run's summary page.
 - Security regression tests (`tests/test_security.py`) and a browser test that the page policy is really enforced.
 
+### Fixed
+- Random voice lines ("press the glowing key", "welcome") played on the wrong screen: sentences asked for while the voice list was still loading were all spoken later, and speech from the previous screen kept going. Speech now stops when the screen changes.
+- The Caps Lock game did not work on a Mac (the Mac reports only turning Caps Lock on as a key press). Tippy now watches the Caps Lock light itself.
+
+### Added (child screens)
+- A Back button next to Home: from a game to its level picker, from there to the world map.
+
 ### Changed
 - Every response now carries protective headers (a strict Content-Security-Policy, no framing, no sniffing) and API answers are never cached; requests above the backup size limit are refused early.
 - The parent PIN check now runs before anything else on every parent endpoint, and a test fails if a new parent endpoint forgets it.

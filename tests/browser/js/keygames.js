@@ -35,6 +35,21 @@ T.run(async () => {
   const word = () => document.querySelector(".caps-word").textContent;
   T.check("Caps Lock game starts with small letters and shows one key", word() === "tippy" && document.querySelectorAll(".keyboard .key").length === 1);
   const seen = [];
-  for (let i = 0; i < 4; i++) { T.key("CapsLock"); await T.wait(200); seen.push(word()); }
-  T.check("each Caps Lock press toggles big and small", seen.join(",") === "TIPPY,tippy,TIPPY,tippy", seen.join(","));
+  for (let i = 0; i < 4; i++) { T.capsPress("mac"); await T.wait(200); seen.push(word()); }
+  T.check("each Caps Lock press toggles big and small (Mac: on = key down, off = key up)", seen.join(",") === "TIPPY,tippy,TIPPY,tippy", seen.join(","));
+  await T.wait(1500);
+  await openLevel(7);
+  const seenWin = [];
+  for (let i = 0; i < 4; i++) { T.capsPress("windows"); await T.wait(200); seenWin.push(word()); }
+  T.check("the same on Windows (down and up on every press)", seenWin.join(",") === "TIPPY,tippy,TIPPY,tippy", seenWin.join(","));
+
+  // The Back button: from a game to its level picker, from the picker to the map, and nowhere on the map itself.
+  const back = document.querySelector("#back-btn");
+  await openLevel(2);
+  T.check("Back is shown inside a game", !back.hidden);
+  back.click(); await T.wait(600);
+  T.check("Back from a game returns to the level picker", T.name() === "keyboard", T.name());
+  back.click(); await T.wait(600);
+  T.check("Back from the level picker returns to the world map", T.name() === "map", T.name());
+  T.check("no Back button on the map", back.hidden);
 });

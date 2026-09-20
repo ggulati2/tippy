@@ -100,7 +100,7 @@ async function levelPicker(worldId, icon, levelIcons, run, extra = null) {
   const stars = progress.worlds[worldId].levels;
   const card = (levelIcon, level, cls = "") => {
     const earned = stars[level] || 0;
-    return el("button", { class: "world level" + cls, onclick: () => { sfx("tap"); run(level); } },
+    return el("button", { class: "world level" + cls, onclick: () => { sfx("tap"); reopenPicker = () => levelPicker(worldId, icon, levelIcons, run, extra); run(level); } },
       el("span", { class: "icon" }, levelIcon),
       el("span", { class: "stars" }, earned ? "⭐".repeat(earned) : "☆☆☆"));
   };

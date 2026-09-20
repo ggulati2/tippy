@@ -55,6 +55,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .big-btn.blue { background: var(--primary); }
 
 #home-btn, #who-btn { position: fixed; top: 20px; left: 20px; z-index: 5; }
+#back-btn { position: fixed; top: 20px; left: 116px; z-index: 5; background: var(--primary); }
 #who-btn { background: #fff; font-size: 2.6rem; }
 
 /* Deliberately small and pale: a child should not be drawn to it. */

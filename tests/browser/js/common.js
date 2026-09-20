@@ -23,7 +23,18 @@ T.wait = (ms) => new Promise((r) => setTimeout(r, ms));
 T.until = async (condition, ms = 250000) => { for (let t = 0; t < ms / 50 && !condition(); t++) await T.wait(50); return !!condition(); };
 T.name = () => document.querySelector("#screen")?.dataset.name || "";
 T.modalCount = () => document.querySelector("#modal-root").children.length;
-T.key = (k, extra = {}) => { const e = new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true, ...extra }); document.dispatchEvent(e); return e; };
+// A real Caps Lock press. On a Mac the browser sends only a keydown when the light goes ON and only a keyup when it
+// goes OFF; on Windows and Linux every press sends both. (The first version of the game was tested with a plain keydown
+// every time, which only works on Windows: on a Mac it stopped after the first press.)
+T.capsState = false;
+T.capsPress = (style = T.capsStyle || "mac") => {
+  T.capsState = !T.capsState;
+  const init = { key: "CapsLock", code: "CapsLock", bubbles: true, cancelable: true, modifierCapsLock: T.capsState };
+  const down = () => document.dispatchEvent(new KeyboardEvent("keydown", init));
+  const up = () => document.dispatchEvent(new KeyboardEvent("keyup", init));
+  if (style === "windows") { down(); up(); } else if (T.capsState) down(); else up();
+};
+T.key = (k, extra = {}) => { if (k === "CapsLock" && !extra.raw) return T.capsPress(); const e = new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true, ...extra }); document.dispatchEvent(e); return e; };
 T.center = (n) => { const r = n.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 T.pointer = (n, type, [x, y]) => n.dispatchEvent(new PointerEvent(type, { bubbles: true, clientX: x, clientY: y, pointerId: 1 }));
 T.post = (path, body, headers = {}) => fetch(path, { method: "POST", headers: { "Content-Type": "application/json", ...headers }, body: JSON.stringify(body) }).then((r) => r.json());
