@@ -1,4 +1,4 @@
-# Tippy: a computer and typing helper for a 6-year-old
+# Tippy: a computer and typing helper for Young Kids
 
 Available in English, German and Spanish.
 
