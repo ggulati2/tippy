@@ -1,4 +1,4 @@
-# PyInstaller recipe for the Tippy standalone apps.  Build it with:  scripts/build_mac.sh (Mac)  or  scripts/build_windows.bat (Windows).
+# PyInstaller recipe for the Tippy standalone apps.  Build it with:  scripts/build_mac.sh (Mac)  or  windows/build.bat (Windows).
 # PyInstaller cannot build for another system: the Mac app is built on a Mac, the Windows app on Windows (in CI: windows-app.yml).
 #
 # The app is a normal folder of files (inside Tippy.app on the Mac, dist\Tippy on Windows): a copy of Python, Tippy's libraries, and Tippy's own
@@ -23,7 +23,7 @@ analysis = Analysis(
 archive = PYZ(analysis.pure)
 # console=False: no black terminal window behind the app.
 executable = EXE(archive, analysis.scripts, [], exclude_binaries=True, name="Tippy", console=False,
-                 icon=str(ROOT / "packaging" / "Tippy.ico") if sys.platform == "win32" else None)
+                 icon=str(ROOT / "windows" / "Tippy.ico") if sys.platform == "win32" else None)
 collected = COLLECT(executable, analysis.binaries, analysis.datas, name="Tippy")
 if sys.platform == "darwin":
   app = BUNDLE(

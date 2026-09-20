@@ -1,5 +1,5 @@
 # Starts a built Tippy.exe without opening a browser window and checks that it really serves the app.
-# Usage:  powershell -File scripts\smoke_windows.ps1 -Exe dist\Tippy\Tippy.exe
+# Usage:  powershell -File windows\smoke-test.ps1 -Exe dist\Tippy\Tippy.exe
 param([Parameter(Mandatory = $true)][string]$Exe)
 $ErrorActionPreference = "Stop"
 $port = 8791

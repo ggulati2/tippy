@@ -13,9 +13,8 @@ on:
   pull_request:
     paths:
       - "packaging/**"
+      - "windows/**"
       - "scripts/launch.py"
-      - "scripts/smoke_windows.ps1"
-      - "scripts/build_windows.bat"
       - "backend/config.py"
       - "requirements*.txt"
       - ".github/workflows/windows-app.yml"
@@ -50,7 +49,7 @@ jobs:
       - name: Build the app folder (PyInstaller)
         run: pyinstaller --noconfirm --clean --distpath dist --workpath build packaging/tippy.spec
       - name: Test the app folder
-        run: powershell -File scripts/smoke_windows.ps1 -Exe dist\Tippy\Tippy.exe
+        run: powershell -File windows/smoke-test.ps1 -Exe dist\Tippy\Tippy.exe
 
       - name: Build the installer (Inno Setup)
         shell: pwsh
@@ -58,7 +57,7 @@ jobs:
           $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
           if (-not $iscc) { $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" }
           if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress; $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" }
-          & $iscc packaging\tippy.iss
+          & $iscc windows\tippy.iss
           if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
       - name: Test the installer (install silently, start, uninstall)
         shell: pwsh
@@ -66,7 +65,7 @@ jobs:
           $target = Join-Path $env:RUNNER_TEMP "tippy-installed"
           $setup = Start-Process -FilePath "dist\Tippy-Setup-$env:TIPPY_VERSION.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/NOICONS","/DIR=$target" -Wait -PassThru
           if ($setup.ExitCode -ne 0) { throw "The installer failed with code $($setup.ExitCode)" }
-          powershell -File scripts/smoke_windows.ps1 -Exe (Join-Path $target "Tippy.exe")
+          powershell -File windows/smoke-test.ps1 -Exe (Join-Path $target "Tippy.exe")
           if ($LASTEXITCODE -ne 0) { throw "The installed app failed its test" }
           $un = Start-Process -FilePath (Join-Path $target "unins000.exe") -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES" -Wait -PassThru
           if ($un.ExitCode -ne 0) { throw "The uninstaller failed" }

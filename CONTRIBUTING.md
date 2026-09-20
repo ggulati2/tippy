@@ -99,4 +99,4 @@ If a hook stops you, read its message: it says what to fix. Do not bypass with `
 
 ## Where things are
 
-`backend/` server, `frontend/` screens, `content/` built-in words, `tests/` automatic tests, `scripts/` launcher and tools, `TEST-CHECKLIST.md` manual checks, `CLAUDE.md` design notes for the AI assistant.
+`backend/` server, `frontend/` screens, `content/` built-in words, `tests/` automatic tests, `scripts/` launcher and tools, `windows/` the Windows installer (built in CI), `packaging/` the app recipe, `TEST-CHECKLIST.md` manual checks, `CLAUDE.md` design notes for the AI assistant.

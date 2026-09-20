@@ -1,5 +1,5 @@
 @echo off
-rem Builds the standalone Windows app:  scripts\build_windows.bat
+rem Builds the standalone Windows app:  windows\build.bat
 rem Result: dist\Tippy\Tippy.exe (a folder) and, if Inno Setup is installed, dist\Tippy-Setup-<version>.exe.
 rem It must be run on Windows (PyInstaller cannot build for another system). Normally CI does this for you:
 rem see .github/workflows/windows-app.yml.
@@ -18,7 +18,7 @@ pyinstaller --noconfirm --clean --distpath dist --workpath build packaging\tippy
 
 where iscc >nul 2>nul
 if %errorlevel%==0 (
-  iscc packaging\tippy.iss || goto :fail
+  iscc windows\tippy.iss || goto :fail
 ) else (
   echo Inno Setup is not installed: skipping the single-file installer. The folder dist\Tippy works on its own.
 )

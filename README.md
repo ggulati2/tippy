@@ -100,7 +100,7 @@ Good to know:
 - To uninstall: Windows Settings, Apps, Tippy. (To also delete the family's data, delete the folder `%APPDATA%\Tippy`.)
 - Flags on the "countries" levels show as letters (JP, BR ...) on Windows, which has no flag pictures. Everything else looks the same.
 - Some virus scanners are wary of new unsigned programs. If one complains, the *portable* zip is the same app; the checksums in `SHA256SUMS-windows.txt` prove the file was not changed.
-- Building it yourself on a Windows PC: `scripts\build_windows.bat` (needs Python and, for the single installer file, Inno Setup).
+- Building it yourself on a Windows PC: `windows\build.bat` (needs Python and, for the single installer file, Inno Setup).
 
 ## Standalone Mac app (for testing)
 

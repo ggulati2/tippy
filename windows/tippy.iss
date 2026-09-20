@@ -1,5 +1,5 @@
 ; Inno Setup recipe: turns the PyInstaller folder (dist\Tippy) into ONE installer file, Tippy-Setup.exe.
-; Built in CI by .github/workflows/windows-app.yml; locally: scripts\build_windows.bat (needs Inno Setup).
+; Built in CI by .github/workflows/windows-app.yml; locally: windows\build.bat (needs Inno Setup).
 ; The installer needs no administrator rights: it installs for the current user only.
 #define AppVersion GetEnv("TIPPY_VERSION")
 
