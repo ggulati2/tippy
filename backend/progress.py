@@ -12,10 +12,11 @@ from backend import db
 from backend.config import CONTENT_DIR
 
 # Worlds in the order they unlock. A world unlocks when the one before it is complete.
-WORLD_ORDER = ["mouse", "keyboard", "letters", "words", "sentences", "basics", "free", "numbers"]
+WORLD_ORDER = ["mouse", "keyboard", "letters", "words", "sentences", "basics", "free", "numbers", "paint", "desktop", "internet", "robot"]
 
 # How many levels each *built* world has. Add a world here when it is built.
-LEVEL_COUNTS = {"mouse": 4, "keyboard": 5, "letters": 5, "words": 5, "sentences": 5, "basics": 6, "free": 1, "numbers": 6}
+LEVEL_COUNTS = {"mouse": 4, "keyboard": 5, "letters": 5, "words": 5, "sentences": 5, "basics": 6, "free": 1, "numbers": 6,
+                "paint": 5, "desktop": 5, "internet": 5, "robot": 5}
 
 # Bonus levels come after the core levels of a world. They give stars and stickers, but they never
 # change whether the world counts as complete, so adding them cannot re-lock anything for a child
@@ -28,7 +29,11 @@ BONUS_LEVELS: dict[str, int] = {"keyboard": 2, "letters": 4, "words": 10, "sente
 # By default a world opens when the one before it in WORLD_ORDER is complete. A world listed here
 # opens after the named world instead. Number Land (added later) opens after Keyboard Kingdom; putting it
 # in the middle of the chain would have re-locked worlds for children who were already further on.
-UNLOCK_AFTER = {"numbers": "keyboard"}
+UNLOCK_AFTER = {"numbers": "keyboard",
+                # The four "everyday computer" worlds open when the skill they need has been learned:
+                # painting needs the mouse, the robot needs the arrow keys (Keyboard Kingdom), the pretend desktop needs
+                # the Computer Cove lessons (windows, folders) and the pretend internet needs typing sentences.
+                "paint": "mouse", "robot": "keyboard", "desktop": "basics", "internet": "sentences"}
 
 
 def max_level(world: str) -> int:

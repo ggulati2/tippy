@@ -4,6 +4,12 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+### Added
+- Four new worlds about everyday computer use, five levels each, in English, German and Spanish, with stickers: **Paint Place** (mouse painting, colours, sizes, stamps, Undo), **Desktop Dock** (a pretend desktop: double-click, sorting into folders, naming a file, trash bin and restore, saving), **Internet Island** (a pretend browser: links, Back, search, pop-ups and strangers, favourites) and **Robot Helper** (arrow-card programs, a first taste of coding). They open after Mouse Meadow, Computer Cove, Sentence Sky and Keyboard Kingdom respectively. Nothing in them touches real files or the internet.
+
+### Fixed
+- The Back button showed on the welcome screen and the world map as well (a style rule overrode "hidden").
+
 ## [0.12.0] - 2026-09-20
 
 Themed levels, a Back button, security and speed checks in CI, and a Windows installer.

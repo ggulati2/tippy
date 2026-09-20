@@ -15,7 +15,7 @@ T.run(async () => {
   async function playLevel(world, i) {
     const card = [...document.querySelectorAll(".world.level")][i];
     if (!card) { T.check(`${world} level ${i + 1} exists`, false); return false; }
-    T.act.droppedWrong = false;
+    T.act.droppedWrong = false; T.act.resetEveryday();
     card.click();
     for (let tick = 0; tick < 4000 && T.name() !== "celebrate"; tick++) {
       await T.wait(60);
@@ -31,7 +31,7 @@ T.run(async () => {
     return true;
   }
 
-  const CORE = { mouse: 4, keyboard: 5, letters: 5, words: 5, sentences: 5, basics: 6, numbers: 6 };
+  const CORE = { mouse: 4, keyboard: 5, letters: 5, words: 5, sentences: 5, basics: 6, numbers: 6, paint: 5, desktop: 5, internet: 5, robot: 5 };
   const expected = {};
   for (const [world, core] of Object.entries(CORE)) {
     const levels = core + bonusLevels(world).length;                       // core levels plus the bonus levels for this language

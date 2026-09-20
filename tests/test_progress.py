@@ -109,8 +109,38 @@ def test_adding_a_world_never_relocks_a_child_who_was_further_on(tmp_path):
     for world in ("mouse", "keyboard", "letters", "words", "sentences"):
         finish(path, world)
     worlds = progress.get_progress(path)["worlds"]
-    assert [w for w in progress.WORLD_ORDER if worlds[w]["unlocked"] and w != "numbers"] == ["mouse", "keyboard", "letters", "words", "sentences", "basics"]
+    later = {"numbers", "paint", "desktop", "internet", "robot"}          # worlds added after the first release
+    assert [w for w in progress.WORLD_ORDER if worlds[w]["unlocked"] and w not in later] == ["mouse", "keyboard", "letters", "words", "sentences", "basics"]
     assert worlds["numbers"]["unlocked"] and not worlds["numbers"]["complete"]
+
+
+def test_the_everyday_computer_worlds_open_after_the_skill_they_need(tmp_path):
+    path = tmp_path / "p.db"
+    db.init_db(path)
+    opened = lambda: {w for w, info in progress.get_progress(path)["worlds"].items() if info["unlocked"]}
+    assert not opened() & {"paint", "robot", "desktop", "internet"}
+    finish(path, "mouse")
+    assert "paint" in opened() and "robot" not in opened()
+    finish(path, "keyboard")
+    assert "robot" in opened() and "desktop" not in opened()
+    for world in ("letters", "words", "sentences"):
+        finish(path, world)
+    assert "internet" in opened() and "desktop" not in opened()
+    finish(path, "basics")
+    assert "desktop" in opened()
+
+
+@pytest.mark.parametrize("world", ["paint", "desktop", "internet", "robot"])
+def test_everyday_worlds_have_five_levels_and_stickers(tmp_path, world):
+    path = tmp_path / "p.db"
+    db.init_db(path)
+    got = []
+    for level in range(1, 6):
+        got += progress.record_completion(path, world, level, 3)["new_stickers"]
+    assert len(got) == 3, "two level stickers and the world medal"
+    assert progress.get_progress(path)["worlds"][world]["complete"]
+    with pytest.raises(ValueError):
+        progress.record_completion(path, world, 6, 3)
 
 
 def test_number_land_has_six_levels_and_its_own_stickers(tmp_path):

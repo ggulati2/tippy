@@ -296,6 +296,13 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - Words 13 to 15, Sentence Sky 11 to 13 and Cove 13 to 16 exist in every language (countries/flags, food, wild animals, weather). Content: `content/special.json` sets `country_*`, `food_*`, `wild_*` for en, de and es (same rules as the German sets: typable, words at most 11 letters). Cove lessons are `lessonFlags`, `lessonAnimalHomes`, `lessonFood`, `lessonWeather` in basics.js with keys `b13.*` to `b16.*`. Numbers continue after the German-only ones, so `BONUS_LEVELS` counts include the German-only numbers (words 10, sentences 8, basics 10).
 - Speech rules: `speak()` cancels, waits 60 ms and drops the sentence if the screen changed; `setScreen()` cancels speech. A helper that speaks while it builds a screen must do it in `queueMicrotask` (after `setScreen`), and any `speak` after an `await` must first check `serial === screenSerial`.
 
+## Everyday-computer worlds (paint, desktop, internet, robot)
+
+- `frontend/js/paint.js` (canvas, `paintBoard()` builds the toolbar a level asks for), `desktop.js` (`makeDraggable`, `deskWindow`), `internet.js` (`netBrowser`, pretend pages are emoji drawn by the app: no real network), `robot.js` (levels are data in `ROBOT_LEVELS` with a `solution` used for hints and by the tests). Five core levels each (`LEVEL_COUNTS`), no bonus levels; they open through `UNLOCK_AFTER` (paint after mouse, robot after keyboard, internet after sentences, desktop after basics). Map order is `WORLDS` in app.js (12 worlds fit 1280x720 in 4 columns).
+- Each level sets `#screen[data-need]` to what its next step needs; only the browser tests read it (`T.actPaint`, `T.actDesktop`, `T.actInternet`, `T.actRobot` in tests/browser/js/common.js). `setScreen` clears it. Quick test: `python -m pytest -m browser -k everyday` (tests/browser/js/everyday.js, about 10 s); the full playthrough also plays them.
+- Never write a synchronous `while` loop that waits for the page to change in a browser test: it freezes the page and the test then runs for the whole 10 minute limit (happened with the robot level).
+- A CSS rule that sets `display` on an element overrides the `hidden` attribute: give such elements a `[hidden] { display: none }` rule (the Back button showed on every screen because of this).
+
 ## Security and performance (CI)
 
 - `security.yml` (pip-audit, bandit -ll, dependency review, ZAP baseline = report only) and `performance.yml` (`scripts/loadtest.py`, `pytest -m perf`, report only at first). Tools are pinned in `requirements-security.txt` and `requirements-perf.txt`; both are left out of the zip (`make_zip.py`).

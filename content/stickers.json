@@ -49,5 +49,17 @@
   {"id": "flag", "emoji": "🚩", "award": "basics:13", "name": {"en": "Flag", "de": "Flagge", "es": "Bandera"}},
   {"id": "nest", "emoji": "🪺", "award": "basics:14", "name": {"en": "Nest", "de": "Nest", "es": "Nido"}},
   {"id": "apple", "emoji": "🍎", "award": "basics:15", "name": {"en": "Apple", "de": "Apfel", "es": "Manzana"}},
-  {"id": "umbrella", "emoji": "☔", "award": "basics:16", "name": {"en": "Umbrella", "de": "Regenschirm", "es": "Paraguas"}}
+  {"id": "umbrella", "emoji": "☔", "award": "basics:16", "name": {"en": "Umbrella", "de": "Regenschirm", "es": "Paraguas"}},
+  {"id": "brush", "emoji": "🖌️", "award": "paint:2", "name": {"en": "Brush", "de": "Pinsel", "es": "Pincel"}},
+  {"id": "crayon", "emoji": "🖍️", "award": "paint:4", "name": {"en": "Crayon", "de": "Wachsmalstift", "es": "Cera"}},
+  {"id": "artist", "emoji": "🖼️", "award": "paint:done", "name": {"en": "Artist", "de": "Künstler", "es": "Artista"}},
+  {"id": "folder", "emoji": "📁", "award": "desktop:2", "name": {"en": "Folder", "de": "Ordner", "es": "Carpeta"}},
+  {"id": "floppy", "emoji": "💾", "award": "desktop:4", "name": {"en": "Save", "de": "Speichern", "es": "Guardar"}},
+  {"id": "computer", "emoji": "🖥️", "award": "desktop:done", "name": {"en": "Computer", "de": "Computer", "es": "Ordenador"}},
+  {"id": "worldweb", "emoji": "🌐", "award": "internet:2", "name": {"en": "Internet", "de": "Internet", "es": "Internet"}},
+  {"id": "favstar", "emoji": "⭐", "award": "internet:4", "name": {"en": "Favourite", "de": "Favorit", "es": "Favorito"}},
+  {"id": "shield", "emoji": "🛡️", "award": "internet:done", "name": {"en": "Safe surfer", "de": "Sicher surfen", "es": "Navegante seguro"}},
+  {"id": "robot", "emoji": "🤖", "award": "robot:2", "name": {"en": "Robot", "de": "Roboter", "es": "Robot"}},
+  {"id": "battery", "emoji": "🔋", "award": "robot:4", "name": {"en": "Battery", "de": "Batterie", "es": "Batería"}},
+  {"id": "gear", "emoji": "⚙️", "award": "robot:done", "name": {"en": "Engineer", "de": "Ingenieur", "es": "Ingeniero"}}
 ]

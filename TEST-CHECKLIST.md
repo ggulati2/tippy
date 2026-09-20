@@ -15,6 +15,10 @@ These checks need a person. Tick them off on the computer Tippy will really be u
 - [ ] Space, Enter, Backspace and Shift games react to the real keys.
 - [ ] Mouse Meadow with your trackpad or mouse: pop balloons, drag shapes, double-click an egg (is the speed forgiving?), scroll to the treasure with two fingers or the wheel.
 - [ ] Word Woods and Sentence Sky: type a whole sentence. The keys feel instant.
+- [ ] Paint Place: press, hold and move with the real mouse or trackpad draws a line; the colours, brush sizes, stamps and Undo work; a trackpad tap-and-drag also paints.
+- [ ] Desktop Dock: double-click with the trackpad opens the file (a slow double-click only wiggles it); dragging works with the trackpad.
+- [ ] Internet Island: nothing on it loads from the internet (turn Wi-Fi off and it still works); the pop-up lessons read aloud.
+- [ ] Robot Helper: the robot walks one step at a time and returns to the start when the program is wrong.
 - [ ] Free Play: type `cat`, press Enter. Try a word that is not known: the letters dance.
 
 ## Spanish (5 minutes, ideally with a Spanish speaker)

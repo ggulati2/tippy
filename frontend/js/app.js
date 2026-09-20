@@ -214,6 +214,7 @@ function setScreen(name, ...nodes) {
   keyHandler = null;
   padOnlyScreen = false;
   delete $("#screen").dataset.answer;   // Number Land sets this so the tests know the right answer
+  delete $("#screen").dataset.need;     // the everyday-computer worlds say here what the next step needs (for the tests)
   $("#screen").dataset.name = name;
   show(...nodes);
 }
@@ -237,8 +238,8 @@ async function welcomeScreen() {
 }
 
 const WORLDS = [
-  ["mouse", "🐭"], ["keyboard", "⌨️"], ["letters", "🔤"], ["numbers", "🔢"], ["words", "🌳"],
-  ["sentences", "☁️"], ["basics", "🖥️"], ["free", "🎨"],
+  ["mouse", "🐭"], ["paint", "🖌️"], ["keyboard", "⌨️"], ["robot", "🤖"], ["letters", "🔤"], ["numbers", "🔢"],
+  ["words", "🌳"], ["sentences", "☁️"], ["internet", "🌐"], ["basics", "🖥️"], ["desktop", "🗂️"], ["free", "🎨"],
 ];
 
 async function mapScreen() {
@@ -272,6 +273,10 @@ function openWorld(id) {
   else if (id === "sentences") sentenceSky();
   else if (id === "basics") computerCove();
   else if (id === "free") freePlay();
+  else if (id === "paint") paintPlace();
+  else if (id === "desktop") desktopDock();
+  else if (id === "internet") internetIsland();
+  else if (id === "robot") robotHelper();
   else comingSoonScreen(id);
 }
 

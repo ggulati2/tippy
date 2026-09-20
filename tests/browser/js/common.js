@@ -98,7 +98,11 @@ T.act = async ({ mistakes = false, doubleClickClose = false } = {}) => {
       T.check("closing the window counts once, even when double-clicked", filled() - before === 1, `${before} -> ${filled()} dots`);
     }
   }
-  else if (n.startsWith("basics-")) {
+  else if (n.startsWith("paint-")) await T.actPaint(mistakes);
+  else if (n.startsWith("desktop-") && (q("#screen").dataset.need || "")) await T.actDesktop();
+  else if (n.startsWith("internet-") && (q("#screen").dataset.need || "")) await T.actInternet();
+  else if (n.startsWith("robot-")) await T.actRobot(mistakes);
+  else if (n.startsWith("basics-") || n.endsWith("-choose") || n === "internet-4") {
     const cards = [...document.querySelectorAll(".choice:not(:disabled)")];
     if (cards.length) cards[Math.floor(Math.random() * cards.length)].click();   // wrong ones must be harmless
   } else if (n.startsWith("nums-") && document.querySelector("#screen").dataset.answer) {
@@ -110,4 +114,98 @@ T.act = async ({ mistakes = false, doubleClickClose = false } = {}) => {
     T.key(k);
   }
 };
+
+// ----- the everyday-computer worlds (paint, desktop, internet, robot) -----
+// The page says what its next step needs in #screen[data-need]; these play that step like a child would.
+T.stroke = async (canvas, from = 0.2, to = 0.8) => {
+  const r = canvas.getBoundingClientRect(), y = r.top + r.height * 0.5;
+  T.pointer(canvas, "pointerdown", [r.left + r.width * from, y]);
+  for (let i = 1; i <= 6; i++) T.pointer(canvas, "pointermove", [r.left + r.width * (from + (to - from) * i / 6), y + i * 3]);
+  T.pointer(canvas, "pointerup", [r.left + r.width * to, y + 18]);
+  await T.wait(30);
+};
+T.actPaint = async (mistakes) => {
+  const q = (s) => document.querySelector(s), need = q("#screen").dataset.need || "", canvas = q(".paper");
+  if (!canvas || !need) return;
+  const [kind, value] = need.split(":");
+  if (kind === "colour") {
+    if (mistakes && !T.actPaint.wrongColour) {                         // the wrong colour is painted but must not count
+      T.actPaint.wrongColour = true;
+      const other = [...document.querySelectorAll(".swatch")].find((s) => s.dataset.color !== value);
+      other.click(); await T.stroke(canvas);
+      T.check("a wrong colour does not count, the right one pulses", q("#screen").dataset.need === need);
+    }
+    q(`.swatch[data-color="${value}"]`).click(); await T.stroke(canvas);
+  } else if (kind === "size") {
+    q(`.size-btn[data-size="${value}"]`).click(); await T.stroke(canvas);
+  } else if (kind === "stamp") {
+    q(".stamp-btn").click();
+    const r = canvas.getBoundingClientRect();
+    T.pointer(canvas, "pointerdown", [r.left + r.width * (0.2 + Math.random() * 0.6), r.top + r.height * 0.5]); T.pointer(canvas, "pointerup", [r.left + 5, r.top + 5]);
+    await T.wait(30);
+  } else if (kind === "undo") q("#undo").click();
+  else if (kind === "free") {
+    const done = q(".paint-done");
+    if (done.disabled) { await T.stroke(canvas); await T.stroke(canvas, 0.3, 0.6); }
+    T.check("the tick is available after painting", !done.disabled);
+    done.click();
+  } else await T.stroke(canvas, 0.1 + Math.random() * 0.2, 0.6 + Math.random() * 0.3);      // "stroke": any line
+};
+T.actDesktop = async () => {
+  const q = (s) => document.querySelector(s), need = q("#screen").dataset.need;
+  if (need === "dblclick") { const f = q(".file-open"); f.click(); f.dispatchEvent(new MouseEvent("dblclick", { bubbles: true })); await T.wait(60); }
+  else if (need === "close") { const x = q(".close-x:not(:disabled)"); x?.click(); x?.click(); }
+  else if (need === "sort") {
+    const item = q(".desk-file.draggable"); if (!item) return;
+    if (!T.actDesktop.missed) {                                          // a wrong drop first: it glides home and the folder pulses
+      T.actDesktop.missed = true;
+      const wrong = [...document.querySelectorAll(".folder")].find((f) => f.dataset.kind !== item.dataset.kind);
+      T.pointer(item, "pointerdown", T.center(item)); T.pointer(item, "pointerup", T.center(wrong));
+      await T.wait(50);
+      T.check("a file dropped in the wrong folder points at the right one", !!q(".folder.hint"));
+      return;
+    }
+    T.pointer(item, "pointerdown", T.center(item)); T.pointer(item, "pointerup", T.center(q(`.folder[data-kind="${item.dataset.kind}"]`)));
+  } else if (need === "trash-drag") { const f = q(".desk-file.draggable"); T.pointer(f, "pointerdown", T.center(f)); T.pointer(f, "pointerup", T.center(q(".trash"))); }
+  else if (need === "trash-open") q(".trash").click();
+  else if (need === "restore") q(".restore-btn").click();
+  else if (need === "save") q(".save-btn").click();
+  else if (need === "edit") q(".edit-btn").click();
+  else if (need === "dialog") {
+    q(".dlg-drop").click(); await T.wait(30);
+    T.check("choosing not to save keeps the question open", !!q(".dlg-save"));
+    q(".dlg-save").click();
+  }
+};
+T.actInternet = async () => {
+  const q = (s) => document.querySelector(s), need = q("#screen").dataset.need || "";
+  const [kind, value] = need.split(":");
+  if (kind === "link") {
+    const wrong = [...document.querySelectorAll(".link-card")].find((c) => c.dataset.page !== value);
+    if (!T.actInternet.wobbled) { T.actInternet.wobbled = true; wrong.click(); await T.wait(30); T.check("a wrong link only wobbles", q("#screen").dataset.need === need); }
+    q(`.link-card[data-page="${value}"]`).click();
+  } else if (kind === "back") q(".br-back").click();
+  else if (kind === "star") q(".br-star").click();
+  else if (kind === "home") q(".br-home").click();
+  else if (kind === "favs") q(".br-favs").click();
+  else if (kind === "favitem") q(".fav-item").click();
+};
+T.actRobot = async (mistakes) => {
+  const q = (s) => document.querySelector(s), need = q("#screen").dataset.need;
+  if (q(".rrun") && need) {
+    const clear = () => { for (let i = 0; i < 12 && q(".rslot.filled"); i++) q(".rundo").click(); };
+    clear();
+    if (mistakes && !T.actRobot.failed) {                                 // a wrong program: the robot walks back, nothing is lost
+      T.actRobot.failed = true;
+      q('.rcard[data-card="U"]').click(); q(".rrun").click();
+      await T.wait(2500);                                                 // one step, then it walks back
+      T.check("after a wrong program the robot is back at the start and the program is kept", !!q(".rslot.filled") && q("#screen").dataset.need === need);
+      clear();
+    }
+    for (const card of need.split(",")) q(`.rcard[data-card="${card}"]`).click();
+    q(".rrun").click();
+    await T.until(() => T.name() === "celebrate" || !q(".rrun"), 20000);
+  }
+};
+T.act.resetEveryday = () => { T.actPaint.wrongColour = false; T.actDesktop.missed = false; T.actInternet.wobbled = false; T.actRobot.failed = false; };
 })();
