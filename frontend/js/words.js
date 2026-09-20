@@ -17,6 +17,10 @@ const WORD_BONUS = {
   // German only: words about Germany and the year's festivals (content/special.json)
   11: { special: "culture_words", text: "de.culture", icon: "🥨" },
   12: { special: "festival_words", text: "de.festivals", icon: "🎄" },
+  // For every language (content/special.json)
+  13: { special: "country_words", text: "words.countries", icon: "🌍" },
+  14: { special: "food_words", text: "words.food", icon: "🍕" },
+  15: { special: "wild_words", text: "words.wild", icon: "🦓" },
 };
 
 async function startWordRound(round) {

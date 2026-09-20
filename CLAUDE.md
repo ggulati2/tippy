@@ -291,6 +291,11 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - Screen texts that exist for one language only use the key prefix `<code>.` (for example `de.b11.fire`); `scripts/check_i18n.js` requires them only in that language and rejects them elsewhere.
 - ß: `"ß".toUpperCase()` is `"SS"`. Never upper-case text that may contain ß with `toUpperCase()`: use `shout()` (typing.js) for typing games and `showLetter()` for single letters; `keyName` and `keyForChar` special-case ß. The German keyboard (`qwertz`) has an ß key at the end of the top row.
 
+## Themed levels for every language
+
+- Words 13 to 15, Sentence Sky 11 to 13 and Cove 13 to 16 exist in every language (countries/flags, food, wild animals, weather). Content: `content/special.json` sets `country_*`, `food_*`, `wild_*` for en, de and es (same rules as the German sets: typable, words at most 11 letters). Cove lessons are `lessonFlags`, `lessonAnimalHomes`, `lessonFood`, `lessonWeather` in basics.js with keys `b13.*` to `b16.*`. Numbers continue after the German-only ones, so `BONUS_LEVELS` counts include the German-only numbers (words 10, sentences 8, basics 10).
+- Speech rules: `speak()` cancels, waits 60 ms and drops the sentence if the screen changed; `setScreen()` cancels speech. A helper that speaks while it builds a screen must do it in `queueMicrotask` (after `setScreen`), and any `speak` after an `await` must first check `serial === screenSerial`.
+
 ## Security and performance (CI)
 
 - `security.yml` (pip-audit, bandit -ll, dependency review, ZAP baseline = report only) and `performance.yml` (`scripts/loadtest.py`, `pytest -m perf`, report only at first). Tools are pinned in `requirements-security.txt` and `requirements-perf.txt`; both are left out of the zip (`make_zip.py`).

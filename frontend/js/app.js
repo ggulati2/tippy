@@ -137,6 +137,7 @@ function speak(text) {
     }, { once: true });
     return;
   }
+  const serial = screenSerial;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   const tag = voiceTag();
@@ -145,7 +146,9 @@ function speak(text) {
   if (voice) u.voice = voice;
   u.rate = 0.95; // slightly slow; lower values make many voices sound robotic
   u.pitch = 1.1; // a touch brighter and friendlier for a child
-  speechSynthesis.speak(u);
+  // Chrome sometimes swallows a sentence that is spoken in the same instant as a cancel(), so it waits a moment.
+  // The screen check drops a sentence whose screen is already gone.
+  setTimeout(() => { if (serial === screenSerial) speechSynthesis.speak(u); }, 60);
 }
 // The voice list loads a moment after the page opens; touching it early wakes it up.
 if ("speechSynthesis" in window) speechSynthesis.getVoices();

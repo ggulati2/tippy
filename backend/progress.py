@@ -20,9 +20,10 @@ LEVEL_COUNTS = {"mouse": 4, "keyboard": 5, "letters": 5, "words": 5, "sentences"
 # Bonus levels come after the core levels of a world. They give stars and stickers, but they never
 # change whether the world counts as complete, so adding them cannot re-lock anything for a child
 # who has already played. Some bonus levels only appear for one language (decided in the browser).
-# The general bonus levels come first; the last ones are only shown for German (see BONUS in frontend/js/rewards.js):
-# letters 9 (umlauts), words 11 and 12, sentences 9 and 10, basics 11 and 12.
-BONUS_LEVELS: dict[str, int] = {"keyboard": 2, "letters": 4, "words": 7, "sentences": 5, "basics": 6}
+# Some numbers are only shown for German (see BONUS in frontend/js/rewards.js): letters 9 (umlauts), words 11 and 12,
+# sentences 9 and 10, basics 11 and 12. Levels added later for every language (words 13 to 15, sentences 11 to 13,
+# basics 13 to 16) simply carry on the numbering, so nothing a child already earned changes.
+BONUS_LEVELS: dict[str, int] = {"keyboard": 2, "letters": 4, "words": 10, "sentences": 8, "basics": 10}
 
 # By default a world opens when the one before it in WORLD_ORDER is complete. A world listed here
 # opens after the named world instead. Number Land (added later) opens after Keyboard Kingdom; putting it

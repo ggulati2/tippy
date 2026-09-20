@@ -7,7 +7,8 @@ const BASICS_ICONS = ["🖥️", "🪟", "📁", "⏰", "🙋", "🤐"];
 function computerCove() {
   levelPicker("basics", "🐚", BASICS_ICONS, (n) => {
     [lessonParts, lessonWindow, lessonFolders, lessonBreak, lessonAsk, lessonSecrets,
-      lessonInternet, lessonSave, lessonKind, lessonPad, lessonEmergency, lessonTraffic][n - 1](
+      lessonInternet, lessonSave, lessonKind, lessonPad, lessonEmergency, lessonTraffic,
+      lessonFlags, lessonAnimalHomes, lessonFood, lessonWeather][n - 1](
       () => completeLevel("basics", n, computerCove));
   });
 }
@@ -25,7 +26,7 @@ const shuffled = (list) => {
 function liveInstruction(icon, text) {
   let spoken = text;
   const node = el("button", { class: "bubble instruction", onclick: () => speak(spoken) }, `${icon} ${text} 🔊`);
-  speak(text);
+  queueMicrotask(() => speak(text));   // after the screen is set: setScreen() silences the previous screen
   return { node, set(newIcon, newText) { spoken = newText; node.textContent = `${newIcon} ${newText} 🔊`; speak(newText); } };
 }
 
@@ -209,5 +210,42 @@ function lessonTraffic(done) {
     { icon: "🔴", prompt: t("de.b12.red"), scene: "🚦 🔴", options: [{ emoji: "✋" }, { emoji: "🚶" }], answer: 0, fact: t("de.b12.red.fact") },
     { icon: "🟢", prompt: t("de.b12.green"), scene: "🚦 🟢", options: [{ emoji: "👀" }, { emoji: "🏃" }], answer: 0, fact: t("de.b12.green.fact") },
     { icon: "🦓", prompt: t("de.b12.cross"), scene: "🛣️", options: [{ emoji: "🦓" }, { emoji: "🏃" }, { emoji: "🚗" }], answer: 0, fact: t("de.b12.cross.fact") },
+  ], done);
+}
+
+// ---------- Bonus 13. Flags of the world ----------
+function lessonFlags(done) {
+  chooseSteps("basics-13", [
+    { icon: "🇯🇵", prompt: t("b13.japan"), options: [{ emoji: "🇯🇵" }, { emoji: "🇧🇷" }, { emoji: "🇮🇹" }], answer: 0, fact: t("b13.japan.fact") },
+    { icon: "🇧🇷", prompt: t("b13.brazil"), options: [{ emoji: "🇧🇷" }, { emoji: "🇪🇸" }, { emoji: "🇫🇷" }], answer: 0, fact: t("b13.brazil.fact") },
+    { icon: "🇩🇪", prompt: t("b13.germany"), options: [{ emoji: "🇩🇪" }, { emoji: "🇨🇦" }, { emoji: "🇬🇷" }], answer: 0, fact: t("b13.germany.fact") },
+  ], done);
+}
+
+// ---------- Bonus 14. Where animals live ----------
+function lessonAnimalHomes(done) {
+  chooseSteps("basics-14", [
+    { icon: "🐟", prompt: t("b14.fish"), scene: "🐟", options: [{ emoji: "🌊" }, { emoji: "🏜️" }, { emoji: "❄️" }], answer: 0, fact: t("b14.fish.fact") },
+    { icon: "🐦", prompt: t("b14.bird"), scene: "🐦", options: [{ emoji: "🪺" }, { emoji: "🌊" }, { emoji: "🏜️" }], answer: 0, fact: t("b14.bird.fact") },
+    { icon: "🐪", prompt: t("b14.camel"), scene: "🐪", options: [{ emoji: "🏜️" }, { emoji: "🌊" }, { emoji: "❄️" }], answer: 0, fact: t("b14.camel.fact") },
+  ], done);
+}
+
+// ---------- Bonus 15. Good food ----------
+function lessonFood(done) {
+  chooseSteps("basics-15", [
+    { icon: "🍎", prompt: t("b15.fruit"), options: [{ emoji: "🍎" }, { emoji: "🍰" }, { emoji: "🍟" }], answer: 0, fact: t("b15.fruit.fact") },
+    { icon: "🥕", prompt: t("b15.veg"), options: [{ emoji: "🥕" }, { emoji: "🍭" }, { emoji: "🍩" }], answer: 0, fact: t("b15.veg.fact") },
+    { icon: "💧", prompt: t("b15.water"), options: [{ emoji: "💧" }, { emoji: "🥤" }, { emoji: "🍬" }], answer: 0, fact: t("b15.water.fact") },
+  ], done);
+}
+
+// ---------- Bonus 16. Weather ----------
+function lessonWeather(done) {
+  const gear = [{ emoji: "☔" }, { emoji: "🕶️" }, { emoji: "🧤" }];
+  chooseSteps("basics-16", [
+    { icon: "🌧️", prompt: t("b16.rain"), scene: "🌧️", options: gear, answer: 0, fact: t("b16.rain.fact") },
+    { icon: "☀️", prompt: t("b16.sun"), scene: "☀️", options: gear, answer: 1, fact: t("b16.sun.fact") },
+    { icon: "❄️", prompt: t("b16.snow"), scene: "❄️", options: gear, answer: 2, fact: t("b16.snow.fact") },
   ], done);
 }

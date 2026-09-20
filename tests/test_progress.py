@@ -156,9 +156,9 @@ def test_bonus_levels_do_not_award_the_world_done_sticker_early(tmp_path, monkey
 def test_bonus_levels_are_accepted_up_to_the_last_one_and_award_their_stickers(tmp_path):
     path = tmp_path / "p.db"
     db.init_db(path)
-    # (world, last level, a bonus level with a sticker, that sticker). The last levels are German-only.
-    for world, last, level, sticker in (("letters", 9, 8, "fish"), ("words", 12, 10, "flamingo"), ("sentences", 10, 8, "peacock"),
-                                        ("keyboard", 7, 7, "crocodile"), ("basics", 12, 10, "sloth")):
+    # (world, last level, a bonus level with a sticker, that sticker). Some of the numbers in between are German-only.
+    for world, last, level, sticker in (("letters", 9, 8, "fish"), ("words", 15, 10, "flamingo"), ("sentences", 13, 8, "peacock"),
+                                        ("keyboard", 7, 7, "crocodile"), ("basics", 16, 10, "sloth")):
         assert progress.max_level(world) == last
         assert sticker in progress.record_completion(path, world, level, 3)["new_stickers"]
         progress.record_completion(path, world, last, 3)

@@ -23,10 +23,12 @@ async function askTopic(topic, answerBox) {
   sfx("tap");
   answerBox.textContent = "…";
   let text = t("ask.redirect");
+  const serial = screenSerial;
   try {
     const { status, body } = await api("/api/ask?topic=" + encodeURIComponent(topic));
     if (status === 200 && body.text) text = body.text;
   } catch (e) { /* offline server: the gentle fallback line is shown */ }
+  if (serial !== screenSerial) return;   // the child already left
   answerBox.textContent = text; // escaped: never HTML
   speak(text);
 }

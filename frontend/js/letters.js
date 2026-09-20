@@ -120,6 +120,7 @@ async function startLetterRound(round) {
     sfx("tap");
     count++;
     dots.textContent = progressDots(count, LETTERS_PER_ROUND).textContent;
+    const serial = screenSerial;             // the answer may arrive after the child has already left this screen
     const result = await sendKeys(events, true);
     events = [];
     let pause = 250;
@@ -129,7 +130,7 @@ async function startLetterRound(round) {
         const fresh = letters[letters.length - 1];
         note.textContent = `✨ ${t("newLetter")} ${showCase(fresh)}`;
         sfx("sparkle");
-        speak(t("newLetter"));
+        if (serial === screenSerial) speak(t("newLetter"));
         pause = 1600;
       } else {
         note.textContent = " ";

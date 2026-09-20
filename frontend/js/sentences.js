@@ -12,6 +12,10 @@ const SENTENCE_BONUS = {
   // German only (content/special.json)
   9: { special: "culture_sentences", text: "de.sentences.culture", icon: "🏰" },
   10: { special: "festival_sentences", text: "de.sentences.festivals", icon: "🎃" },
+  // For every language (content/special.json)
+  11: { special: "country_sentences", text: "sentences.countries", icon: "🗺️" },
+  12: { special: "food_sentences", text: "sentences.food", icon: "🍰" },
+  13: { special: "wild_sentences", text: "sentences.wild", icon: "🐪" },
 };
 
 // Three sentences, shortest first, for one of the bonus levels.

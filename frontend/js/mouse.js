@@ -14,7 +14,7 @@ const rand = (min, max) => min + Math.random() * (max - min);
 // The instruction at the top of a game: an icon, a short line, and a 🔊 to hear it again.
 function instruction(icon, text) {
   const bubble = el("button", { class: "bubble instruction", onclick: () => speak(text) }, `${icon} ${text} 🔊`);
-  speak(text);
+  queueMicrotask(() => speak(text));   // after the screen is set: setScreen() silences the previous screen
   return bubble;
 }
 

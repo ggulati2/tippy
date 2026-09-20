@@ -57,7 +57,9 @@ function celebrate(newStickerIds, next) {
   sfx(stickers.length ? "sparkle" : "success");
   setTimeout(() => sfx("success"), 350);
   // The line comes from the cache (or the built-in bank), so it arrives instantly.
+  const serial = screenSerial;
   mascotLine("success").then((line) => {
+    if (serial !== screenSerial) return;   // the child already pressed Home
     cheer.textContent = line || t("levelDone");
     speak(stickers.length ? t("newSticker") : cheer.textContent);
   });
@@ -83,13 +85,16 @@ function albumScreen() {
 const BONUS = {
   keyboard: [{ level: 6, icon: "🐰" }, { level: 7, icon: "🔠" }],
   basics: [{ level: 7, icon: "🌐" }, { level: 8, icon: "💾" }, { level: 9, icon: "💛" }, { level: 10, icon: "☝️" },
-    { level: 11, icon: "🚒", langs: ["de"] }, { level: 12, icon: "🚦", langs: ["de"] }],
+    { level: 11, icon: "🚒", langs: ["de"] }, { level: 12, icon: "🚦", langs: ["de"] },
+    { level: 13, icon: "🚩" }, { level: 14, icon: "🪺" }, { level: 15, icon: "🍎" }, { level: 16, icon: "☔" }],
   letters: [{ level: 6, icon: "🔝" }, { level: 7, icon: "⬇️" }, { level: 8, icon: "🔠" },
     { level: 9, icon: "Ä", langs: ["de"], when: () => layoutHas("ß") }],          // umlauts and ß need the German keyboard
   words: [{ level: 6, icon: "🐘" }, { level: 7, icon: "🐾" }, { level: 8, icon: "🚀" }, { level: 9, icon: "🦖" }, { level: 10, icon: "🚗" },
-    { level: 11, icon: "🥨", langs: ["de"] }, { level: 12, icon: "🎄", langs: ["de"] }],
+    { level: 11, icon: "🥨", langs: ["de"] }, { level: 12, icon: "🎄", langs: ["de"] },
+    { level: 13, icon: "🌍" }, { level: 14, icon: "🍕" }, { level: 15, icon: "🦓" }],
   sentences: [{ level: 6, icon: "🦜" }, { level: 7, icon: "❓" }, { level: 8, icon: "💛" },
-    { level: 9, icon: "🏰", langs: ["de"] }, { level: 10, icon: "🎃", langs: ["de"] }],
+    { level: 9, icon: "🏰", langs: ["de"] }, { level: 10, icon: "🎃", langs: ["de"] },
+    { level: 11, icon: "🗺️" }, { level: 12, icon: "🍰" }, { level: 13, icon: "🐪" }],
 };
 const bonusLevels = (world) => (BONUS[world] || []).filter((b) => (!b.langs || b.langs.includes(settings.language)) && (!b.when || b.when()));
 

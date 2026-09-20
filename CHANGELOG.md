@@ -11,10 +11,12 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ### Fixed
 - Random voice lines ("press the glowing key", "welcome") played on the wrong screen: sentences asked for while the voice list was still loading were all spoken later, and speech from the previous screen kept going. Speech now stops when the screen changes.
+- Speech is more reliable: a sentence is spoken a moment after the previous one is cancelled (Chrome sometimes swallowed it), and answers that arrive after the child left a screen are no longer spoken.
 - The Caps Lock game did not work on a Mac (the Mac reports only turning Caps Lock on as a key press). Tippy now watches the Caps Lock light itself.
 
 ### Added (child screens)
 - A Back button next to Home: from a game to its level picker, from there to the world map.
+- Ten new levels in every language: Word Woods 13 to 15 (countries with flags, food, wild animals), Sentence Sky 11 to 13 (countries, food, wild animals) and Computer Basics Cove 13 to 16 (flags, where animals live, good food, weather), each with a new sticker. (Flag pictures show as letters such as JP on Windows, which has no flag emoji.)
 
 ### Changed
 - Every response now carries protective headers (a strict Content-Security-Policy, no framing, no sniffing) and API answers are never cached; requests above the backup size limit are refused early.
