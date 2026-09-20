@@ -5,6 +5,15 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 ## [Unreleased]
 
 ### Added
+- Security scans in CI (`security.yml`): pip-audit on every pinned package, bandit on our code, dependency review on pull requests, and an OWASP ZAP attack on a running server (report only). All also run every Monday.
+- Performance tests in CI (`performance.yml`): a server load test (20 children at once, a year of saved play, memory growth; `scripts/loadtest.py`) and browser speed tests (first screen, key-to-screen delay, smooth animation, no memory leaks; `pytest -m perf`). Results show on the run's summary page.
+- Security regression tests (`tests/test_security.py`) and a browser test that the page policy is really enforced.
+
+### Changed
+- Every response now carries protective headers (a strict Content-Security-Policy, no framing, no sniffing) and API answers are never cached; requests above the backup size limit are refused early.
+- The parent PIN check now runs before anything else on every parent endpoint, and a test fails if a new parent endpoint forgets it.
+- Faster: the database uses write-ahead logging (no slow saves while a child types), word filtering is cached, and the audio engine is warmed up while the welcome screen is idle (the first tap no longer freezes for about half a second).
+
 - Standalone Mac app: `scripts/build_mac.sh` builds `Tippy.app` (PyInstaller) with icon; family data lives in `~/Library/Application Support/Tippy`; the app quits when its window is closed. `TIPPY_BROWSER` chooses another browser, `TIPPY_HOME` another data folder. The browser test suite can run against the packaged app (`TIPPY_APP_BINARY`).
 
 ## [0.11.0] - 2026-09-19

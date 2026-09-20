@@ -80,6 +80,7 @@ class Family:
             aside = self.family_db.with_name(f"family.db.damaged-{datetime.now():%Y%m%d-%H%M%S}")
             log.error("Family database is damaged. Moving it to %s and starting fresh.", aside)
             self.family_db.rename(aside)
+            db.discard_wal_files(self.family_db)
             with closing(db.connect(self.family_db)) as conn, conn:
                 conn.executescript(FAMILY_SCHEMA)
 
@@ -94,6 +95,7 @@ class Family:
             aside = legacy.with_name(f"{legacy.name}.damaged-{datetime.now():%Y%m%d-%H%M%S}")
             log.error("The old database is damaged. Moving it to %s and starting fresh.", aside)
             legacy.rename(aside)
+            db.discard_wal_files(legacy)
             return
         backup = legacy.with_name(f"{legacy.name}.before-profiles-{datetime.now():%Y%m%d-%H%M%S}")
         shutil.copy2(legacy, backup)                                # safety copy: nothing is ever lost
@@ -192,3 +194,4 @@ class Family:
         if path.exists():
             aside = self.profiles_dir / f"removed-{profile_id}-{datetime.now():%Y%m%d-%H%M%S}.db"
             path.rename(aside)
+            db.discard_wal_files(path)

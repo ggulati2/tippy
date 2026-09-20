@@ -40,6 +40,12 @@ async function api(path, options = {}) {
 // ---------- Sound and voice ----------
 let audio = null;
 
+// Creating the browser's audio engine freezes the page for a moment (about 0.65 s measured on a Mac). It is
+// done once, while the welcome screen is idle, so that the child's first tap does not freeze the screen.
+function warmUpAudio() {
+  try { audio = audio || new AudioContext(); } catch (e) { /* no sound on this computer: the game works without it */ }
+}
+
 // One musical note. "bell" adds a shimmering overtone (like a xylophone),
 // "glide" slides the pitch up or down (springy, cartoon-like sounds).
 // Every note fades in and out quickly: abrupt starts and stops cause clicks.
@@ -208,6 +214,7 @@ async function welcomeScreen() {
     sfx("boing"); speak(bubble.textContent);
   });
   speak(line);
+  if (!audio) setTimeout(warmUpAudio, 300);   // after the welcome screen is drawn, before anyone taps
 }
 
 const WORLDS = [

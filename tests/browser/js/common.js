@@ -11,6 +11,8 @@ const render = () => { pre.textContent = JSON.stringify({ results: T.results, er
 window.addEventListener("error", (e) => { T.errors.push("JS error: " + e.message + " (screen " + T.name() + ") " + String(e.error && e.error.stack).split("\n").slice(0, 3).join(" | ")); render(); });
 window.addEventListener("unhandledrejection", (e) => { T.errors.push("Unhandled rejection: " + (e.reason && e.reason.message || e.reason)); render(); });
 console.error = (...a) => { T.errors.push("console.error: " + a.join(" ")); render(); };
+// The page's Content-Security-Policy forbids inline scripts and styles. A page that breaks it is a bug.
+document.addEventListener("securitypolicyviolation", (e) => { T.errors.push("CSP violation: " + e.violatedDirective + " " + e.blockedURI + " " + (e.sourceFile || "") + ":" + e.lineNumber); render(); });
 Element.prototype.setPointerCapture = () => {};   // synthetic pointer events have no real pointer to capture
 
 T.check = (label, ok, detail = "") => { T.results.push({ label, ok: !!ok, detail: String(detail) }); render(); };

@@ -170,7 +170,7 @@ EXPORT_TABLES = ("child_profile", "settings", "progress", "stickers", "keystroke
 def export_data(db_path: Path) -> dict:
     """Everything worth keeping as one JSON-friendly dict (a backup the parent can save)."""
     with db.connect(db_path) as conn:
-        data = {t: [dict(r) for r in conn.execute(f"SELECT * FROM {t}")] for t in EXPORT_TABLES}
+        data = {t: [dict(r) for r in conn.execute(f"SELECT * FROM {t}")] for t in EXPORT_TABLES}  # nosec B608 - table names come from the fixed EXPORT_TABLES tuple, never from input
     # Not part of the backup: the summary is regenerated on demand, and the PIN hash must not travel
     # in a file that may be emailed around (a 4-digit PIN hash is easy to crack).
     data["settings"] = [s for s in data["settings"] if s["key"] not in ("weekly_summary", "pin_hash")]
@@ -182,5 +182,5 @@ def reset_progress(db_path: Path) -> None:
     with db.connect(db_path) as conn:
         for table in ("progress", "stickers", "keystroke_stats", "keystroke_log", "daily_stats", "play_time",
                       "play_days", "sessions", "content_cache"):
-            conn.execute(f"DELETE FROM {table}")
+            conn.execute(f"DELETE FROM {table}")  # nosec B608 - table names come from a fixed tuple in this function, never from input
         conn.execute("DELETE FROM settings WHERE key IN ('letters_unlocked', 'letters_changed_at', 'unlocked_worlds', 'weekly_summary')")

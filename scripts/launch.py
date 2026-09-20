@@ -51,7 +51,7 @@ def wait_until_ready(timeout: float = 15) -> bool:
     end = time.time() + timeout
     while time.time() < end:
         try:
-            urllib.request.urlopen(URL, timeout=1)
+            urllib.request.urlopen(URL, timeout=1)  # nosec B310 - URL is built from the fixed local host and port, never from input
             return True
         except Exception:
             time.sleep(0.2)
@@ -61,7 +61,7 @@ def wait_until_ready(timeout: float = 15) -> bool:
 def already_running() -> bool:
     """True if Tippy's server already answers (for example the parent double-clicked twice)."""
     try:
-        urllib.request.urlopen(URL, timeout=1)
+        urllib.request.urlopen(URL, timeout=1)  # nosec B310 - URL is built from the fixed local host and port, never from input
         return True
     except Exception:
         return False

@@ -291,6 +291,12 @@ Begin with Section 3, step 1: ask your clarifying questions.
 - Screen texts that exist for one language only use the key prefix `<code>.` (for example `de.b11.fire`); `scripts/check_i18n.js` requires them only in that language and rejects them elsewhere.
 - ß: `"ß".toUpperCase()` is `"SS"`. Never upper-case text that may contain ß with `toUpperCase()`: use `shout()` (typing.js) for typing games and `showLetter()` for single letters; `keyName` and `keyForChar` special-case ß. The German keyboard (`qwertz`) has an ß key at the end of the top row.
 
+## Security and performance (CI)
+
+- `security.yml` (pip-audit, bandit -ll, dependency review, ZAP baseline = report only) and `performance.yml` (`scripts/loadtest.py`, `pytest -m perf`, report only at first). Tools are pinned in `requirements-security.txt` and `requirements-perf.txt`; both are left out of the zip (`make_zip.py`).
+- `backend/app.py` sets the CSP and other headers on every response (`SECURITY_HEADERS`; no inline script or style anywhere in the frontend, so keep it that way: no `style=` attributes in HTML strings, use classes or `el.style.x = ...`). Every parent endpoint takes `_parent: None = Depends(parent_only)`; `tests/test_security.py` fails otherwise.
+- SQLite runs in WAL mode (`db.connect`); after renaming a damaged database call `db.discard_wal_files`.
+
 ## Packaged Mac app
 
 - `scripts/build_mac.sh` -> `packaging/tippy.spec` (PyInstaller, entry `scripts/launch.py`, data: `frontend/`, `content/`, `VERSION`; hidden imports for uvicorn) -> `dist/Tippy.app` + zip. Icon `packaging/Tippy.icns` (the mascot, rendered once). `requirements-build.txt` pins PyInstaller. Built for the CPU of the Mac that builds it (this project's Mac is Intel x86_64; CI runners are arm64, so a CI-built app would not run on an Intel Mac).

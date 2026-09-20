@@ -8,7 +8,7 @@ import logging
 import os
 import threading
 
-from fastapi import FastAPI, Header, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -36,6 +36,23 @@ log = logging.getLogger("tippy")
 # keys on the child's side (see foldForKeyboard in typing.js).
 NAME_PATTERN = r"^[\p{L} '\-]{0,20}$"
 WORD_PATTERN = r"^[\p{L}]{0,15}$"
+
+
+# The biggest request Tippy accepts: a backup file is limited to 5 MB (restore.MAX_BACKUP_BYTES) plus a little room.
+MAX_REQUEST_BYTES = restore.MAX_BACKUP_BYTES + 256 * 1024
+
+SECURITY_HEADERS = {
+    # Only our own files, and only talking to ourselves. No inline scripts, no frames, no forms sent elsewhere.
+    "Content-Security-Policy": ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; "
+                                "connect-src 'self'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; "
+                                "frame-ancestors 'none'"),
+    "X-Frame-Options": "DENY",                                  # nobody may show Tippy inside another page
+    "X-Content-Type-Options": "nosniff",                        # a file is what its type says it is
+    "Referrer-Policy": "no-referrer",
+    "Cross-Origin-Opener-Policy": "same-origin",
+    "Cross-Origin-Resource-Policy": "same-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",   # Tippy never needs these
+}
 
 
 def create_app() -> FastAPI:
@@ -69,14 +86,36 @@ def create_app() -> FastAPI:
             return JSONResponse({"error": "forbidden"}, status_code=403)
         return await call_next(request)
 
+    @app.middleware("http")
+    async def protective_headers(request: Request, call_next):
+        """Tell the browser to be strict with our pages, and refuse absurdly large requests.
+
+        The Content-Security-Policy lets the page load only Tippy's own files and talk only to Tippy, so even a
+        bug that let foreign text into a page could not run a foreign script or send data anywhere else.
+        """
+        try:
+            too_big = int(request.headers.get("content-length", "0")) > MAX_REQUEST_BYTES
+        except ValueError:
+            too_big = True
+        if too_big:
+            return JSONResponse({"error": "too big"}, status_code=413, headers=SECURITY_HEADERS)
+        response = await call_next(request)
+        for name, value in SECURITY_HEADERS.items():
+            response.headers[name] = value
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store"   # never keep the child's data in a cache
+        return response
+
     @app.exception_handler(Exception)
     async def friendly_error(request: Request, exc: Exception):
         """The child never sees a technical message. Details go to the log."""
         log.exception("Unhandled error on %s", request.url.path)
         return JSONResponse({"error": "oops"}, status_code=500)
 
-    def require_parent(token: str | None) -> None:
-        if not guard.is_valid_token(token):
+    def parent_only(x_parent_token: str | None = Header(default=None)) -> None:
+        """Every /api/parent/ endpoint depends on this. It runs BEFORE the request body is read or checked, so
+        someone without the PIN token learns nothing, not even what a valid request looks like."""
+        if not guard.is_valid_token(x_parent_token):
             raise HTTPException(status_code=401, detail="pin required")
 
     # ---------- Child-facing endpoints ----------
@@ -232,8 +271,7 @@ def create_app() -> FastAPI:
         pin: str = Field(pattern=r"^[0-9]{4,8}$")
 
     @app.post("/api/parent/pin")
-    def change_pin(body: NewPinBody, x_parent_token: str | None = Header(default=None)):
-        require_parent(x_parent_token)
+    def change_pin(body: NewPinBody, _parent: None = Depends(parent_only)):
         db.set_setting(family.family_db, "pin_hash", guard.set_pin(body.pin))
         return {"ok": True}  # the old token is revoked: the parent signs in again with the new PIN
 
@@ -256,8 +294,7 @@ def create_app() -> FastAPI:
         interests: list[str] | None = Field(default=None, max_length=4)
 
     @app.post("/api/parent/settings")
-    def update_settings(body: SettingsBody, x_parent_token: str | None = Header(default=None)):
-        require_parent(x_parent_token)
+    def update_settings(body: SettingsBody, _parent: None = Depends(parent_only)):
         data = body.model_dump(exclude_none=True)
         interests = data.pop("interests", None)
         if interests is not None:
@@ -298,8 +335,7 @@ def create_app() -> FastAPI:
         language: str | None = Field(default=None, pattern=languages.LANGUAGE_PATTERN)
 
     @app.post("/api/parent/profiles")
-    def add_profile(body: NewProfileBody, x_parent_token: str | None = Header(default=None)):
-        require_parent(x_parent_token)
+    def add_profile(body: NewProfileBody, _parent: None = Depends(parent_only)):
         try:
             family.create(body.name, body.avatar, body.language)
         except ProfileError as error:
@@ -311,8 +347,7 @@ def create_app() -> FastAPI:
         avatar: str | None = Field(default=None, max_length=8)
 
     @app.post("/api/parent/profiles/{profile_id}")
-    def edit_profile(profile_id: int, body: EditProfileBody, x_parent_token: str | None = Header(default=None)):
-        require_parent(x_parent_token)
+    def edit_profile(profile_id: int, body: EditProfileBody, _parent: None = Depends(parent_only)):
         try:
             family.update(profile_id, body.name, body.avatar)
         except ProfileError as error:
@@ -323,8 +358,7 @@ def create_app() -> FastAPI:
         confirm: str
 
     @app.post("/api/parent/profiles/{profile_id}/delete")
-    def delete_profile(profile_id: int, body: DeleteProfileBody, x_parent_token: str | None = Header(default=None)):
-        require_parent(x_parent_token)
+    def delete_profile(profile_id: int, body: DeleteProfileBody, _parent: None = Depends(parent_only)):
         if body.confirm != "DELETE":
             raise HTTPException(status_code=422, detail="type DELETE to confirm")
         try:
@@ -337,8 +371,7 @@ def create_app() -> FastAPI:
         world: str = Field(max_length=20)
 
     @app.post("/api/parent/unlock")
-    def unlock(body: UnlockBody, x_parent_token: str | None = Header(default=None)):
-        require_parent(x_parent_token)
+    def unlock(body: UnlockBody, _parent: None = Depends(parent_only)):
         try:
             progress.unlock_world(family.db_path, body.world)
         except ValueError:
@@ -346,37 +379,31 @@ def create_app() -> FastAPI:
         return progress.get_progress(family.db_path)
 
     @app.get("/api/parent/status")
-    def parent_status(x_parent_token: str | None = Header(default=None)):
-        require_parent(x_parent_token)
+    def parent_status(_parent: None = Depends(parent_only)):
         return llm.status()
 
     @app.post("/api/parent/llm/test")
-    def test_llm(x_parent_token: str | None = Header(default=None)):
+    def test_llm(_parent: None = Depends(parent_only)):
         """The "Test connection" button: one tiny real request."""
-        require_parent(x_parent_token)
         return llm.test_connection()
 
     @app.get("/api/parent/dashboard")
-    def parent_dashboard(x_parent_token: str | None = Header(default=None)):
-        require_parent(x_parent_token)
+    def parent_dashboard(_parent: None = Depends(parent_only)):
         return dashboard.dashboard(family.db_path)
 
     @app.get("/api/parent/summary")
-    def parent_summary(refresh: bool = False, x_parent_token: str | None = Header(default=None)):
+    def parent_summary(refresh: bool = False, _parent: None = Depends(parent_only)):
         """The weekly summary. May take a few seconds when it has to ask the LLM; parent area only."""
-        require_parent(x_parent_token)
         return summary.get_summary(family.db_path, llm, refresh=refresh)
 
     @app.get("/api/parent/export")
-    def parent_export(x_parent_token: str | None = Header(default=None)):
-        require_parent(x_parent_token)
+    def parent_export(_parent: None = Depends(parent_only)):
         return dashboard.export_data(family.db_path)
 
     @app.post("/api/parent/import")
     async def import_backup(request: Request, target: str = Query(default="current", pattern="^(current|new)$"),
-                            x_parent_token: str | None = Header(default=None)):
+                            _parent: None = Depends(parent_only)):
         """Restore a backup file into the child who is shown (`current`) or into a new child (`new`)."""
-        require_parent(x_parent_token)
         raw = await request.body()
         if len(raw) > restore.MAX_BACKUP_BYTES:
             raise HTTPException(status_code=413, detail="too-big")
@@ -403,8 +430,7 @@ def create_app() -> FastAPI:
         confirm: str
 
     @app.post("/api/parent/reset")
-    def parent_reset(body: ResetBody, x_parent_token: str | None = Header(default=None)):
-        require_parent(x_parent_token)
+    def parent_reset(body: ResetBody, _parent: None = Depends(parent_only)):
         if body.confirm != "RESET":
             raise HTTPException(status_code=400, detail="confirmation missing")
         dashboard.reset_progress(family.db_path)
@@ -412,9 +438,8 @@ def create_app() -> FastAPI:
         return {"ok": True}
 
     @app.post("/api/parent/exit")
-    def exit_app(x_parent_token: str | None = Header(default=None)):
+    def exit_app(_parent: None = Depends(parent_only)):
         """Stop the whole app. Needs the PIN token."""
-        require_parent(x_parent_token)
         log.info("Exit requested from parent area")
         # Wait a moment so this reply reaches the browser before the server stops.
         threading.Timer(0.5, app.state.request_shutdown).start()

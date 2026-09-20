@@ -1,0 +1,87 @@
+# Security scans. (CodeQL, which reads our own code for weaknesses, is in codeql.yml.)
+#   - Packages:  pip-audit checks every pinned Python package against the public vulnerability lists.
+#   - Our code:  bandit looks for risky Python patterns (medium and high findings stop the build).
+#   - New code:  on pull requests, dependency review blocks newly added vulnerable packages.
+#   - Running app: OWASP ZAP attacks a real Tippy server the way a stranger's web page would.
+#     ZAP only reports for now (it does not fail the build) until we know it is calm enough.
+# Also runs every Monday, because new vulnerabilities are found in old packages all the time.
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "43 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-security:
+    name: Python packages and code (pip-audit, bandit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install the scanners
+        run: pip install -r requirements-security.txt
+      # --strict: a package that cannot be checked is a failure, not a silent skip.
+      - name: Known vulnerabilities in our packages
+        run: pip-audit -r requirements.txt -r requirements-dev.txt -r requirements-perf.txt -r requirements-build.txt --strict
+      - name: Risky code patterns
+        run: bandit -r backend scripts -ll -q
+
+  dependency-review:
+    name: New packages (dependency review)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: high
+
+  zap:
+    name: Attack the running app (OWASP ZAP, report only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: Start Tippy with a throw-away data folder
+        run: |
+          export TIPPY_HOME="$RUNNER_TEMP/tippy-home" TIPPY_PORT=8765 TIPPY_NO_BROWSER=1 LLM_MODE=mock PARENT_PIN=4321
+          nohup python scripts/launch.py > "$RUNNER_TEMP/tippy.log" 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8765/ > /dev/null && exit 0; sleep 1; done
+          cat "$RUNNER_TEMP/tippy.log"; exit 1
+      # The ZAP container reaches the server on the runner through the host network.
+      # Tippy only answers to the host name 127.0.0.1, which is exactly what ZAP is told to use.
+      - name: Scan
+        run: |
+          mkdir -p "$RUNNER_TEMP/zap" && chmod 777 "$RUNNER_TEMP/zap"
+          docker run --rm --network host -v "$RUNNER_TEMP/zap:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://127.0.0.1:8765/ -r zap-report.html -J zap-report.json -I || true
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: zap-report
+          path: ${{ runner.temp }}/zap
+          if-no-files-found: warn

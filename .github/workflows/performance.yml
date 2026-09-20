@@ -1,0 +1,66 @@
+# Performance tests. Two kinds:
+#   - Server: many children at once, a year of saved play, memory growth (scripts/loadtest.py).
+#   - Browser: how fast the first screen appears, how quickly a key press shows, whether animation
+#     stays smooth, whether the page leaks memory (tests/perf, driven by Playwright and real Chrome).
+# CI machines are slow and noisy, so the limits are set generously (twice the local ones for the
+# server). They catch real slowdowns, not small differences. Numbers appear on each run's summary page.
+# The jobs report only and do not block merging until we have seen how steady they are.
+name: Performance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "29 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: performance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    name: Server load test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: Load test
+        env:
+          TIPPY_BUDGET_FACTOR: "2"
+        run: python scripts/loadtest.py --report loadtest.json --summary "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: loadtest-report
+          path: loadtest.json
+          if-no-files-found: warn
+
+  browser:
+    name: Browser speed (Chrome)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install
+        run: pip install -r requirements-perf.txt
+      - name: Show which Chrome is used
+        run: google-chrome --version
+      - name: Measure
+        run: python -m pytest -m perf -v

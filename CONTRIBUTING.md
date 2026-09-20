@@ -58,6 +58,12 @@ The body (optional) says **why**, not what. Keep secrets, the child's name and r
 
 On every pull request and every push to `main`, GitHub Actions (`.github/workflows/ci.yml`) runs `scripts/check.sh` on a clean machine (Python 3.11 and 3.13 on Linux, 3.13 on macOS), then plays the app in headless Chrome, runs the tests on Windows, builds the zip and checks that it contains the app and nothing private. CodeQL scans the code for vulnerabilities (Security tab). Look at the **Actions** tab, or the green tick or red cross on your pull request. Fix red before merging. The built zip is kept for 14 days under the run's *Artifacts*.
 
+## Security and performance checks
+
+- `.github/workflows/security.yml`: pip-audit (known vulnerabilities in `requirements*.txt`), bandit (`bandit -r backend scripts -ll`; add `# nosec Bxxx - reason` only with a real reason), dependency review on pull requests, OWASP ZAP against a running server (report only, download the *zap-report* artifact). Run the first two locally with `pip install -r requirements-security.txt`.
+- `.github/workflows/performance.yml`: `python scripts/loadtest.py` (server; budgets at the top of the file, `TIPPY_BUDGET_FACTOR=2` for slow machines) and `pip install -r requirements-perf.txt && python -m pytest -m perf -v` (browser speed; budgets in `tests/perf/test_browser_perf.py`). Both are left out of the quick run.
+- `tests/test_security.py` runs with the normal tests: headers, private files, PIN on every parent endpoint, hostile input, no dangerous JavaScript patterns.
+
 ## What the hooks check
 
 | When | What | Command |

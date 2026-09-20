@@ -138,8 +138,12 @@ def call(srv: Server, path: str, body: dict | None = None, token: str | None = N
 
 def run_script(srv: Server, script: str, arg: str = "", budget_ms: int = 3_000_000, width: int = 1280, height: int = 720) -> dict:
     """Load the test page in headless Chrome, let the script run (with a fast fake clock) and return its report."""
+    # The page's Content-Security-Policy forbids inline scripts, so the test scripts are separate files in the
+    # test copy of the frontend and are loaded like Tippy's own scripts.
     index = (srv.frontend / "index.html").read_text(encoding="utf-8")
-    scripts = f"<script>{(JS_DIR / 'common.js').read_text(encoding='utf-8')}</script><script>{(JS_DIR / script).read_text(encoding='utf-8')}</script>"
+    (srv.frontend / "_test_common.js").write_text((JS_DIR / "common.js").read_text(encoding="utf-8"), encoding="utf-8")
+    (srv.frontend / "_test_script.js").write_text((JS_DIR / script).read_text(encoding="utf-8"), encoding="utf-8")
+    scripts = '<script src="_test_common.js"></script><script src="_test_script.js"></script>'
     (srv.frontend / "browser-test.html").write_text(index.replace("</body>", scripts + "</body>"), encoding="utf-8")
     profile = srv.frontend.parent / f"chrome-profile-{script}"
     command = [find_chrome(), "--headless", "--disable-gpu", "--no-sandbox", "--no-first-run", f"--user-data-dir={profile}",

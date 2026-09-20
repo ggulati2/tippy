@@ -1,0 +1,3 @@
+# Only for the browser performance tests (tests/perf). It drives the Chrome that is already installed.
+-r requirements-dev.txt
+playwright==1.63.0

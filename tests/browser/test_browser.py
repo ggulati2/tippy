@@ -71,3 +71,7 @@ def test_arrow_keys_and_caps_lock_games(server):
 
 def test_germany_specific_levels_ss_key_and_stickers(server):
     assert_clean(run_script(server, "germany.js", budget_ms=600_000))
+
+
+def test_content_security_policy_is_enforced(server):
+    assert_clean(run_script(server, "csp.js", budget_ms=120_000))

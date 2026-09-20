@@ -1,0 +1,3 @@
+# Only for the security scans (.github/workflows/security.yml). Not needed to run Tippy.
+bandit==1.9.4
+pip-audit==2.10.1

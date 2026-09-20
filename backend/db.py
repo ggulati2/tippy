@@ -115,10 +115,26 @@ class _Connection(sqlite3.Connection):
             self.close()
 
 
+def discard_wal_files(db_path: Path) -> None:
+    """Delete the write-ahead files next to a database that was just moved away or replaced, so that a new
+    database with the same name never picks up leftovers of the old one."""
+    for suffix in ("-wal", "-shm"):
+        Path(str(db_path) + suffix).unlink(missing_ok=True)
+
+
 def connect(db_path: Path) -> sqlite3.Connection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path, factory=_Connection)
     conn.row_factory = sqlite3.Row
+    # Write-ahead log: readers never wait for a writer and a write does not have to rewrite the whole journal.
+    # Measured with scripts/loadtest.py: it removes the long waits when many requests save key presses at once.
+    # NORMAL is the recommended setting with WAL. An abrupt power cut can lose the last moments, never corrupt.
+    try:
+        conn.execute("PRAGMA journal_mode = WAL")
+        conn.execute("PRAGMA synchronous = NORMAL")
+    except sqlite3.DatabaseError:
+        conn.close()   # a damaged file: Windows cannot move it aside while it is still open
+        raise
     return conn
 
 
@@ -131,6 +147,7 @@ def init_db(db_path: Path, default_language: str = "en") -> None:
         aside = db_path.with_name(f"{db_path.name}.damaged-{datetime.now():%Y%m%d-%H%M%S}")
         log.error("Database is damaged. Moving it to %s and starting fresh.", aside)
         db_path.rename(aside)
+        discard_wal_files(db_path)
         _init_db(db_path, default_language)
 
 

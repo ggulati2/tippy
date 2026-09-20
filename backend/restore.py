@@ -148,7 +148,7 @@ def apply(db_path: Path, plan: dict) -> dict:
         source.backup(target)                                     # a consistent copy of the current data
     with db.connect(db_path) as conn:                             # one transaction: all or nothing
         for table in (*DATA_TABLES, "keystroke_log"):
-            conn.execute(f"DELETE FROM {table}")
+            conn.execute(f"DELETE FROM {table}")  # nosec B608 - table names come from the fixed DATA_TABLES tuple, never from input
         conn.execute("DELETE FROM settings WHERE key IN ('letters_unlocked', 'letters_changed_at', 'unlocked_worlds', 'weekly_summary')")
         for key, value in plan["settings"].items():
             conn.execute("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (key, value))

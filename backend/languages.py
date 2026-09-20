@@ -6,6 +6,7 @@ backend/bank.py, a word blocklist in backend/validators.py and a summary templat
 The checks in scripts/check.sh and tests/test_languages.py fail if a language is missing something.
 """
 import unicodedata
+from functools import lru_cache
 
 LANGUAGES = {
     # code: native name, voice for speech synthesis, name used in prompts to the online helper, default keyboard
@@ -39,7 +40,8 @@ def public_list() -> list[dict]:
             for code, info in LANGUAGES.items()]
 
 
-def base_letters(text: str) -> set[str]:
+@lru_cache(maxsize=8192)   # the word banks are small and asked about again and again, so remember the answers
+def base_letters(text: str) -> frozenset[str]:
     """The plain A-Z letters a text needs, ignoring accents: "camión" needs C, A, M, I, O, N ("ñ" counts as N,
     "ß" as S). The letters unlock in a fixed order, so an accented letter counts as its plain letter."""
     letters = set()
@@ -49,7 +51,7 @@ def base_letters(text: str) -> set[str]:
         elif char.isalpha():
             plain = "".join(c for c in unicodedata.normalize("NFD", char) if not unicodedata.combining(c))
             letters.add(plain.upper())
-    return letters
+    return frozenset(letters)
 
 
 # Every letter any supported language uses (upper and lower case), for validating text and typed words.
