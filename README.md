@@ -93,7 +93,7 @@ scripts/build_mac.sh
 It creates `dist/Tippy.app` and a zip `dist/Tippy-<version>-macos-<cpu>.zip`. It runs on the kind of Mac it was built on (`x86_64` = Intel, `arm64` = Apple silicon).
 
 **Use it:** double-click `Tippy.app` (or drag it into Applications first). Tippy opens fullscreen. To leave: the gear, the PIN, *Exit Tippy*. Closing the window (for example with Cmd+Q) also quits the app.
-- The first time, macOS may say the app is from an unidentified developer (it is not signed with an Apple developer certificate yet): right-click the app, choose **Open**, then **Open** again.
+- An app you built yourself opens without any warning. If you copy the app to another Mac (by download, AirDrop or a zip), macOS blocks it the first time because it is not signed with a paid Apple Developer ID certificate and not notarised (a free Apple developer account cannot do either). To allow it: try to open the app once, then open **System Settings, Privacy & Security**, scroll down and click **Open Anyway** next to Tippy, and confirm. (Older macOS versions also accept right-click, **Open**.) You only do this once per Mac.
 - Your family's data is **not** inside the app. It lives in `~/Library/Application Support/Tippy` (database, logs, optional `.env`), so replacing the app with a newer one keeps everything.
 - If you were using Tippy from the source folder and want that progress in the app: quit both, then copy the `data` folder from the source folder into `~/Library/Application Support/Tippy/` (skip `data/browser-profile`). Tippy moves older single-child data into the new format by itself.
 - Stop the source version (`start.command`) before opening the app: both use port 8765.
