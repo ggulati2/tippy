@@ -7,7 +7,7 @@ in pitch. Each language has its own voice and its own licence:
 | Folder | Voice | Made from | Licence |
 | --- | --- | --- | --- |
 | `en/` | `en_US-hfc_female-medium` | HiFi-CAPTAIN corpus (Mike Ng) | **CC BY-NC-SA 4.0** (https://creativecommons.org/licenses/by-nc-sa/4.0/) |
-| `de/` | `de_DE-thorsten-high` | Thorsten-Voice (Thorsten Müller, https://github.com/thorstenMueller/Thorsten-Voice) | **CC0** (public domain) |
+| `de/` | `de_DE-thorsten_emotional-medium`, speaker "surprised" | Thorsten-Voice (Thorsten Müller, https://github.com/thorstenMueller/Thorsten-Voice) | **CC0** (public domain) |
 | `es/` | `es_ES-sharvard-medium`, speaker 1 | Sharvard corpus, University of Edinburgh (https://datashare.ed.ac.uk/handle/10283/574; Aubanel et al., 2014) | **CC BY 3.0** (http://creativecommons.org/licenses/by/3.0/) |
 
 What this means for you:

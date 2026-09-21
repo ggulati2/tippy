@@ -125,6 +125,8 @@ def main() -> None:
     parser.add_argument("--speaker", type=int, default=None, help="for voices with several speakers")
     parser.add_argument("--pitch", type=float, default=1.12, help="1.0 = as recorded; 1.12 = a lighter, friendlier voice")
     parser.add_argument("--length", type=float, default=1.1, help="above 1 = slower and clearer")
+    parser.add_argument("--noise", type=float, default=None, help="how much the intonation varies (Piper default 0.667; higher = livelier)")
+    parser.add_argument("--noisew", type=float, default=None, help="how much the rhythm varies (Piper default 0.8)")
     parser.add_argument("--limit", type=int, default=0, help="only record this many clips (for a quick try)")
     args = parser.parse_args()
 
@@ -157,7 +159,8 @@ def main() -> None:
             continue
         wav = Path(tempdir.name) / "clip.wav"
         with wave.open(str(wav), "wb") as w:
-            voice.synthesize_wav(text, w, syn_config=SynthesisConfig(speaker_id=args.speaker, length_scale=args.length))
+            voice.synthesize_wav(text, w, syn_config=SynthesisConfig(speaker_id=args.speaker, length_scale=args.length,
+                                                                  noise_scale=args.noise, noise_w_scale=args.noisew))
         subprocess.run([ffmpeg, "-y", "-loglevel", "error", "-i", str(wav), "-af", cleanup, "-ac", "1", "-c:a", "libopus", "-b:a", "24k", str(target)], check=True)
         made += 1
         if made % 50 == 0:
