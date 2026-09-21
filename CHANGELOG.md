@@ -4,8 +4,12 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-09-21
+
+Four new worlds about everyday computer use, and Tippy's own cheerful voice in all three languages.
+
 ### Added
-- Tippy's own voice: every sentence the app can say in English (about 830, 2.7 MB) is now a recording made with the Piper "hfc_female" voice, pitched up to sound lighter and friendlier, instead of the computer's robotic voice. The child's own name and anything without a recording (lines written by the online helper, unusual typed words) are still said by the computer's voice. German and Spanish are recorded too, so they no longer depend on the computer having a German or Spanish voice (the computer often read German with an English voice, which sounded completely wrong). All three languages now use one cheerful, child-like AI-generated voice (OpenAI `gpt-4o-mini-tts`, "coral", pitched up 15%), made with `scripts/make_voice_cloud.py`; this replaces the free Piper voices and removes the earlier non-commercial restriction on the English one. See `frontend/voice/LICENSE.md`. Made with `scripts/make_voice.py` (a developer tool).
+- Tippy's own voice: every sentence the app can say, in English, German and Spanish (about 2,300 recordings, 14 MB), is now a recording of one cheerful, child-like voice instead of the computer's robotic voice. It no longer depends on the computer having a German or Spanish voice (the computer often read German with an English voice, which sounded completely wrong). The voice is AI-generated (OpenAI `gpt-4o-mini-tts`, pitched up 15%), made with `scripts/make_voice_cloud.py`; see `frontend/voice/LICENSE.md`. The child's own name and anything without a recording (lines written by the online helper, unusual typed words) are still said by the computer's voice.
 - Four new worlds about everyday computer use, five levels each, in English, German and Spanish, with stickers: **Paint Place** (mouse painting, colours, sizes, stamps, Undo), **Desktop Dock** (a pretend desktop: double-click, sorting into folders, naming a file, trash bin and restore, saving), **Internet Island** (a pretend browser: links, Back, search, pop-ups and strangers, favourites) and **Robot Helper** (arrow-card programs, a first taste of coding). They open after Mouse Meadow, Computer Cove, Sentence Sky and Keyboard Kingdom respectively. Nothing in them touches real files or the internet.
 
 ### Fixed
