@@ -1,22 +1,13 @@
-# Licence of the voice recordings
+# The voice recordings
 
-The audio files in this folder (`*.ogg`) are speech made with free voices for **Piper** (a text-to-speech program by the
-Rhasspy / Open Home Foundation project; voices from https://huggingface.co/rhasspy/piper-voices) and then raised a little
-in pitch. Each language has its own voice and its own licence:
+The audio files in this folder (`*.ogg`) are **AI-generated speech**. They were made with OpenAI's text-to-speech model
+`gpt-4o-mini-tts` (voice "coral", told to sound like a cheerful young girl in a children's cartoon, then raised a little in
+pitch) with the script `scripts/make_voice_cloud.py`. The voice is not a recording of a real person.
 
-| Folder | Voice | Made from | Licence |
-| --- | --- | --- | --- |
-| `en/` | `en_US-hfc_female-medium` | HiFi-CAPTAIN corpus (Mike Ng) | **CC BY-NC-SA 4.0** (https://creativecommons.org/licenses/by-nc-sa/4.0/) |
-| `de/` | `de_DE-thorsten_emotional-medium`, speaker "surprised" | Thorsten-Voice (Thorsten Müller, https://github.com/thorstenMueller/Thorsten-Voice) | **CC0** (public domain) |
-| `es/` | `es_ES-sharvard-medium`, speaker 1 | Sharvard corpus, University of Edinburgh (https://datashare.ed.ac.uk/handle/10283/574; Aubanel et al., 2014) | **CC BY 3.0** (http://creativecommons.org/licenses/by/3.0/) |
+- Under OpenAI's terms the generated audio may be used for any purpose, including commercial use, as long as users are told
+  that the voice is AI-generated. This note and the README are that notice.
+- Nothing was recorded from a real person's voice, and the recordings contain no personal data.
+- The rest of Tippy (the program code) is under the MIT licence in the main LICENSE file.
 
-What this means for you:
-
-- **English recordings:** free to use, copy and share for **non-commercial** use, if you keep this notice and share any
-  changes under the same licence. You may **not sell** Tippy together with these recordings.
-- **German recordings:** no restrictions (a credit to Thorsten Müller is appreciated).
-- **Spanish recordings:** free to use and share, even commercially, if you credit the Sharvard corpus as above.
-- The rest of Tippy (the program code) is under the MIT licence in the main LICENSE file; this folder is the exception.
-
-If Tippy is ever to be sold, delete `en/` (Tippy then uses the computer's voice for English) or record a new English
-voice with a permissively licensed model using `scripts/make_voice.py`.
+(Earlier versions of Tippy used free "Piper" voices instead. They are no longer in this folder. `scripts/make_voice.py` can still
+make recordings with them; those voices have their own licences, see the notes in that script's history.)

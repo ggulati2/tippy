@@ -84,7 +84,7 @@ Change the mascot's name and colours in `frontend/js/config.js`.
 
 ## Tippy's voice
 
-Tippy speaks with recorded audio (English, German and Spanish, each by a native-sounding voice) rather than the computer's built-in voice, so it sounds the same, and correct, on every computer, even one with no German or Spanish voice installed. The recordings are in `frontend/voice`. The English ones are free for non-commercial use only (see `frontend/voice/LICENSE.md`): you can share Tippy with other families, but not sell it. The child's own name and a few unusual words are still said by the computer's voice. To record more or change the voice, see the notes at the top of `scripts/make_voice.py`.
+Tippy speaks with recorded audio (English, German and Spanish, one cheerful, child-like voice) rather than the computer's built-in voice, so it sounds the same, and correct, on every computer, even one with no German or Spanish voice installed. **The voice is AI-generated** (OpenAI text-to-speech, not a real person); the recordings are in `frontend/voice`, see `frontend/voice/LICENSE.md`. The child's own name and a few unusual words are still said by the computer's voice. To record more or change the voice, see the notes at the top of `scripts/make_voice.py`.
 
 ## Windows installer (to share with other families)
 
