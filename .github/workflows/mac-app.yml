@@ -1,0 +1,80 @@
+# Builds the standalone Mac app for Apple silicon (arm64): a zip containing Tippy.app, ready to double-click.
+# PyInstaller can only build for the CPU it runs on, and GitHub's macOS runners are Apple silicon, so this
+# gives an arm64 build; an Intel (x86_64) build still has to be made by hand on an Intel Mac (scripts/build_mac.sh).
+#   - On a version tag (v0.11.0) the zip is added to the DRAFT release that release.yml creates.
+#   - By hand (Actions tab, "Run workflow") or in a pull request that touches the packaging: a test build,
+#     with the file kept for 14 days under the run's "Artifacts".
+# The app is only ad-hoc signed (a paid Apple Developer ID is needed for more), so macOS refuses to open it the
+# first time; the README explains how to continue (System Settings, Privacy & Security, Open Anyway).
+name: Mac app
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+  pull_request:
+    paths:
+      - "packaging/**"
+      - "scripts/launch.py"
+      - "backend/config.py"
+      - "requirements*.txt"
+      - ".github/workflows/mac-app.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mac-app-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build the Mac app (Apple silicon)
+    runs-on: macos-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write        # needed to add the zip to the release
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install
+        run: pip install -r requirements.txt -r requirements-build.txt
+      - name: Version and CPU
+        run: |
+          echo "TIPPY_VERSION=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_ENV"
+          echo "TIPPY_ARCH=$(uname -m)" >> "$GITHUB_ENV"
+      - name: Build the app (PyInstaller)
+        run: pyinstaller --noconfirm --clean --distpath dist --workpath build packaging/tippy.spec
+      - name: Test the app
+        run: packaging/smoke_mac.sh dist/Tippy.app/Contents/MacOS/Tippy
+
+      - name: Zip it and write a checksum
+        run: |
+          cd dist
+          ZIP="Tippy-$TIPPY_VERSION-macos-$TIPPY_ARCH.zip"
+          ditto -c -k --keepParent Tippy.app "$ZIP"        # ditto keeps the app's permissions and signature intact
+          shasum -a 256 "$ZIP" > SHA256SUMS-mac.txt
+          cat SHA256SUMS-mac.txt
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tippy-mac-${{ env.TIPPY_ARCH }}-${{ env.TIPPY_VERSION }}
+          path: |
+            dist/Tippy-*-macos-*.zip
+            dist/SHA256SUMS-mac.txt
+          retention-days: 14
+
+      - name: Add to the draft release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # release.yml creates the draft; wait for it (up to 15 minutes).
+          for i in $(seq 1 30); do
+            gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1 && break
+            echo "Waiting for the draft release..."; sleep 30
+          done
+          gh release upload "$GITHUB_REF_NAME" "dist/Tippy-$TIPPY_VERSION-macos-$TIPPY_ARCH.zip" dist/SHA256SUMS-mac.txt --clobber
