@@ -1,3 +1,4 @@
 # For developers: everything Tippy needs plus the test tools.
 -r requirements.txt
 pytest==9.1.1
+regex==2026.9.10   # only for scripts/fetch_emoji.py (correctly groups multi-character emoji like flags)

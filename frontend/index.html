@@ -7,25 +7,31 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- Persistent Home button (hidden on the welcome screen) -->
-  <button id="home-btn" class="big-btn round" aria-label="Home" hidden>🏠</button>
-  <button id="back-btn" class="big-btn round" aria-label="Back" hidden>
-    <svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><path d="M30 8 L14 24 L30 40" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </button>
-  <!-- Quick mute for the child (sound and voice) -->
-  <button id="mute-btn" aria-label="Mute" title="Mute">🔊</button>
-  <!-- Who is playing? Only shown on the welcome and map screens when there are several children -->
-  <button id="who-btn" class="big-btn round" aria-label="Who is playing?" hidden>🦊</button>
-  <!-- Small, unobtrusive parent icon -->
-  <button id="parent-btn" aria-label="Parent area">⚙️</button>
+  <!-- Everything the app itself draws lives in here, so emoji.js knows exactly what to watch and never
+       touches anything a test harness or a future tool might append straight to <body>. -->
+  <div id="app">
+    <!-- Persistent Home button (hidden on the welcome screen) -->
+    <button id="home-btn" class="big-btn round" aria-label="Home" hidden>🏠</button>
+    <button id="back-btn" class="big-btn round" aria-label="Back" hidden>
+      <svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><path d="M30 8 L14 24 L30 40" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <!-- Quick mute for the child (sound and voice) -->
+    <button id="mute-btn" aria-label="Mute" title="Mute">🔊</button>
+    <!-- Who is playing? Only shown on the welcome and map screens when there are several children -->
+    <button id="who-btn" class="big-btn round" aria-label="Who is playing?" hidden>🦊</button>
+    <!-- Small, unobtrusive parent icon -->
+    <button id="parent-btn" aria-label="Parent area">⚙️</button>
 
-  <!-- The app draws its screens into this element -->
-  <main id="screen"></main>
+    <!-- The app draws its screens into this element -->
+    <main id="screen"></main>
 
-  <!-- Speech bubble from the mascot, shown on every screen -->
-  <div id="modal-root"></div>
+    <!-- Speech bubble from the mascot, shown on every screen -->
+    <div id="modal-root"></div>
+  </div>
 
   <script src="js/config.js"></script>
+  <script src="js/emoji-map.js"></script>
+  <script src="js/emoji.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/i18n-es.js"></script>
   <script src="js/rewards.js"></script>
