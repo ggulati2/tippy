@@ -77,7 +77,8 @@ def dashboard(db_path: Path, today: date | None = None) -> dict:
     with db.connect(db_path) as conn:
         daily = {r["day"]: r for r in conn.execute("SELECT day, attempts, correct FROM daily_stats")}
         play = {r["day"]: r["seconds"] for r in conn.execute("SELECT day, seconds FROM play_time")}
-        interests = conn.execute("SELECT interests FROM child_profile WHERE id = 1").fetchone()["interests"]
+        profile = conn.execute("SELECT interests, age_band FROM child_profile WHERE id = 1").fetchone()
+        interests = profile["interests"]
     trend = []
     for offset in range(TREND_DAYS - 1, -1, -1):
         day = (today - timedelta(days=offset)).isoformat()
@@ -99,6 +100,7 @@ def dashboard(db_path: Path, today: date | None = None) -> dict:
         "keystrokes": total_attempts,
         "overall_accuracy": round(100 * total_correct / total_attempts) if total_attempts else None,
         "interests": [x for x in interests.split(",") if x in bank.THEMES],
+        "age_band": profile["age_band"],
     }
 
 

@@ -41,7 +41,7 @@ If the internet is down or the key stops working, the child notices nothing — 
 | `OPENROUTER_MODEL`, `OPENROUTER_FALLBACK_MODEL` | Main and backup model; any id from openrouter.ai/models with JSON output works. |
 | `DAILY_REQUEST_CAP` | Requests per day (default 45). |
 
-Change the mascot's name and colours in `frontend/js/config.js`.
+Change the mascot's name and colours in `branding.json`, then run `python scripts/sync_branding.py` (it writes `frontend/js/config.js`, which is what the app actually loads).
 
 ## Building the packaged apps yourself
 

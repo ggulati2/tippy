@@ -81,7 +81,7 @@ def prepare(backup) -> dict:
     if not isinstance(backup, dict) or backup.get("app") != "tippy" or not isinstance(backup.get("tables"), dict):
         raise RestoreError("bad-file")
     tables = backup["tables"]
-    plan = {"settings": {}, "interests": None, "rows": {t: [] for t in DATA_TABLES}, "skipped": 0}
+    plan = {"settings": {}, "interests": None, "age_band": None, "rows": {t: [] for t in DATA_TABLES}, "skipped": 0}
     ids = {s["id"] for s in progress.CATALOG}
 
     for name in [*DATA_TABLES, "settings", "child_profile"]:
@@ -102,6 +102,8 @@ def prepare(backup) -> dict:
         chosen = [x for x in str(row.get("interests", "")).split(",") if x in bank.THEMES]
         if chosen:
             plan["interests"] = ",".join(dict.fromkeys(chosen))
+        if str(row.get("age_band", "")) in db.AGE_BANDS:
+            plan["age_band"] = row["age_band"]
 
     def keep(table: str, values: tuple | None) -> None:
         if values is None:
@@ -132,7 +134,7 @@ def prepare(backup) -> dict:
         day = _day(r.get("day"))
         keep("play_days", (day,) if day else None)
 
-    if not plan["settings"] and plan["interests"] is None and not any(plan["rows"].values()):
+    if not plan["settings"] and plan["interests"] is None and plan["age_band"] is None and not any(plan["rows"].values()):
         raise RestoreError("empty")
     return plan
 
@@ -156,6 +158,8 @@ def apply(db_path: Path, plan: dict) -> dict:
             conn.execute("INSERT INTO settings (key, value) VALUES ('letters_changed_at', '0') ON CONFLICT(key) DO UPDATE SET value = '0'")
         if plan["interests"]:
             conn.execute("UPDATE child_profile SET interests = ? WHERE id = 1", (plan["interests"],))
+        if plan["age_band"]:
+            conn.execute("UPDATE child_profile SET age_band = ? WHERE id = 1", (plan["age_band"],))
         sql = {
             "progress": "INSERT INTO progress (world, level, status, stars) VALUES (?, ?, ?, ?)",
             "stickers": "INSERT INTO stickers (id, earned_at) VALUES (?, ?)",

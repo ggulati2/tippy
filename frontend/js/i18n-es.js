@@ -124,6 +124,7 @@ window.STRINGS.es = {
   summaryPractice: "Para practicar",
   summaryTips: "Consejos",
   setInterests: "Intereses",
+  setAgeBand: "Edad",
   "interest.animals": "Animales",
   "interest.space": "Espacio",
   "interest.dinosaurs": "Dinosaurios",

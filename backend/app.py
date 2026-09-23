@@ -132,6 +132,7 @@ def create_app() -> FastAPI:
         out["setup_needed"] = not guard.has_pin
         out["profile_id"] = family.active_id
         out["profile_count"] = len(family.list())
+        out["age_band"] = db.get_age_band(family.db_path)
         for number in ("session_minutes", "daily_limit_minutes"):
             out[number] = int(stored.get(number) or 0)
         return out
@@ -292,6 +293,8 @@ def create_app() -> FastAPI:
         has_numpad: bool | None = None
         openrouter_model: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._:/\-]{0,80}$")
         interests: list[str] | None = Field(default=None, max_length=4)
+        # "5", "6", "7" or "8+" (docs/REVAMP_BRIEF.md section 4.5) - never a birthdate.
+        age_band: str | None = Field(default=None, pattern=r"^(5|6|7|8\+)$")
 
     @app.post("/api/parent/settings")
     def update_settings(body: SettingsBody, _parent: None = Depends(parent_only)):
@@ -302,6 +305,10 @@ def create_app() -> FastAPI:
                 raise HTTPException(status_code=422, detail="pick at least one known interest")
             with db.connect(family.db_path) as conn:
                 conn.execute("UPDATE child_profile SET interests = ? WHERE id = 1", (",".join(dict.fromkeys(interests)),))
+        age_band = data.pop("age_band", None)
+        if age_band is not None:
+            with db.connect(family.db_path) as conn:
+                conn.execute("UPDATE child_profile SET age_band = ? WHERE id = 1", (age_band,))
         for key, value in data.items():
             text = "1" if value is True else "0" if value is False else str(value)
             # The helper model belongs to the household; everything else to the child who is selected.

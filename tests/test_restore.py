@@ -61,6 +61,24 @@ def test_a_safety_copy_of_the_old_data_is_kept(tmp_path):
         assert old.execute("SELECT COUNT(*) FROM progress").fetchone()[0] == 3        # but nothing lost
 
 
+def test_age_band_is_restored_and_a_bad_one_is_ignored(tmp_path):
+    backup = {"app": "tippy", "exported_at": "2026-09-23", "tables": {
+        "settings": [], "progress": [], "sessions": [],
+        "child_profile": [{"id": 1, "first_name": "", "interests": "", "age_band": "7"}]}}
+    path = tmp_path / "c.db"
+    db.init_db(path, "en")
+    restore.apply(path, restore.prepare(backup))
+    assert db.get_age_band(path) == "7"
+
+    # A bad age_band alongside something else usable: the bad value is dropped, the rest still restores.
+    bad = {"app": "tippy", "exported_at": "2026-09-23", "tables": {
+        "settings": [{"key": "child_name", "value": "Mia"}], "progress": [], "sessions": [],
+        "child_profile": [{"id": 1, "first_name": "", "interests": "", "age_band": "grown-up"}]}}
+    restore.apply(path, restore.prepare(bad))
+    assert db.get_age_band(path) == "7"      # unchanged: the unrecognised value was never applied
+    assert db.get_settings(path)["child_name"] == "Mia"
+
+
 def test_old_0_9_backup_still_restores(tmp_path):
     old_backup = {"app": "tippy", "exported_at": "2026-09-19", "tables": {
         "settings": [{"key": "language", "value": "de"}, {"key": "child_name", "value": "Lea"}, {"key": "openrouter_model", "value": "x"},

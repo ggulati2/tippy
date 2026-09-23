@@ -1,0 +1,18 @@
+{
+  "id": "core-bank",
+  "version": "1.0.0",
+  "languages": ["en", "de", "es"],
+  "age_range": [5, 8],
+  "licence": "MIT (part of the Tippy project itself)",
+  "author": "Tippy project",
+  "description": "The words, sentences, pictures, stickers and safe-topic answers every world uses when no other pack is added. This is Tippy v1's original content, reorganised into pack form; no wording changed.",
+  "files": {
+    "words": "fallback_words.json",
+    "sentences": "fallback_sentences.json",
+    "pictures": "word_pictures.json",
+    "free_play": "free_play.json",
+    "special": "special.json",
+    "stickers": "stickers.json",
+    "ask": "ask_tippy.json"
+  }
+}

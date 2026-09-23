@@ -1,0 +1,11 @@
+{
+  "id": "family-words",
+  "version": "1.0.0",
+  "languages": ["en", "de", "es"],
+  "age_range": [5, 8],
+  "licence": "generated locally; never written to disk, never shared",
+  "author": "generated from the family's own settings",
+  "generated": true,
+  "description": "A child's own name and favourite word, and later the family words from docs/REVAMP_BRIEF.md section 6.1 (up to about eight: Mama, Papa, a sibling, a pet...). Today this is the child_name and favorite_word settings, used only in the browser (frontend/js/sentences.js) and never sent to the LLM. This manifest exists so the pack list is complete and so the same validation rules apply once the family-words editor is built (docs/REVAMP_BRIEF.md milestone 4). There are no files: nothing here is ever written to disk.",
+  "files": {}
+}

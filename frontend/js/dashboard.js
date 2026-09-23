@@ -211,6 +211,7 @@ async function progressTab(body) {
 // ---------- Tab: Settings ----------
 
 const INTERESTS = [["animals", "🐾"], ["space", "🚀"], ["dinosaurs", "🦖"], ["vehicles", "🚗"]];
+const AGE_BANDS = ["5", "6", "7", "8+"]; // docs/REVAMP_BRIEF.md section 4.5: roughly how old, never a birthdate
 
 async function settingsTab(body) {
   const { body: d } = await api("/api/parent/dashboard");
@@ -246,6 +247,7 @@ async function settingsTab(body) {
     el("div", { class: "row" }, el("span", {}, t("setPin")), el("button", { class: "big-btn blue small-btn", onclick: changePinFlow }, "🔑 " + t("setPinBtn"))),
     textRow(t("childName"), "child_name", settings.child_name, 20),
     textRow(t("favoriteWord"), "favorite_word", settings.favorite_word, 15),
+    toggleRow(t("setAgeBand"), AGE_BANDS.map((b) => [b, b]), settings.age_band || "6", (v) => saveSetting({ age_band: v })),
     el("div", { class: "row" }, el("span", {}, t("setInterests")), el("div", { class: "seg wrap" }, ...interestButtons)),
     minutes(t("setSession"), "session_minutes", [5, 10, 15, 20, 0], settings.session_minutes),
     minutes(t("setDaily"), "daily_limit_minutes", [0, 30, 45, 60, 90], settings.daily_limit_minutes),

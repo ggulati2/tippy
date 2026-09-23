@@ -170,6 +170,17 @@ def test_interests_and_model_settings_are_validated(client):
     assert client.get("/api/parent/status", headers=headers).json()["model"] == "some/model:free"
 
 
+def test_age_band_is_validated_and_saved(client):
+    headers = parent_headers(client)
+    assert client.get("/api/settings").json()["age_band"] == ""  # not set yet
+    assert client.post("/api/parent/settings", json={"age_band": "6"}, headers=headers).status_code == 200
+    assert client.get("/api/settings").json()["age_band"] == "6"
+    assert client.get("/api/parent/dashboard", headers=headers).json()["age_band"] == "6"
+    assert client.post("/api/parent/settings", json={"age_band": "9"}, headers=headers).status_code == 422  # not one of 5/6/7/8+
+    assert client.post("/api/parent/settings", json={"age_band": "8+"}, headers=headers).status_code == 200
+    assert client.get("/api/settings").json()["age_band"] == "8+"
+
+
 def test_dashboard_summary_export_reset_need_pin(client):
     for method, path in (("get", "/api/parent/dashboard"), ("get", "/api/parent/summary"), ("get", "/api/parent/export")):
         assert getattr(client, method)(path).status_code == 401

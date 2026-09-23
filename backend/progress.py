@@ -8,8 +8,7 @@ import json
 from datetime import date, timedelta
 from pathlib import Path
 
-from backend import db
-from backend.config import CONTENT_DIR
+from backend import db, packs
 
 # Worlds in the order they unlock. A world unlocks when the one before it is complete.
 WORLD_ORDER = ["mouse", "keyboard", "letters", "words", "sentences", "basics", "free", "numbers", "paint", "desktop", "internet", "robot"]
@@ -43,7 +42,7 @@ def max_level(world: str) -> int:
 MAX_STARS_PER_LEVEL = 3
 
 
-def load_catalog(path: Path = CONTENT_DIR / "stickers.json") -> list[dict]:
+def load_catalog(path: Path = packs.pack_path("core-bank", "stickers")) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 

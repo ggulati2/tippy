@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS settings (
 CREATE TABLE IF NOT EXISTS child_profile (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     first_name TEXT NOT NULL DEFAULT '',
-    interests TEXT NOT NULL DEFAULT 'animals,space,dinosaurs,vehicles'
+    interests TEXT NOT NULL DEFAULT 'animals,space,dinosaurs,vehicles',
+    age_band TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -154,6 +155,11 @@ def init_db(db_path: Path, default_language: str = "en") -> None:
 def _init_db(db_path: Path, default_language: str = "en") -> None:
     with connect(db_path) as conn:
         conn.executescript(SCHEMA)
+        # A child's database made before age_band existed: CREATE TABLE IF NOT EXISTS above leaves an
+        # existing table alone, so an older database needs the column added by hand, once.
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(child_profile)")}
+        if "age_band" not in columns:
+            conn.execute("ALTER TABLE child_profile ADD COLUMN age_band TEXT NOT NULL DEFAULT ''")
         conn.execute("INSERT OR IGNORE INTO child_profile (id) VALUES (1)")
         defaults = dict(DEFAULT_SETTINGS, language=default_language)
         for key, value in defaults.items():
@@ -186,3 +192,14 @@ def set_setting(db_path: Path, key: str, value: str) -> None:
 CHILD_SETTINGS = ("language", "keyboard_layout", "voice_on", "sound_on", "letter_case", "child_name",
                   "favorite_word", "session_minutes", "daily_limit_minutes", "ask_tippy",
                   "font_scale", "reduce_motion", "has_numpad")
+
+# docs/REVAMP_BRIEF.md section 4.5: how old the child roughly is, nothing more precise than that
+# (never a birthdate). Like interests, it lives on child_profile, not in the generic settings table,
+# because it belongs to the child, not to a device setting.
+AGE_BANDS = ("5", "6", "7", "8+")
+
+
+def get_age_band(db_path: Path) -> str:
+    with connect(db_path) as conn:
+        row = conn.execute("SELECT age_band FROM child_profile WHERE id = 1").fetchone()
+    return row["age_band"] if row else ""

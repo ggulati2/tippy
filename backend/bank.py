@@ -3,26 +3,21 @@
 This is what the child gets when the internet or the LLM is unavailable, or
 when the LLM's answer fails our checks. The app is fully usable with only this.
 """
-import json
 import random
 import re
 
-from backend import languages
-from backend.config import CONTENT_DIR
+from backend import languages, packs
 
 THEMES = ("animals", "space", "dinosaurs", "vehicles")  # the only interests the parent can pick
 
-
-def _load(name: str) -> dict:
-    return json.loads((CONTENT_DIR / name).read_text(encoding="utf-8"))
-
-
-WORDS = _load("fallback_words.json")          # {"en": {"animals": [...], ...}, "de": {...}}
-SENTENCES = _load("fallback_sentences.json")
-FREE_PLAY = _load("free_play.json")           # more word pictures, only for the Free Play Studio
-ASK = _load("ask_tippy.json")                 # topics, questions, built-in answers for "Ask Tippy"
-SPECIAL = _load("special.json")               # {"de": {"culture_words": {"type": "words", "items": {...}}, ...}}: sets for one language only
-PICTURES = _load("word_pictures.json")        # {"en": {"cat": "🐱", ...}, "de": {...}} for Word Woods
+# All of this used to be loose files under content/; it is now the "core-bank" content pack
+# (content/packs/core-bank/, see backend/packs.py). The wording has not changed.
+WORDS = packs.pack_file("core-bank", "words")          # {"en": {"animals": [...], ...}, "de": {...}}
+SENTENCES = packs.pack_file("core-bank", "sentences")
+FREE_PLAY = packs.pack_file("core-bank", "free_play")  # more word pictures, only for the Free Play Studio
+ASK = packs.pack_file("core-bank", "ask")              # topics, questions, built-in answers for "Ask Tippy"
+SPECIAL = packs.pack_file("core-bank", "special")      # {"de": {"culture_words": {"type": "words", "items": {...}}, ...}}: sets for one language only
+PICTURES = packs.pack_file("core-bank", "pictures")    # {"en": {"cat": "🐱", ...}, "de": {...}} for Word Woods
 
 # Short warm lines per moment. "{child}" is replaced by the browser with the
 # child's name, so the name never leaves this computer.
