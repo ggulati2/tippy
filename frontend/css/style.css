@@ -405,6 +405,10 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .card { background: #fff; border: 2px solid #e6eef7; border-radius: 20px; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .card h3 { margin: 0; font-size: 1.05rem; }
+/* A calm, dismissible note in the parent area (never shown to the child) — for example the keyboard
+   layout mismatch hint (docs/REVAMP_BRIEF.md section 4.4). Amber, not red: nothing is broken. */
+.notice { background: #fff8e6; border: 2px solid #ffd43b; border-radius: 20px; padding: 12px 16px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
+.notice p { margin: 0; font-size: .95rem; font-weight: 600; color: #6b5a1e; }
 .chart { width: 100%; height: auto; }
 .table-view summary { cursor: pointer; font-size: .85rem; font-weight: 800; color: #6b7c93; min-height: 32px; }
 .data-table { border-collapse: collapse; font-size: .85rem; width: 100%; }

@@ -3,29 +3,11 @@
 
 // Keys are named by their capital letter, or SPACE / ENTER / BACKSPACE / SHIFT.
 // The parent chooses which shape to draw; the real keyboard always works by what it types.
-const KEY_ROWS = {
-  qwerty: [
-    ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-    ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-    ["SHIFT", "Z", "X", "C", "V", "B", "N", "M", "BACKSPACE"],
-    ["SPACE", "ENTER"],
-  ],
-  qwertz: [
-    ["Q", "W", "E", "R", "T", "Z", "U", "I", "O", "P", "Ü", "ß"],
-    ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Ö", "Ä"],
-    ["SHIFT", "Y", "X", "C", "V", "B", "N", "M", "BACKSPACE"],
-    ["SPACE", "ENTER"],
-  ],
-  // Spanish keyboard: the same as English plus Ñ next to L.
-  qwerty_es: [
-    ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-    ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Ñ"],
-    ["SHIFT", "Z", "X", "C", "V", "B", "N", "M", "BACKSPACE"],
-    ["SPACE", "ENTER"],
-  ],
-};
-// Names for the keyboard picker in the parent area.
-const KEYBOARD_NAMES = { qwerty: "QWERTY", qwertz: "QWERTZ", qwerty_es: "QWERTY Ñ" };
+//
+// KEY_ROWS and KEYBOARD_NAMES come from frontend/js/layouts-data.js (loaded just before this file),
+// which is generated from frontend/layouts/*.json by scripts/sync_layouts.py. docs/REVAMP_BRIEF.md
+// section 4.4 asks that "the on-screen keyboard, finger zones, and lessons all read from one source" —
+// that source is the .json files; edit those, then run the script, to add or change a keyboard shape.
 
 // Does this keyboard have a key of its own for this character (Ä Ö Ü on a German one, Ñ on a Spanish one)?
 const layoutHas = (name, layout = settings.keyboard_layout) => (KEY_ROWS[layout] || []).some((row) => row.includes(name));
@@ -137,4 +119,32 @@ async function sendKeys(events, adaptive = false) {
   } catch (e) {
     return null;
   }
+}
+
+// ---------- Layout mismatch detection (docs/REVAMP_BRIEF.md section 4.4) ----------
+// A German QWERTZ keyboard and a US/UK QWERTY keyboard swap the Y and Z keys. If the app is set to one
+// but the real, physical keyboard is the other, the child keeps missing the glowing key by exactly one
+// letter, which is confusing and not their fault. `e.code` names the physical key position and does not
+// change with the layout, while `e.key` is the character the browser actually produced; comparing the
+// two (for just this one well-known swap) tells us the two disagree without needing to know what the
+// browser or operating system thinks its own layout is called.
+const LAYOUT_MISMATCH_STREAK = 5; // a short run of swapped presses, not one lucky or unlucky guess
+let layoutMismatchStreak = 0;
+let layoutMismatchSent = false;
+
+function trackLayoutMismatch(e) {
+  if (layoutMismatchSent || settings.layout_mismatch_flag || !e.code || (e.code !== "KeyY" && e.code !== "KeyZ")) return;
+  const expectQwertz = settings.keyboard_layout === "qwertz";
+  // On a real QWERTZ keyboard, the key at the "Y position" types Z and vice versa.
+  const expectedKey = e.code === "KeyY" ? (expectQwertz ? "Z" : "Y") : (expectQwertz ? "Y" : "Z");
+  if (e.key.toUpperCase() === expectedKey) {
+    layoutMismatchStreak = 0; // a normal press: the keyboard matches the setting, so far
+    return;
+  }
+  layoutMismatchStreak++;
+  if (layoutMismatchStreak < LAYOUT_MISMATCH_STREAK) return;
+  layoutMismatchSent = true; // never ask more than once per visit; the parent can dismiss it, too
+  // Best effort and silent: the child never sees this, win or lose. The parent sees a gentle note
+  // next time they open Settings (see settingsTab in dashboard.js).
+  api("/api/layout-mismatch", { method: "POST" }).catch(() => {});
 }

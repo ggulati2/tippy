@@ -126,7 +126,7 @@ def create_app() -> FastAPI:
         stored = db.get_settings(family.db_path)
         out = {key: stored.get(key, "") for key in db.CHILD_SETTINGS}
         out["font_scale"] = float(stored.get("font_scale") or 1)
-        for flag in ("voice_on", "sound_on", "ask_tippy", "reduce_motion", "has_numpad"):
+        for flag in ("voice_on", "sound_on", "ask_tippy", "reduce_motion", "has_numpad", "layout_mismatch_flag"):
             out[flag] = stored.get(flag) == "1"
         out["online_helper"] = llm.mode == "live"  # the parent area hides the helper tab when off
         out["setup_needed"] = not guard.has_pin
@@ -234,6 +234,14 @@ def create_app() -> FastAPI:
     def save_keystrokes(body: KeystrokeBody):
         return difficulty.record_keystrokes(family.db_path, [e.model_dump() for e in body.events], body.adaptive)
 
+    @app.post("/api/layout-mismatch")
+    def report_layout_mismatch():
+        """The browser calls this (see trackLayoutMismatch in keyboard.js) after several key presses where
+        the physical key does not match the chosen keyboard shape (docs/REVAMP_BRIEF.md section 4.4). It
+        only sets a flag for the parent area to show next time; it never blocks or slows down the child."""
+        db.set_setting(family.db_path, "layout_mismatch_flag", "1")
+        return {"ok": True}
+
     # ---------- Parent endpoints ----------
 
     class PinBody(BaseModel):
@@ -295,6 +303,8 @@ def create_app() -> FastAPI:
         interests: list[str] | None = Field(default=None, max_length=4)
         # "5", "6", "7" or "8+" (docs/REVAMP_BRIEF.md section 4.5) - never a birthdate.
         age_band: str | None = Field(default=None, pattern=r"^(5|6|7|8\+)$")
+        # The parent dismisses the layout-mismatch note (section 4.4) by setting this back to False.
+        layout_mismatch_flag: bool | None = None
 
     @app.post("/api/parent/settings")
     def update_settings(body: SettingsBody, _parent: None = Depends(parent_only)):

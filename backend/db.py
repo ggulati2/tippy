@@ -99,6 +99,11 @@ DEFAULT_SETTINGS = {
     "has_numpad": "0",             # 1 = this computer has a number pad: Number Land then asks for its keys
     "ask_tippy": "0",              # the picture Q&A is off unless the parent turns it on
     "weekly_summary": "",          # cached weekly summary (JSON), parent area only
+    # Set by the browser (see trackLayoutMismatch in keyboard.js) when the child keeps pressing the
+    # physical Y/Z key that does not match the chosen keyboard shape. Cleared once the parent has seen
+    # the note in Settings. docs/REVAMP_BRIEF.md section 4.4: "gently suggest that the parent check
+    # the setting" rather than blocking or nagging the child.
+    "layout_mismatch_flag": "0",
 }
 
 
@@ -191,7 +196,7 @@ def set_setting(db_path: Path, key: str, value: str) -> None:
 # progress counters...) stays on the server and is only shown in the parent area.
 CHILD_SETTINGS = ("language", "keyboard_layout", "voice_on", "sound_on", "letter_case", "child_name",
                   "favorite_word", "session_minutes", "daily_limit_minutes", "ask_tippy",
-                  "font_scale", "reduce_motion", "has_numpad")
+                  "font_scale", "reduce_motion", "has_numpad", "layout_mismatch_flag")
 
 # docs/REVAMP_BRIEF.md section 4.5: how old the child roughly is, nothing more precise than that
 # (never a birthdate). Like interests, it lives on child_profile, not in the generic settings table,

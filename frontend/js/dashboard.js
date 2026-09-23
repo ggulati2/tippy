@@ -235,7 +235,15 @@ async function settingsTab(body) {
 
   const minutes = (label, key, values, current) => toggleRow(label, values.map((v) => [v, v === 0 ? t("setOff") : `${v} ${t("setMinutes")}`]), current, (v) => saveSetting({ [key]: v }));
 
-  body.replaceChildren(el("div", { class: "settings-grid" },
+  // A gentle, dismissible note (never shown to the child): see trackLayoutMismatch in keyboard.js and
+  // docs/REVAMP_BRIEF.md section 4.4. It only appears after a real run of mismatched key presses.
+  const mismatchNotice = settings.layout_mismatch_flag ? el("div", { class: "notice" },
+    el("strong", {}, "⌨️ " + t("layoutMismatchTitle")),
+    el("p", {}, t("layoutMismatchText")),
+    el("button", { class: "big-btn blue small-btn", onclick: () => saveSetting({ layout_mismatch_flag: false }) }, t("layoutMismatchDismiss"))
+  ) : null;
+
+  body.replaceChildren(...[mismatchNotice].filter(Boolean), el("div", { class: "settings-grid" },
     toggleRow(t("language"), languageOptions(), settings.language, (v) => saveSetting({ language: v })),
     toggleRow(t("keyboardLayout"), Object.entries(KEYBOARD_NAMES), settings.keyboard_layout, (v) => saveSetting({ keyboard_layout: v })),
     toggleRow(t("letterCase"), [["upper", "ABC"], ["lower", "abc"]], settings.letter_case, (v) => saveSetting({ letter_case: v })),

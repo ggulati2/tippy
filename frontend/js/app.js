@@ -427,7 +427,7 @@ document.addEventListener("keydown", (e) => {
   if (keyHandler && !isShortcut && !isFunctionKey && e.key !== "Escape" && e.key !== "Tab"
       && $("#modal-root").children.length === 0) {
     e.preventDefault();
-    if (!e.repeat) keyHandler(e); // holding a key down counts once
+    if (!e.repeat) { trackLayoutMismatch(e); keyHandler(e); } // holding a key down counts once
     return;
   }
   if (isShortcut || isFunctionKey || e.key === "Escape" || e.key === "Tab") e.preventDefault();

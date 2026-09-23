@@ -44,6 +44,19 @@ def test_pin_flow_and_settings(client):
     assert client.get("/api/settings").json()["language"] == "de"
 
 
+def test_layout_mismatch_flag_set_by_child_cleared_by_parent(client):
+    # The child's screen (see trackLayoutMismatch in keyboard.js) reports a likely keyboard mismatch
+    # without a PIN, since only the parent area is PIN-gated (docs/REVAMP_BRIEF.md section 4.4).
+    assert client.get("/api/settings").json()["layout_mismatch_flag"] is False
+    assert client.post("/api/layout-mismatch").json()["ok"] is True
+    assert client.get("/api/settings").json()["layout_mismatch_flag"] is True
+    # Only the parent can clear it, and needs the PIN to do so.
+    assert client.post("/api/parent/settings", json={"layout_mismatch_flag": False}).status_code == 401
+    token = client.post("/api/parent/verify", json={"pin": "4321"}).json()["token"]
+    client.post("/api/parent/settings", json={"layout_mismatch_flag": False}, headers={"X-Parent-Token": token})
+    assert client.get("/api/settings").json()["layout_mismatch_flag"] is False
+
+
 def test_exit_with_pin_requests_shutdown(client):
     called = []
     client.app.state.request_shutdown = lambda: called.append(True)
