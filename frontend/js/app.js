@@ -165,21 +165,41 @@ if ("speechSynthesis" in window) speechSynthesis.getVoices();
 // ---------- Mascot ----------
 function mascotSVG() {
   const c = window.TIPPY_CONFIG;
+  // A soft white gloss over the top-left of a shape and a soft shadow along its bottom give a flat colour
+  // some roundness, the way a polished sticker or a well-made toy catches the light, without needing any
+  // picture file (this stays one self-contained bit of markup, like the rest of the mascot).
   const svg = `
   <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${c.mascotName}">
-    <polygon points="45,70 35,15 85,45" fill="${c.mascotColor}"/>
-    <polygon points="155,70 165,15 115,45" fill="${c.mascotColor}"/>
-    <polygon points="48,60 43,30 68,48" fill="${c.mascotBellyColor}"/>
-    <polygon points="152,60 157,30 132,48" fill="${c.mascotBellyColor}"/>
+    <defs>
+      <radialGradient id="tGloss" cx="32%" cy="26%" r="75%">
+        <stop offset="0%" stop-color="#fff" stop-opacity=".4"/>
+        <stop offset="60%" stop-color="#fff" stop-opacity=".08"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="tShade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="60%" stop-color="#000" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#000" stop-opacity=".12"/>
+      </linearGradient>
+    </defs>
+    <ellipse cx="100" cy="186" rx="58" ry="9" fill="#23395b" opacity=".12"/>
+    <ellipse cx="58" cy="181" rx="17" ry="11" fill="${c.mascotColor}"/>
+    <ellipse cx="142" cy="181" rx="17" ry="11" fill="${c.mascotColor}"/>
+    <path d="M45,72 Q26,58 36,14 Q62,24 80,50 Z" fill="${c.mascotColor}"/>
+    <path d="M155,72 Q174,58 164,14 Q138,24 120,50 Z" fill="${c.mascotColor}"/>
+    <path d="M46,60 Q37,44 42,24 Q58,32 68,50 Z" fill="${c.mascotBellyColor}"/>
+    <path d="M154,60 Q163,44 158,24 Q142,32 132,50 Z" fill="${c.mascotBellyColor}"/>
     <ellipse cx="100" cy="115" rx="80" ry="72" fill="${c.mascotColor}"/>
     <ellipse cx="100" cy="140" rx="48" ry="36" fill="${c.mascotBellyColor}"/>
-    <ellipse class="eye" cx="70" cy="100" rx="11" ry="15" fill="#23395b"/>
-    <ellipse class="eye" cx="130" cy="100" rx="11" ry="15" fill="#23395b"/>
-    <circle cx="74" cy="95" r="4" fill="#fff"/><circle cx="134" cy="95" r="4" fill="#fff"/>
+    <ellipse cx="100" cy="115" rx="80" ry="72" fill="url(#tShade)"/>
+    <ellipse class="eye" cx="70" cy="100" rx="12" ry="16" fill="#23395b"/>
+    <ellipse class="eye" cx="130" cy="100" rx="12" ry="16" fill="#23395b"/>
+    <circle cx="74.5" cy="94" r="4.2" fill="#fff"/><circle cx="134.5" cy="94" r="4.2" fill="#fff"/>
+    <circle cx="67" cy="104" r="1.6" fill="#fff" opacity=".8"/><circle cx="127" cy="104" r="1.6" fill="#fff" opacity=".8"/>
     <ellipse cx="100" cy="125" rx="9" ry="6" fill="#23395b"/>
     <path d="M84 138 Q100 156 116 138" stroke="#23395b" stroke-width="5" fill="none" stroke-linecap="round"/>
     <circle cx="52" cy="128" r="10" fill="#ff8787" opacity=".5"/>
     <circle cx="148" cy="128" r="10" fill="#ff8787" opacity=".5"/>
+    <ellipse cx="100" cy="115" rx="80" ry="72" fill="url(#tGloss)"/>
   </svg>`;
   const wrapper = el("div", { class: "mascot" });
   wrapper.innerHTML = svg; // our own fixed markup, not LLM text

@@ -29,6 +29,11 @@ html, body {
   -webkit-user-select: none;
 }
 
+/* The wrapper div that #app is (see index.html) exists only so emoji.js has one stable place to watch for
+   new pictures; display:contents takes it out of layout entirely, so #screen's height:100% still measures
+   against html/body exactly as if #app were not there. */
+#app { display: contents; }
+
 #screen {
   height: 100%;
   display: flex; flex-direction: column; align-items: center; justify-content: safe center;
@@ -542,3 +547,10 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 
 /* A wrong choice wiggles (used by the choice cards, desktop, browser and robot). */
 .choice.wobble, .link-card.wobble, .desk-file.wobble, .robot.wobble, .dialog .wobble { animation: wobble .5s; }
+
+/* ---------- Twemoji pictures (frontend/js/emoji.js) ----------
+   The emoji character itself stays in the page (font-size: 0, so it is invisible and takes no space) so that
+   .textContent still reads exactly what it always did; the picture sitting next to it is what is shown. */
+.twe-wrap { display: inline-block; }
+.twe-wrap .twe-txt { font-size: 0; line-height: 0; }
+.twe { height: 1em; width: 1em; vertical-align: -0.15em; pointer-events: none; }
