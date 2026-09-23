@@ -91,10 +91,102 @@ stray key" and "never fires."
 
 ---
 
+## Milestone 4 — Curriculum stages (partial; not tagged)
+
+Per the audit's own breakdown (`docs/AUDIT.md`, migration-plan table, row 4), milestone 4 has four
+distinct pieces: (a) group the 12 existing worlds into the brief's named stages, (b) an audit of
+child-facing copy for leftover speed/WPM language, (c) a posture-reminder animation and gradually
+shrinking Mouse Meadow targets, (d) the "up to eight family words" pack. Only (a) and (b) were completed
+and tested tonight; (c) and (d) were not attempted, so **milestone 4 is not tagged `revamp-m4`** — tagging
+it would overstate what's done. This is a deliberate stop, not a crash: the branch is left in a clean,
+fully-tested state (committed, not tagged) so nothing is at risk.
+
+**What was built (a, b)**
+
+- The child's world map (`frontend/js/app.js`, `mapScreen()`) now groups the 12 existing worlds under
+  seven stage headings that match brief §5's table exactly: Mouse Meadow, Keyboard Land, My Name, Word
+  Woods, Everyday Computer, Safe & Smart, Create Studio — plus an "Extra: logic games" section at the end
+  holding just Robot Helper, per the audit's accepted recommendation (it teaches sequencing, not typing,
+  so it no longer pretends to be part of the Ten-Finger Path or the main stage sequence).
+- No unlocking logic, world code, or level content changed at all — `backend/progress.py`'s
+  `WORLD_ORDER`/`UNLOCK_AFTER` chain is untouched. This is a presentation/labelling layer only, which is
+  why it was safe to build and verify in one sitting without touching the adaptive-difficulty or
+  progress-tracking code the rest of the app depends on.
+- Re-checked the whole codebase for WPM/speed language in the child-facing UI
+  (`grep -rl "wpm\|WPM\|words per minute\|Wörter pro Minute"` across `frontend/` and `backend/`): there is
+  none, and there never was — the audit had already confirmed this was a hard rule that held from the
+  original build, so no copy changes were needed for (b).
+
+**A decision made on the user's behalf (recorded per the brief's own §15 instruction to log judgment
+calls rather than guess silently):**
+
+- Where an existing world didn't map cleanly to one brief stage, I placed it where the content fits best,
+  favouring the audit's own "closest stage" column:
+  - **Sentence Sky → Stage 3 "My Name"**, not "between 4 and 7" as the audit phrased it — Sentence Sky
+    already contains exactly the name/favourite-word content that stage 3 is about.
+  - **Number Land → grouped with Stage 4 "Word Woods"**, since the brief doesn't mention numeracy at all
+    (the audit flagged this as an open call) and Word Woods is the nearest existing "short, concrete,
+    pre-reading literacy" stage for it to sit beside, consistent with the user's earlier decision to keep
+    Number Land in scope rather than cut it.
+  - **Computer Cove → grouped with Stage 6 "Safe & Smart"** alongside Internet Island, matching the
+    audit's own "closest stage" column, since its safety-related lessons (online safety, "ask a grown-up")
+    are its most stage-6-relevant content even though it also teaches general computer literacy.
+  These are reversible UI groupings, not data migrations, so they can be freely rearranged later with no
+  risk to saved progress.
+
+**Test coverage**
+
+- Added `stage.1`–`stage.7` and `stage.extras` text keys to all three languages (English, German,
+  Spanish); `scripts/check_i18n.js` (part of `scripts/check.sh`) confirms all three stay in sync — full
+  suite: 276 unit/i18n tests passing.
+- No dedicated new unit test was needed for the grouping itself (it's a static data structure consumed by
+  existing, already-tested rendering code), but the full **21-test browser suite was re-run end-to-end**
+  after this change and passes, including the tests that open every world from the map, play levels, and
+  drive the parent area's "unlock a world by hand" list (which also reads from the same world/icon table
+  and needed a small matching update in `frontend/js/dashboard.js`).
+
+**What was explicitly not attempted tonight, and why**
+
+- **Posture-reminder animation and gradually shrinking Mouse Meadow targets (brief §5's session rules and
+  the audit's Mouse Meadow completeness note):** these are genuine new UI/animation work — a new
+  first-of-session screen and a change to Mouse Meadow's per-level target-size logic — not safely
+  buildable and testable to a standard I'm confident in within the time already spent tonight on top of
+  milestone 3. Rushing an animation/UX piece without being able to actually watch it play risks shipping
+  something that looks broken to a 5-year-old, which is worse than not building it yet.
+- **The "up to eight family words" pack (brief §6.1):** this needs new parent-setup UI (a place to enter
+  up to eight words), a new generated `family-words` pack (the pack's manifest already exists from
+  milestone 2, declared but empty), and content-pack wiring into Word Woods/Sentence Sky. This is a
+  meaningfully sized feature in its own right, not a quick extension of the existing single
+  "favourite word" field.
+- Milestones 5–12 (everyday-computer desktop tasks, Safe & Smart interactive stories, remaining parent-area
+  upgrades, classroom mode, optional AI extras, monetisation-readiness switches, packaging/pywebview, and
+  the final UX/accessibility/testing pass) were **not started**. Each is a substantial feature in its own
+  right per the brief (see §6 and §12), several with real child-safety and privacy stakes (Safe & Smart's
+  story content, the picture-password "log in" task, classroom mode's anonymity-by-default requirement).
+  Building any of these properly needs real content-writing and UI design, not just refactoring — the kind
+  of work the brief's own "stop after each milestone, I test before you continue" rule (§12) exists to
+  gate, precisely so a whole new feature doesn't ship untested. Given that, and that the person who could
+  actually play-test any of it is asleep, continuing to build features tonight without anyone able to look
+  at them stops being "getting ahead" and starts being a risk of shipping something wrong.
+
+**What to test in the morning (Milestone 4, partial)**
+
+1. Open the app as a child would, tap through to the world map. Instead of one flat grid of 12 icons, you
+   should see grey section headings ("1. Mouse Meadow", "2. Keyboard Land", ... "7. Create Studio", then
+   "Extra: logic games") with the relevant world icons grouped underneath each one. Try this in German too
+   (parent Settings → Language) to see the German stage names.
+2. Every world should still open, play, and track progress exactly as before — this was a labelling change
+   only. If anything looks locked/unlocked differently than you'd expect, that's worth flagging, though the
+   underlying unlock order did not change.
+3. Open the parent area → Settings → the "unlock a world by hand" list near the bottom: it should still
+   show all 12 worlds with their icons and lock/unlock toggle, working as before.
+4. Robot Helper (🤖) should now appear by itself under "Extra: logic games" at the very end of the map,
+   separate from the main numbered stages.
+
 ## Status and what is next
 
-Milestone 3 is complete, tagged `revamp-m3`, and pushed. The next milestone to tackle is **Milestone 4:
-Curriculum stages 1–4** (group the existing 12 worlds into the brief's named stages, remove any
-speed-flavoured child-facing copy, add the posture/movement-break content, and build the "up to eight
-family words" pack from Sentence Sky's existing name/favourite-word feature). This section will be
-updated, or a new one appended, if and when that milestone is attempted in this run.
+Milestone 3 is complete, tagged `revamp-m3`, and pushed. Milestone 4 is roughly half-built (stage
+grouping is done and tested; posture reminder, shrinking mouse targets, and the family-words pack are
+not) and is committed but deliberately **not tagged**, so it's clear to a future session that it isn't a
+finished milestone yet. The next work, in order, is: finish milestone 4's remaining two pieces, then
+continue to milestone 5 (everyday-computer simulated-desktop tasks) per `docs/REVAMP_BRIEF.md` §12.

@@ -225,7 +225,7 @@ async function settingsTab(body) {
       saveSetting({ interests: [...chosen] });
     } }, `${icon} ${t("interest." + id)}`));
 
-  const worldButtons = WORLDS.map(([id, icon]) => {
+  const worldButtons = Object.entries(WORLD_ICONS).map(([id, icon]) => {
     const open = progress.worlds[id].unlocked;
     return el("button", { class: open ? "on" : "", onclick: async () => {
       await api("/api/parent/unlock", { method: "POST", body: JSON.stringify({ world: id }) });

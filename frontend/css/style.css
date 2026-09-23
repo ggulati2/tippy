@@ -462,6 +462,8 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .worlds.many { grid-template-columns: repeat(5, 1fr); width: min(1100px, 100%); }
 .worlds .bonus-label { grid-column: 1 / -1; font-weight: 900; font-size: 1.2rem; color: #7a5a00; text-align: left; }
 .world.level.bonus { background: #fff9db; }
+.worlds .stage-label { grid-column: 1 / -1; font-weight: 900; font-size: 1.1rem; color: #5a5a5a; text-align: left; margin-top: 8px; }
+.worlds .stage-label:first-child { margin-top: 0; }
 
 /* ---------- Keyboard Kingdom bonus games ---------- */
 .garden { display: grid; grid-template-columns: repeat(5, min(96px, 12vh)); grid-auto-rows: min(96px, 12vh); gap: 6px;

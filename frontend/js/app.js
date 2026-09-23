@@ -266,21 +266,41 @@ async function welcomeScreen() {
   if (!audio) setTimeout(warmUpAudio, 300);   // after the welcome screen is drawn, before anyone taps
 }
 
-const WORLDS = [
-  ["mouse", "🐭"], ["paint", "🖌️"], ["keyboard", "⌨️"], ["robot", "🤖"], ["letters", "🔤"], ["numbers", "🔢"],
-  ["words", "🌳"], ["sentences", "☁️"], ["internet", "🌐"], ["basics", "🖥️"], ["desktop", "🗂️"], ["free", "🎨"],
+const WORLD_ICONS = {
+  mouse: "🐭", paint: "🖌️", keyboard: "⌨️", letters: "🔤", numbers: "🔢", words: "🌳",
+  sentences: "☁️", internet: "🌐", basics: "🖥️", desktop: "🗂️", free: "🎨", robot: "🤖",
+};
+// The child's map groups the twelve worlds into the seven "Mein erster Computer" readiness
+// stages (brief §5); nothing about how a world unlocks or plays changes, only how it is labelled
+// and grouped. Robot Helper teaches sequencing, not typing, so it sits outside the stage path as
+// an optional "logic games" extra rather than pretending to be part of it.
+const STAGES = [
+  { key: "stage.1", worlds: ["mouse"] },
+  { key: "stage.2", worlds: ["keyboard", "letters"] },
+  { key: "stage.3", worlds: ["sentences"] },
+  { key: "stage.4", worlds: ["words", "numbers"] },
+  { key: "stage.5", worlds: ["paint", "desktop"] },
+  { key: "stage.6", worlds: ["basics", "internet"] },
+  { key: "stage.7", worlds: ["free"] },
 ];
+const EXTRA_WORLDS = ["robot"];
 
 async function mapScreen() {
   reopenPicker = null;
   await loadProgress();
   const grid = el("div", { class: "worlds" });
-  for (const [id, icon] of WORLDS) {
+  const worldButton = (id) => {
     const info = progress.worlds[id];
     const label = t("world." + id) + (info.complete ? " ✅" : "");
-    grid.append(el("button", { class: "world" + (info.unlocked ? "" : " locked"), onclick: () => openWorld(id) },
-      el("span", { class: "icon" }, info.unlocked ? icon : "🔒"), label));
+    return el("button", { class: "world" + (info.unlocked ? "" : " locked"), onclick: () => openWorld(id) },
+      el("span", { class: "icon" }, info.unlocked ? WORLD_ICONS[id] : "🔒"), label);
+  };
+  for (const stage of STAGES) {
+    grid.append(el("div", { class: "stage-label" }, t(stage.key)));
+    for (const id of stage.worlds) grid.append(worldButton(id));
   }
+  grid.append(el("div", { class: "stage-label" }, t("stage.extras")));
+  for (const id of EXTRA_WORLDS) grid.append(worldButton(id));
   const chips = el("div", { class: "map-top" },
     el("span", { class: "chip" }, `⭐ ${progress.total_stars}`),
     el("button", { class: "chip", onclick: () => { sfx("tap"); albumScreen(); } }, `📖 ${progress.stickers.length}`));
@@ -454,7 +474,7 @@ $("#home-btn").addEventListener("click", () => { sfx("home"); welcomeScreen(); }
 // Back goes one step up: a game returns to its level picker, a level picker (or the album, ...) to the world map.
 $("#back-btn").addEventListener("click", () => {
   sfx("tap");
-  const onPicker = WORLDS.some(([id]) => id === $("#screen").dataset.name);
+  const onPicker = $("#screen").dataset.name in WORLD_ICONS;
   if (!onPicker && reopenPicker) reopenPicker(); else mapScreen();
 });
 $("#mute-btn").addEventListener("click", () => {
