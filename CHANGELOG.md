@@ -4,6 +4,9 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+### Added
+- An Apple silicon (arm64) build of the Mac app, built in CI (`.github/workflows/mac-app.yml`) and added to releases automatically, alongside the Intel build made by hand.
+
 ## [0.14.0] - 2026-09-23
 
 Colourful, consistent pictures everywhere, and a redrawn mascot.
