@@ -100,17 +100,17 @@ const NOVELTY_VOICES = /albert|bad news|bahh|bells|boing|bubbles|cellos|deranged
 const NICE_VOICES = /samantha|ava|allison|susan|zoe|karen|moira|serena|daniel|anna|petra|marlene|helena|viktor|katja|hedda|amala|m[oó]nica|jorge|paulina|marisol|elvira|[aá]lvaro|lucia|laura|juan/i;
 
 // `tag` is the voice we want, for example "es-ES" (Spanish as spoken in Spain). Any voice of the same
-// language is fine, but one from the exact region wins.
+// language is fine, but one from the exact region wins. Only voices built into the computer are used:
+// an online voice (Chrome's "Google ..." voices) sends the text to a server, and the system voice is what
+// says the child's name. No built-in voice for this language means no system voice at all.
 function pickVoice(tag) {
   const language = tag.slice(0, 2).toLowerCase();
   const region = (v) => v.lang.replace("_", "-").toLowerCase();
-  const voices = speechSynthesis.getVoices().filter((v) => region(v).startsWith(language));
+  const voices = speechSynthesis.getVoices().filter((v) => v.localService && region(v).startsWith(language));
   const score = (v) =>
     (region(v).startsWith(tag.toLowerCase()) ? 6 : 0) +
     (/premium|enhanced|natural/i.test(v.name) ? 8 : 0) +
-    (NICE_VOICES.test(v.name) ? 4 : 0) +
-    (v.localService ? 2 : 0) +         // computer's own voices; online ones can crackle or lag
-    (/google/i.test(v.name) ? -1 : 0) -
+    (NICE_VOICES.test(v.name) ? 4 : 0) -
     (NOVELTY_VOICES.test(v.name) ? 100 : 0);
   return voices.sort((a, b) => score(b) - score(a))[0] || null;
 }
@@ -152,7 +152,8 @@ function speakWithSystemVoice(text, onEnd) {
   const tag = voiceTag();
   u.lang = tag;
   const voice = pickVoice(tag);
-  if (voice) u.voice = voice;
+  if (!voice) return onEnd && onEnd();   // the browser's default voice may be an online one: stay silent instead
+  u.voice = voice;
   u.rate = 0.95; // slightly slow; lower values make many voices sound robotic
   u.pitch = 1.1; // a touch brighter and friendlier for a child
   // Chrome sometimes swallows a sentence that is spoken in the same instant as a cancel(), so it waits a moment.
