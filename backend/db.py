@@ -92,6 +92,9 @@ DEFAULT_SETTINGS = {
     "letter_case": "upper",  # or "lower"
     "child_name": "",       # set by the parent; used only in the browser
     "favorite_word": "",
+    # Up to 8 family words (Mama, Papa, a pet's name, ...) set by the parent, comma-joined.
+    # docs/REVAMP_BRIEF.md section 6.1: feeds typing practice locally, never sent to the LLM.
+    "family_words": "",
     "session_minutes": "10",       # Tippy suggests a break after this many minutes (0 = never)
     "daily_limit_minutes": "0",    # 0 = no daily limit
     "font_scale": "1",             # text size: 1, 1.125 or 1.25
@@ -195,7 +198,7 @@ def set_setting(db_path: Path, key: str, value: str) -> None:
 # Settings the child's browser may see. Everything else (summary text, model,
 # progress counters...) stays on the server and is only shown in the parent area.
 CHILD_SETTINGS = ("language", "keyboard_layout", "voice_on", "sound_on", "letter_case", "child_name",
-                  "favorite_word", "session_minutes", "daily_limit_minutes", "ask_tippy",
+                  "favorite_word", "family_words", "session_minutes", "daily_limit_minutes", "ask_tippy",
                   "font_scale", "reduce_motion", "has_numpad", "layout_mismatch_flag")
 
 # docs/REVAMP_BRIEF.md section 4.5: how old the child roughly is, nothing more precise than that

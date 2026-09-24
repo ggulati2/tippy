@@ -248,10 +248,26 @@ function setScreen(name, ...nodes) {
   show(...nodes);
 }
 
+// Brief section 5: "a posture and hand reminder at the start of each session (a quick animation,
+// skippable after first view)." Shown once per time the app is opened, as a dismissible pop-up over
+// the map rather than a screen of its own, so it never gets in the way of anything the child (or a
+// test) does right after tapping Play: it closes itself either on tap or after a few seconds either way.
+let postureShownThisSession = false;
+function maybeShowPostureReminder() {
+  if (postureShownThisSession) return;
+  postureShownThisSession = true;
+  const panel = el("div", { class: "panel" },
+    mascotSVG(), el("h2", {}, t("postureTitle")), el("div", { class: "bubble" }, "🧍 ✋ 👀"),
+    el("button", { class: "big-btn blue", onclick: closeModal }, "👍 " + t("postureGo")));
+  openModal(panel);
+  speak(t("postureSay"));
+  setTimeout(closeModal, 4000);
+}
+
 async function welcomeScreen() {
   const mascot = mascotSVG();
   const bubble = el("div", { class: "bubble" }, "…");
-  const play = el("button", { class: "big-btn play-btn", onclick: () => { sfx("play"); mapScreen(); } }, "▶ " + t("play"));
+  const play = el("button", { class: "big-btn play-btn", onclick: () => { sfx("play"); mapScreen(); maybeShowPostureReminder(); } }, "▶ " + t("play"));
   setScreen("welcome", el("h1", { class: "title" }, window.TIPPY_CONFIG.mascotName), mascot, bubble, play);
   const serial = screenSerial;
   const line = await mascotLine("welcome");
@@ -399,6 +415,20 @@ function textRow(label, key, value, maxLength) {
   const input = el("input", { class: "text-input", type: "text", maxlength: String(maxLength), value: value || "",
     onchange: () => saveSetting({ [key]: input.value.trim() }) });
   return el("div", { class: "row" }, el("span", {}, label), input);
+}
+
+// Up to 8 family words (brief section 6.1: "Mama, Papa, Oma, siblings, a pet"), typed as one
+// comma-separated line and normalised (trimmed, empties dropped, capped at 8) before saving, since
+// the backend stores and validates them the same way it already does unlocked_worlds.
+function familyWordsRow() {
+  const input = el("input", { class: "text-input", type: "text", maxlength: "160",
+    placeholder: t("familyWordsHint"), value: settings.family_words || "",
+    onchange: () => {
+      const words = input.value.split(",").map((w) => w.trim()).filter(Boolean).slice(0, 8);
+      input.value = words.join(", ");
+      saveSetting({ family_words: words.join(",") });
+    } });
+  return el("div", { class: "row" }, el("span", {}, t("setFamilyWords")), input);
 }
 
 // Language, text size and reduced motion are applied to the page here.

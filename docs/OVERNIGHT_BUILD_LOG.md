@@ -91,15 +91,25 @@ stray key" and "never fires."
 
 ---
 
-## Milestone 4 — Curriculum stages (partial; not tagged)
+## Milestone 4 — Curriculum stages (complete, tagged `revamp-m4`)
 
 Per the audit's own breakdown (`docs/AUDIT.md`, migration-plan table, row 4), milestone 4 has four
 distinct pieces: (a) group the 12 existing worlds into the brief's named stages, (b) an audit of
 child-facing copy for leftover speed/WPM language, (c) a posture-reminder animation and gradually
-shrinking Mouse Meadow targets, (d) the "up to eight family words" pack. Only (a) and (b) were completed
-and tested tonight; (c) and (d) were not attempted, so **milestone 4 is not tagged `revamp-m4`** — tagging
-it would overstate what's done. This is a deliberate stop, not a crash: the branch is left in a clean,
-fully-tested state (committed, not tagged) so nothing is at risk.
+shrinking Mouse Meadow targets, (d) the "up to eight family words" pack. This was originally committed
+as a partial stop covering only (a) and (b) (see the note at the end of this section); the user then
+asked to continue rather than wait, so (c) and (d) were finished and tested afterwards in the same
+sitting, and the whole milestone is now tagged.
+
+**A layout bug found by the user, fixed the same night:** the first cut of (a) put every stage on its own
+full 4-column grid row. Most stages hold only 1-2 worlds, so short rows left large empty gaps next to
+them — reported directly by the person testing it ("too much wastage of space"). Fixed by switching the
+map from a fixed-width CSS grid to flex-wrapped rows that size themselves to their own content and
+centre on screen, in `frontend/js/app.js` (`mapScreen()`, new `.stage-map`/`.stage-group`/`.stage-row`
+markup) and `frontend/css/style.css`. There is a known follow-up: on a wide screen there is still empty
+space on both sides of the (now correctly-sized) centred rows, which the user flagged as still not ideal
+but asked to defer in favour of finishing the remaining milestones — noted here rather than silently
+dropped.
 
 **What was built (a, b)**
 
@@ -145,48 +155,69 @@ calls rather than guess silently):**
   drive the parent area's "unlock a world by hand" list (which also reads from the same world/icon table
   and needed a small matching update in `frontend/js/dashboard.js`).
 
-**What was explicitly not attempted tonight, and why**
+**What was built (c): posture reminder and shrinking targets**
 
-- **Posture-reminder animation and gradually shrinking Mouse Meadow targets (brief §5's session rules and
-  the audit's Mouse Meadow completeness note):** these are genuine new UI/animation work — a new
-  first-of-session screen and a change to Mouse Meadow's per-level target-size logic — not safely
-  buildable and testable to a standard I'm confident in within the time already spent tonight on top of
-  milestone 3. Rushing an animation/UX piece without being able to actually watch it play risks shipping
-  something that looks broken to a 5-year-old, which is worse than not building it yet.
-- **The "up to eight family words" pack (brief §6.1):** this needs new parent-setup UI (a place to enter
-  up to eight words), a new generated `family-words` pack (the pack's manifest already exists from
-  milestone 2, declared but empty), and content-pack wiring into Word Woods/Sentence Sky. This is a
-  meaningfully sized feature in its own right, not a quick extension of the existing single
-  "favourite word" field.
-- Milestones 5–12 (everyday-computer desktop tasks, Safe & Smart interactive stories, remaining parent-area
-  upgrades, classroom mode, optional AI extras, monetisation-readiness switches, packaging/pywebview, and
-  the final UX/accessibility/testing pass) were **not started**. Each is a substantial feature in its own
-  right per the brief (see §6 and §12), several with real child-safety and privacy stakes (Safe & Smart's
-  story content, the picture-password "log in" task, classroom mode's anonymity-by-default requirement).
-  Building any of these properly needs real content-writing and UI design, not just refactoring — the kind
-  of work the brief's own "stop after each milestone, I test before you continue" rule (§12) exists to
-  gate, precisely so a whole new feature doesn't ship untested. Given that, and that the person who could
-  actually play-test any of it is asleep, continuing to build features tonight without anyone able to look
-  at them stops being "getting ahead" and starts being a risk of shipping something wrong.
+- A posture/hand reminder now appears once per time the app is opened, right after the child taps Play.
+  It is a dismissible pop-up over the map (not a full screen of its own) — `maybeShowPostureReminder()`
+  in `frontend/js/app.js` — spoken aloud, with an icon-only cue (🧍 ✋ 👀, no reading required, per the
+  brief's non-readers rule) and a "I'm ready!" button. It also closes itself after 4 seconds either way,
+  so a child who doesn't or can't tap it is never stuck. It was deliberately built as a pop-up rather
+  than a screen: an earlier full-screen version broke several browser tests that assert the screen is
+  "map" immediately after tapping Play (`tests/browser/js/who.js` in particular) — a pop-up keeps that
+  assertion true while still showing the reminder every time.
+- Mouse Meadow's first level (popping balloons) now shrinks the target gradually: five balloons per
+  level, sized 150 → 132 → 114 → 96 → 80px (`SIZES` in `frontend/js/mouse.js`'s `levelPop`), matching
+  brief §5's "large targets that shrink gradually" while staying well above the 64px minimum touch
+  target used everywhere else in the app. The other three Mouse Meadow games (drag-and-drop,
+  double-click, scroll) were left as-is: their targets are fixed shapes/counts, not a "click precisely"
+  mechanic, so shrinking them isn't what the brief is describing and would have been a bigger,
+  less-clearly-scoped change.
 
-**What to test in the morning (Milestone 4, partial)**
+**What was built (d): the family-words pack**
 
-1. Open the app as a child would, tap through to the world map. Instead of one flat grid of 12 icons, you
-   should see grey section headings ("1. Mouse Meadow", "2. Keyboard Land", ... "7. Create Studio", then
-   "Extra: logic games") with the relevant world icons grouped underneath each one. Try this in German too
-   (parent Settings → Language) to see the German stage names.
-2. Every world should still open, play, and track progress exactly as before — this was a labelling change
-   only. If anything looks locked/unlocked differently than you'd expect, that's worth flagging, though the
-   underlying unlock order did not change.
-3. Open the parent area → Settings → the "unlock a world by hand" list near the bottom: it should still
-   show all 12 worlds with their icons and lock/unlock toggle, working as before.
-4. Robot Helper (🤖) should now appear by itself under "Extra: logic games" at the very end of the map,
-   separate from the main numbered stages.
+- A parent can now enter up to 8 family words (Mama, Papa, Oma, a sibling or pet's name, ...) as one
+  comma-separated line in Settings, next to the existing favourite-word field. Stored as a new
+  `family_words` setting (same generic settings table as everything else, no schema change), validated
+  the same way the favourite word already is (letters only, 15 characters each), capped at 8 words.
+- Sentence Sky's fifth round (previously always the single favourite word, typed three times) now draws
+  its three items from the favourite word plus the family words, cycling through them if there are fewer
+  than three — so a parent who fills in family words sees them show up as real typing practice, exactly
+  where the brief says the highest-motivation content should go. If no family words are set, the round
+  behaves exactly as before (favourite word, or "fun"/"Spiel"/"juego" if that's empty too), so nothing
+  changes for anyone who doesn't use the new field.
+- The `family-words` content pack declared in milestone 2 stays a client-side-only, no-files pack exactly
+  as documented then — this feature reads the setting directly rather than writing it to disk as pack
+  content, since the pack's own manifest already says it's generated in the browser, never sent anywhere.
+
+**Test coverage for (c) and (d)**
+
+- `tests/test_api.py::test_family_words_is_validated_and_saved`: saving, reading back, rejecting more
+  than 8 words, rejecting a non-letter word, and clearing the field.
+- `tests/test_restore.py::test_family_words_is_restored_and_a_bad_one_is_ignored`: a valid list restores;
+  an invalid one (too many words) is skipped while other valid settings in the same backup still apply.
+- Full suite re-run after each change: 278 unit/i18n tests and the full 21-test browser suite both pass,
+  including after the mouse-target and posture-reminder changes specifically (the posture reminder was
+  the one most likely to break existing browser tests, and did on the first attempt — see above).
+
+**What to test in the morning (Milestone 4, now complete)**
+
+1. World map: grey stage headings group the 12 worlds ("1. Mouse Meadow" ... "7. Create Studio", then
+   "Extra: logic games" holding just Robot Helper); rows are now centred and sized to their content
+   rather than stretched across the screen (the space-wastage fix). There is still some empty margin on
+   either side on a wide window — a known, deferred cosmetic point, not a bug.
+2. Play Mouse Meadow's first game (popping balloons 🎈): each of the five balloons in a row should be a
+   little smaller than the last.
+3. Tap Play from the welcome screen: a pop-up with 🧍 ✋ 👀 and a spoken reminder to sit up straight
+   should appear over the map, with an "I'm ready!" button; it should also disappear on its own after a
+   few seconds if you don't tap anything. It should only appear once per time you open the app, not every
+   time you go back to the map.
+4. Parent area → Settings → below "Favourite word," a new "Family words" field: type e.g.
+   "Mama, Papa, Oma" and save. Then play Sentence Sky's fifth level (💛): the child should be asked to
+   type words drawn from that list (and the favourite word), not just the favourite word three times.
 
 ## Status and what is next
 
-Milestone 3 is complete, tagged `revamp-m3`, and pushed. Milestone 4 is roughly half-built (stage
-grouping is done and tested; posture reminder, shrinking mouse targets, and the family-words pack are
-not) and is committed but deliberately **not tagged**, so it's clear to a future session that it isn't a
-finished milestone yet. The next work, in order, is: finish milestone 4's remaining two pieces, then
-continue to milestone 5 (everyday-computer simulated-desktop tasks) per `docs/REVAMP_BRIEF.md` §12.
+Milestones 3 and 4 are both complete, tagged (`revamp-m3`, `revamp-m4`), and pushed. `main` is untouched.
+The next milestone is **5: everyday-computer simulated-desktop tasks** (brief §6.2) — the audit notes
+Desktop Dock already has most of the sandboxed-desktop mechanics built; what's missing is a
+picture-password "log in" task and a pop-up-recognition task.

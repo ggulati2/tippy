@@ -194,6 +194,19 @@ def test_age_band_is_validated_and_saved(client):
     assert client.get("/api/settings").json()["age_band"] == "8+"
 
 
+def test_family_words_is_validated_and_saved(client):
+    headers = parent_headers(client)
+    assert client.get("/api/settings").json()["family_words"] == ""  # not set yet
+    assert client.post("/api/parent/settings", json={"family_words": "Mama,Papa,Oma"}, headers=headers).status_code == 200
+    assert client.get("/api/settings").json()["family_words"] == "Mama,Papa,Oma"
+    too_many = ",".join(f"word{i}" for i in range(9))  # more than 8 words
+    assert client.post("/api/parent/settings", json={"family_words": too_many}, headers=headers).status_code == 422
+    assert client.post("/api/parent/settings", json={"family_words": "not a word!"}, headers=headers).status_code == 422
+    assert client.get("/api/settings").json()["family_words"] == "Mama,Papa,Oma"  # unchanged by the refused values
+    assert client.post("/api/parent/settings", json={"family_words": ""}, headers=headers).status_code == 200
+    assert client.get("/api/settings").json()["family_words"] == ""
+
+
 def test_dashboard_summary_export_reset_need_pin(client):
     for method, path in (("get", "/api/parent/dashboard"), ("get", "/api/parent/summary"), ("get", "/api/parent/export")):
         assert getattr(client, method)(path).status_code == 401

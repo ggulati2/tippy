@@ -42,7 +42,12 @@ function typableEntries(sentences) {
 
 async function startSkyRound(round) {
   if (round === 4) return nameRound(settings.child_name, "sentences.name", window.TIPPY_CONFIG.mascotName);
-  if (round === 5) return nameRound(settings.favorite_word, "sentences.fav", t("defaultFavorite"));
+  if (round === 5) {
+    // Brief section 6.1: family words (Mama, Papa, Oma, ...) join the favourite word as typing
+    // material here, the highest-motivation content the child sees. Never sent anywhere.
+    const pool = [settings.favorite_word, ...(settings.family_words ? settings.family_words.split(",") : [])].filter(Boolean);
+    return familyRound(pool.length ? pool : [t("defaultFavorite")]);
+  }
 
   // Bonus levels: longer sentences, questions, and sentences about what the child likes.
   const bonus = SENTENCE_BONUS[round];
@@ -66,10 +71,25 @@ async function startSkyRound(round) {
 function nameRound(value, promptKey, fallback) {
   let text = foldForKeyboard(typingText(value || ""));
   if (!isTypable(text)) text = typingText(fallback); // not set yet: use a friendly default
-  const round = promptKey === "sentences.name" ? 4 : 5;
   typingRound({
-    screen: "sentences", icon: round === 4 ? "📛" : "💛", text: t(promptKey),
+    screen: "sentences", icon: "📛", text: t(promptKey),
     items: [text, text, text].map((word) => ({ text: word.toUpperCase(), speak: word })),
-    onDone: () => completeLevel("sentences", round, sentenceSky),
+    onDone: () => completeLevel("sentences", 4, sentenceSky),
+  });
+}
+
+// The favourite word, plus up to 7 family words the parent added: three rounds' worth of items,
+// cycling through the pool so a short family-words list still fills the round.
+function familyRound(words) {
+  const items = [];
+  for (let i = 0; i < 3; i++) {
+    let text = foldForKeyboard(typingText(words[i % words.length] || ""));
+    if (!isTypable(text)) text = typingText(t("defaultFavorite"));
+    items.push({ text: text.toUpperCase(), speak: text });
+  }
+  typingRound({
+    screen: "sentences", icon: "💛", text: t("sentences.fav"),
+    items,
+    onDone: () => completeLevel("sentences", 5, sentenceSky),
   });
 }

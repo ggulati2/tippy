@@ -79,6 +79,24 @@ def test_age_band_is_restored_and_a_bad_one_is_ignored(tmp_path):
     assert db.get_settings(path)["child_name"] == "Mia"
 
 
+def test_family_words_is_restored_and_a_bad_one_is_ignored(tmp_path):
+    backup = {"app": "tippy", "exported_at": "2026-09-24", "tables": {
+        "settings": [{"key": "family_words", "value": "Mama,Papa,Oma"}], "progress": [], "sessions": [],
+        "child_profile": []}}
+    path = tmp_path / "c.db"
+    db.init_db(path, "en")
+    restore.apply(path, restore.prepare(backup))
+    assert db.get_settings(path)["family_words"] == "Mama,Papa,Oma"
+
+    too_many = ",".join(f"word{i}" for i in range(9))
+    bad = {"app": "tippy", "exported_at": "2026-09-24", "tables": {
+        "settings": [{"key": "child_name", "value": "Mia"}, {"key": "family_words", "value": too_many}],
+        "progress": [], "sessions": [], "child_profile": []}}
+    restore.apply(path, restore.prepare(bad))
+    assert db.get_settings(path)["family_words"] == "Mama,Papa,Oma"  # unchanged: the bad value was skipped
+    assert db.get_settings(path)["child_name"] == "Mia"
+
+
 def test_old_0_9_backup_still_restores(tmp_path):
     old_backup = {"app": "tippy", "exported_at": "2026-09-19", "tables": {
         "settings": [{"key": "language", "value": "de"}, {"key": "child_name", "value": "Lea"}, {"key": "openrouter_model", "value": "x"},

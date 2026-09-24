@@ -59,6 +59,7 @@ def _setting(key: str, value):
         "has_numpad": lambda: text if text in ("0", "1") else None,
         "child_name": lambda: text if _name_ok(text, 20, True) else None,
         "favorite_word": lambda: text if _name_ok(text, 15, False) else None,
+        "family_words": lambda: text if len(text.split(",")) <= 8 and all(_name_ok(w, 15, False) for w in text.split(",") if w) else None,
         "session_minutes": lambda: str(n) if (n := _int(_num(text), 0, 60)) is not None else None,
         "daily_limit_minutes": lambda: str(n) if (n := _int(_num(text), 0, 480)) is not None else None,
         "font_scale": lambda: text if text in ("1", "1.0", "1.125", "1.25") else None,

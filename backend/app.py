@@ -293,6 +293,8 @@ def create_app() -> FastAPI:
         # Typed by the child in Sentence Sky. Stored only on this computer, never sent to the LLM.
         child_name: str | None = Field(default=None, pattern=NAME_PATTERN)
         favorite_word: str | None = Field(default=None, pattern=WORD_PATTERN)
+        # Up to 8 family words (section 6.1), comma-joined; each one follows the same rule as favorite_word.
+        family_words: str | None = Field(default=None, pattern=r"^$|^[\p{L}]{1,15}(,[\p{L}]{1,15}){0,7}$")
         session_minutes: int | None = Field(default=None, ge=0, le=60)
         daily_limit_minutes: int | None = Field(default=None, ge=0, le=480)
         ask_tippy: bool | None = None

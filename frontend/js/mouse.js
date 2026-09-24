@@ -59,14 +59,21 @@ function startMouseLevel(n) {
 // One big balloon at a time: easiest possible target.
 function levelPop(done) {
   const total = 5;
+  // Brief section 5, stage 1: "large targets that shrink gradually." Still well above the 64px
+  // minimum touch target used everywhere else in the app, so the last balloon stays reachable.
+  const SIZES = [150, 132, 114, 96, 80];
   let popped = 0;
   const arena = el("div", { class: "arena" });
   const dots = progressDots(0, total);
   setScreen("mouse-1", instruction("🎈", t("mouse.pop")), dots, arena);
 
   function spawn() {
+    const size = SIZES[Math.min(popped, SIZES.length - 1)];
     const balloon = el("button", { class: "target balloon", "aria-label": "balloon" }, "🎈");
-    // Anywhere in the play area, but always fully inside it (the balloon is 150px wide and tall).
+    balloon.style.width = `${size}px`;
+    balloon.style.height = `${size}px`;
+    balloon.style.fontSize = `${(size * 7) / 150}rem`;
+    // Anywhere in the play area, but always fully inside it (reserve the largest possible size).
     balloon.style.left = `calc((100% - 150px) * ${rand(0.03, 0.97)})`;
     balloon.style.top = `calc((100% - 150px) * ${rand(0.03, 0.97)})`;
     balloon.style.filter = `hue-rotate(${Math.floor(rand(0, 360))}deg)`;
