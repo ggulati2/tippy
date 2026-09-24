@@ -288,19 +288,18 @@ const EXTRA_WORLDS = ["robot"];
 async function mapScreen() {
   reopenPicker = null;
   await loadProgress();
-  const grid = el("div", { class: "worlds" });
+  const grid = el("div", { class: "stage-map" });
   const worldButton = (id) => {
     const info = progress.worlds[id];
     const label = t("world." + id) + (info.complete ? " ✅" : "");
     return el("button", { class: "world" + (info.unlocked ? "" : " locked"), onclick: () => openWorld(id) },
       el("span", { class: "icon" }, info.unlocked ? WORLD_ICONS[id] : "🔒"), label);
   };
-  for (const stage of STAGES) {
-    grid.append(el("div", { class: "stage-label" }, t(stage.key)));
-    for (const id of stage.worlds) grid.append(worldButton(id));
-  }
-  grid.append(el("div", { class: "stage-label" }, t("stage.extras")));
-  for (const id of EXTRA_WORLDS) grid.append(worldButton(id));
+  const stageRow = (key, worldIds) => el("div", { class: "stage-group" },
+    el("div", { class: "stage-name" }, t(key)),
+    el("div", { class: "stage-row" }, ...worldIds.map(worldButton)));
+  for (const stage of STAGES) grid.append(stageRow(stage.key, stage.worlds));
+  grid.append(stageRow("stage.extras", EXTRA_WORLDS));
   const chips = el("div", { class: "map-top" },
     el("span", { class: "chip" }, `⭐ ${progress.total_stars}`),
     el("button", { class: "chip", onclick: () => { sfx("tap"); albumScreen(); } }, `📖 ${progress.stickers.length}`));
