@@ -8,3 +8,8 @@ Also: never add a "Co-Authored-By: Claude" trailer to a commit, or a "Generated 
 to a commit or a pull request description, in this repository. The owner had every trace of that removed
 once already (it took rewriting all git history and recreating the GitHub repository), and does not want
 it back.
+
+1. Don't assume. Don't hide confusion. Surface tradeoffs.
+2. Minimum code that solves the problem. Nothing speculative.
+3. Touch only what you must. Clean up only your own mess.
+4. Define success criteria. Loop until verified.
