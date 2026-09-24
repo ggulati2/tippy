@@ -69,6 +69,18 @@ The recordings in `frontend/voice` are one AI-generated voice (OpenAI text-to-sp
 - **Move to another computer:** unzip Tippy there, then either copy the `data/` folder over (Tippy closed) or restore a saved backup.
 - **Forgot the PIN:** stop Tippy and delete the `data/` folder — this also erases progress, so back up first if you can still reach the parent area.
 
+## Classroom mode and running from a USB stick
+
+**Classroom mode** is chosen on the very first start ("In a classroom"): the PIN becomes the teacher PIN, the class
+gets up to 30 children told apart by their picture (no names needed; nicknames can be added in the *Children* tab),
+and the teacher area shows a class overview with a CSV export. "Start fresh every day" resets every child's progress
+on the first start of each day. It can also be switched on later in the *Children* tab.
+
+**Portable mode** keeps everything on a USB stick: copy the Tippy program onto the stick and create an empty folder
+called `tippy-data` next to it (on Windows next to `Tippy.exe`, on a Mac next to `Tippy.app`). Tippy then keeps all
+its data, logs and settings in that folder instead of the computer's user folder, so the stick can move between
+school computers.
+
 ## Contributing
 
 Git workflow, commit rules and the release process: see [CONTRIBUTING.md](../CONTRIBUTING.md).

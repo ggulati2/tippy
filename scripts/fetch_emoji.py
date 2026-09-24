@@ -9,7 +9,7 @@ One-time setup (downloads the Twemoji source once, about 6 MB; needs the `regex`
 grouping, which the standard library cannot do):
     pip install regex
 
-Run it again whenever a new emoji is used anywhere in the code or in content/*.json:
+Run it again whenever a new emoji is used anywhere in the code or in the content packs (content/packs/):
     python scripts/fetch_emoji.py
 
 It downloads the Twemoji SVGs from GitHub (https://github.com/jdecked/twemoji, MIT code / CC-BY 4.0 graphics,
@@ -67,7 +67,7 @@ def collect_used_emoji() -> set[str]:
                 walk(key)
                 walk(value)
 
-    for path in glob.glob("content/*.json"):
+    for path in glob.glob("content/**/*.json", recursive=True):   # content packs live in content/packs/<id>/
         walk(json.loads(Path(path).read_text(encoding="utf-8")))
     return found
 

@@ -234,3 +234,57 @@ def test_helper_model_is_household_wide(api):
     mia = client.post("/api/parent/profiles", json={"name": "Mia", "avatar": AVATARS[1]}, headers=parent).json()["profiles"][1]["id"]
     client.post("/api/profiles/select", json={"id": mia})
     assert client.get("/api/parent/status", headers=parent).json()["model"] == "x/y:free"
+
+
+# ---------- Classroom mode (docs/REVAMP_BRIEF.md section 6.5) ----------
+
+@pytest.fixture()
+def fresh(tmp_path, monkeypatch):
+    """A brand-new install: no PIN yet, so the first-run setup is allowed."""
+    for key, value in {"TIPPY_DB_PATH": str(tmp_path / "tippy.db"), "PARENT_PIN": "", "LLM_MODE": "off", "OPENROUTER_API_KEY": ""}.items():
+        monkeypatch.setenv(key, value)
+    return TestClient(create_app())
+
+
+def test_classroom_setup_makes_an_anonymous_class(fresh):
+    settings = fresh.post("/api/setup", json={"pin": "9876", "language": "de", "classroom": True, "class_size": 25}).json()
+    assert settings["classroom"] is True and settings["profile_count"] == 25
+    listing = fresh.get("/api/profiles").json()
+    assert listing["max"] == 30 and all(p["name"] == "" for p in listing["profiles"])
+    assert len({p["avatar"] for p in listing["profiles"]}) == 25                 # every child has their own picture
+    teacher = {"X-Parent-Token": fresh.post("/api/parent/verify", json={"pin": "9876"}).json()["token"]}
+    assert len(fresh.post("/api/parent/class", json={"add": 10}, headers=teacher).json()["profiles"]) == 30   # never more than 30
+    assert fresh.post("/api/parent/profiles", json={"name": "Extra", "avatar": AVATARS[0]}, headers=teacher).status_code == 422
+    assert fresh.post("/api/parent/class", json={"classroom": False}, headers=teacher).status_code == 422   # 30 > home maximum
+
+
+def test_home_setup_stays_a_family(fresh):
+    settings = fresh.post("/api/setup", json={"pin": "9876", "child_name": "Mia"}).json()
+    assert settings["classroom"] is False and settings["profile_count"] == 1
+    assert fresh.get("/api/profiles").json()["max"] == 6
+
+
+def test_class_overview_needs_the_pin_and_shows_each_child(api):
+    client, parent = api
+    assert client.get("/api/parent/class/overview").status_code == 401
+    client.post("/api/parent/class", json={"classroom": True, "add": 2}, headers=parent)
+    client.post("/api/progress/complete", json={"world": "mouse", "level": 1, "stars": 3})
+    children = client.get("/api/parent/class/overview", headers=parent).json()["children"]
+    assert len(children) == 3
+    assert children[0]["worlds"]["mouse"] == {"done": 1, "total": 4} and children[1]["worlds"]["mouse"]["done"] == 0
+
+
+def test_daily_reset_clears_every_child_once_a_day(tmp_path):
+    from backend import dashboard, progress
+    family = Family(tmp_path)
+    family.set_classroom(True)
+    family.add_anonymous(1)
+    for profile in family.list():
+        progress.record_completion(family.path_for(profile["id"]), "mouse", 1, 3)
+    assert not family.reset_all_if_new_day("2026-09-24", dashboard.reset_progress)   # off by default
+    db.set_setting(family.family_db, "daily_reset", "1")
+    assert family.reset_all_if_new_day("2026-09-24", dashboard.reset_progress)
+    assert all(not progress.get_progress(family.path_for(p["id"]))["worlds"]["mouse"]["levels"] for p in family.list())
+    progress.record_completion(family.db_path, "mouse", 1, 3)
+    assert not family.reset_all_if_new_day("2026-09-24", dashboard.reset_progress)   # the same day: kept
+    assert family.reset_all_if_new_day("2026-09-25", dashboard.reset_progress)       # the next day: reset again

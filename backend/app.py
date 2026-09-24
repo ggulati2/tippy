@@ -19,6 +19,7 @@ from backend import bank, dashboard, db, difficulty, languages, progress, restor
 from backend.config import FRONTEND_DIR, LOG_DIR, PORT, load_settings
 from backend.content import ContentService
 from backend.llm.client import LLMClient
+from backend import profiles as profiles_module
 from backend.profiles import AVATARS, Family, ProfileError
 from backend.security import PinGuard
 
@@ -140,6 +141,7 @@ def create_app() -> FastAPI:
         out["setup_needed"] = not guard.has_pin
         out["profile_id"] = family.active_id
         out["profile_count"] = len(family.list())
+        out["classroom"] = family.classroom
         out["age_band"] = db.get_age_band(family.db_path)
         for number in ("session_minutes", "daily_limit_minutes"):
             out[number] = int(stored.get(number) or 0)
@@ -218,6 +220,7 @@ def create_app() -> FastAPI:
     @app.post("/api/visit")
     def visit():
         """Called when the app opens: counts today as a play day for the streak."""
+        family.reset_all_if_new_day(date.today().isoformat(), dashboard.reset_progress)
         progress.record_visit(family.db_path, date.today())
         return {"ok": True}
 
@@ -286,6 +289,10 @@ def create_app() -> FastAPI:
         language: str = Field(default="en", pattern=languages.LANGUAGE_PATTERN)
         child_name: str = Field(default="", pattern=NAME_PATTERN)
         daily_limit_minutes: int = Field(default=30, ge=0, le=480)
+        # Classroom mode (section 6.5): the PIN is the teacher's, and the class starts with this many children.
+        classroom: bool = False
+        class_size: int = Field(default=1, ge=1, le=30)
+        daily_reset: bool = False
 
     @app.post("/api/setup")
     def first_run_setup(body: SetupBody):
@@ -298,6 +305,11 @@ def create_app() -> FastAPI:
         db.set_setting(family.db_path, "child_name", body.child_name)
         family.rename_active(body.child_name)
         db.set_setting(family.db_path, "daily_limit_minutes", str(body.daily_limit_minutes))
+        if body.classroom:
+            family.set_classroom(True)
+            db.set_setting(family.family_db, "daily_reset", "1" if body.daily_reset else "0")
+            db.set_setting(family.family_db, "last_reset_day", date.today().isoformat())
+            family.add_anonymous(body.class_size - 1, body.language)
         return read_settings()
 
     class NewPinBody(BaseModel):
@@ -368,7 +380,8 @@ def create_app() -> FastAPI:
     @app.get("/api/profiles")
     def list_profiles():
         """For the "who is playing?" screen. Names stay on this computer."""
-        return {"profiles": family.list(), "active": family.active_id, "avatars": AVATARS}
+        return {"profiles": family.list(), "active": family.active_id, "avatars": AVATARS, "max": family.max_profiles,
+                "classroom": family.classroom, "daily_reset": db.get_settings(family.family_db).get("daily_reset") == "1"}
 
     class SelectBody(BaseModel):
         id: int
@@ -376,11 +389,38 @@ def create_app() -> FastAPI:
     @app.post("/api/profiles/select")
     def select_profile(body: SelectBody):
         """A child taps their picture. No PIN: it only decides whose progress is shown."""
+        family.reset_all_if_new_day(date.today().isoformat(), dashboard.reset_progress)
         try:
             family.select(body.id)
         except ProfileError as error:
             raise HTTPException(status_code=422, detail=str(error))
         return read_settings()
+
+    class ClassBody(BaseModel):
+        classroom: bool | None = None
+        daily_reset: bool | None = None
+        add: int = Field(default=0, ge=0, le=30)          # add this many anonymous children
+
+    @app.post("/api/parent/class")
+    def update_class(body: ClassBody, _parent: None = Depends(parent_only)):
+        if body.classroom is False and len(family.list()) > profiles_module.MAX_PROFILES:
+            raise HTTPException(status_code=422, detail=f"Remove children first: home mode has up to {profiles_module.MAX_PROFILES}.")
+        if body.classroom is not None:
+            family.set_classroom(body.classroom)
+        if body.daily_reset is not None:
+            db.set_setting(family.family_db, "daily_reset", "1" if body.daily_reset else "0")
+            db.set_setting(family.family_db, "last_reset_day", date.today().isoformat())   # starts counting from tomorrow
+        family.add_anonymous(body.add, db.get_settings(family.db_path).get("language"))
+        return list_profiles()
+
+    @app.get("/api/parent/class/overview")
+    def class_overview(_parent: None = Depends(parent_only)):
+        """For the teacher's class overview: how far each child is, per world (the browser groups worlds into stages)."""
+        children = []
+        for profile in family.list():
+            state = progress.get_progress(family.path_for(profile["id"]))
+            children.append({**profile, "worlds": progress.world_counts(state), "stars": state["total_stars"]})
+        return {"children": children}
 
     class NewProfileBody(BaseModel):
         name: str = Field(min_length=1, pattern=NAME_PATTERN)

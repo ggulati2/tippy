@@ -21,7 +21,11 @@ from backend import db, languages
 log = logging.getLogger("tippy.profiles")
 
 MAX_PROFILES = 6
-AVATARS = ["🦊", "🐼", "🦁", "🐯", "🐸", "🐙", "🦄", "🐧", "🦖", "🚀", "🐝", "🦋"]
+# Classroom mode (docs/REVAMP_BRIEF.md section 6.5): up to 30 children, told apart by their picture, so there
+# must be at least 30 different pictures. New ones are only ever added at the end (a saved child keeps theirs).
+MAX_CLASS_PROFILES = 30
+AVATARS = ["🦊", "🐼", "🦁", "🐯", "🐸", "🐙", "🦄", "🐧", "🦖", "🚀", "🐝", "🦋",
+           "🐶", "🐱", "🐰", "🐻", "🐨", "🐮", "🐷", "🐵", "🐔", "🦉", "🐢", "🐬", "🐳", "🦒", "🐘", "🦓", "🐞", "🦀"]
 
 FAMILY_SCHEMA = """
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -142,9 +146,41 @@ class Family:
             profile_id = conn.execute("INSERT INTO profiles (name, avatar) VALUES (?, ?)", (name, avatar)).lastrowid
         return profile_id
 
+    # ---------- Classroom mode ----------
+
+    @property
+    def classroom(self) -> bool:
+        return db.get_settings(self.family_db).get("mode") == "classroom"
+
+    @property
+    def max_profiles(self) -> int:
+        return MAX_CLASS_PROFILES if self.classroom else MAX_PROFILES
+
+    def set_classroom(self, on: bool) -> None:
+        db.set_setting(self.family_db, "mode", "classroom" if on else "family")
+
+    def next_free_avatar(self) -> str:
+        used = {p["avatar"] for p in self.list()}
+        return next((a for a in AVATARS if a not in used), AVATARS[0])
+
+    def add_anonymous(self, count: int, language: str | None = None) -> None:
+        """Classroom mode is anonymous by default: each new child has only a picture, no name."""
+        for _ in range(max(0, min(count, self.max_profiles - len(self.list())))):
+            self.create("", self.next_free_avatar(), language)
+
+    def reset_all_if_new_day(self, today: str, reset) -> bool:
+        """The optional daily reset some schools want: the first visit of a new day resets every child's progress."""
+        family = db.get_settings(self.family_db)
+        if family.get("daily_reset") != "1" or family.get("last_reset_day") == today:
+            return False
+        for profile in self.list():
+            reset(self.path_for(profile["id"]))
+        db.set_setting(self.family_db, "last_reset_day", today)
+        return True
+
     def create(self, name: str, avatar: str, language: str | None = None) -> dict:
-        if len(self.list()) >= MAX_PROFILES:
-            raise ProfileError(f"Tippy supports up to {MAX_PROFILES} children.")
+        if len(self.list()) >= self.max_profiles:
+            raise ProfileError(f"Tippy supports up to {self.max_profiles} children.")
         if avatar not in AVATARS:
             raise ProfileError("Please pick one of the pictures.")
         profile_id = self._create(name, avatar)

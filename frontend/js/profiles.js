@@ -43,12 +43,14 @@ async function switchChild(id, { checkLimits = true } = {}) {
 // The big "who is playing?" screen. It is shown at start-up when there is more than one child.
 async function whoIsPlaying() {
   await loadProfiles();
+  // In a class the picture is what a child recognises; a missing name is not replaced by "Player".
   const cards = profileList.profiles.map((p) =>
     el("button", { class: "world child-card", onclick: async () => {
       sfx("play");
       if (await switchChild(p.id)) welcomeScreen();
-    } }, el("span", { class: "icon" }, p.avatar), p.name || t("child.unnamed")));
-  setScreen("who", el("h1", { class: "title" }, t("who.title")), el("div", { class: "worlds" }, ...cards));
+    } }, el("span", { class: "icon" }, p.avatar), p.name || (profileList.classroom ? "" : t("child.unnamed"))));
+  const grid = el("div", { class: "worlds" + (cards.length > 8 ? " class-grid" : "") }, ...cards);
+  setScreen("who", el("h1", { class: "title" }, t("who.title")), grid);
   speak(t("who.title"));
 }
 
@@ -119,15 +121,50 @@ async function childrenTab(body) {
     if (e.target.tagName !== "BUTTON") return;
     [...e.currentTarget.children].forEach((b) => b.classList.toggle("on", b === e.target));   // this form does not re-draw the page
   });
-  const full = profileList.profiles.length >= 6;
-  const addForm = full ? el("p", { class: "muted" }, t("children.max")) : el("div", { class: "add-child" },
+  const full = profileList.profiles.length >= profileList.max;
+  const classroom = profileList.classroom;
+  const addForm = full ? el("p", { class: "muted" }, t("children.max").replace("{max}", profileList.max)) : el("div", { class: "add-child" },
     el("h3", {}, t("children.add")),
     el("div", { class: "row child-row" }, avatarSelect(newAvatar, (a) => { newAvatar = a; }), newName),
     languagePick,
     el("button", { class: "big-btn blue small-btn", onclick: async () => {
-      if (!newName.value.trim()) { message.textContent = "⚠️ " + t("children.error"); return; }
+      // A class is anonymous by default: there a nickname is optional, the picture is enough.
+      if (!classroom && !newName.value.trim()) { message.textContent = "⚠️ " + t("children.error"); return; }
       if (await send("/api/parent/profiles", { name: newName.value.trim(), avatar: newAvatar, language: newLanguage })) refresh();
     } }, "➕ " + t("children.addBtn")));
 
-  body.replaceChildren(note, ...rows, message, addForm);
+  const classBox = el("div", { class: "class-box" },
+    toggleRow(t("classMode"), [[false, t("setup.home")], [true, t("setup.classroom")]], classroom,
+      async (v) => { await send("/api/parent/class", { classroom: v }); refresh(); }),
+    ...(classroom ? [
+      toggleRow(t("setDailyReset"), [[false, t("setOff")], [true, t("on")]], profileList.daily_reset,
+        async (v) => { await send("/api/parent/class", { daily_reset: v }); refresh(); }),
+      full ? "" : el("button", { class: "big-btn blue small-btn add-five", onclick: async () => {
+        if (await send("/api/parent/class", { add: 5 })) refresh();
+      } }, "➕ " + t("classAddFive")),
+      await classOverview()] : []));
+
+  body.replaceChildren(note, classBox, ...rows, message, addForm);
+}
+
+// The teacher's class overview (brief section 6.5): which stages each child has finished, and a CSV file of it.
+async function classOverview() {
+  const { body } = await api("/api/parent/class/overview");
+  const done = (child, stage) => stage.worlds.every((w) => child.worlds[w] && child.worlds[w].done >= child.worlds[w].total);
+  const label = (child) => child.name || child.avatar;
+  const header = [t("classChild"), ...STAGES.map((s) => t(s.key)), t("statStars")];
+  const rows = body.children.map((c) => [label(c), ...STAGES.map((s) => (done(c, s) ? "✓" : "")), c.stars]);
+  const table = el("table", { class: "data-table class-table" },
+    el("thead", {}, el("tr", {}, ...header.map((h) => el("th", {}, h)))),
+    el("tbody", {}, ...body.children.map((c, i) => el("tr", {}, el("td", {}, `${c.avatar} ${c.name}`), ...rows[i].slice(1).map((v) => el("td", {}, String(v)))))));
+  // A spreadsheet-safe CSV: every cell quoted, and a leading = + - @ neutralised so no cell runs as a formula.
+  const cell = (v) => `"${String(v).replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"`;
+  const csv = [header, ...body.children.map((c, i) => [c.avatar + (c.name ? " " + c.name : ""), ...rows[i].slice(1)])]
+    .map((r) => r.map(cell).join(",")).join("\r\n");
+  const download = el("button", { class: "big-btn blue small-btn class-csv", onclick: () => {
+    const link = el("a", { href: URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv" })),
+      download: `tippy-class-${new Date().toISOString().slice(0, 10)}.csv` });
+    document.body.append(link); link.click(); link.remove();
+  } }, "📄 " + t("classCsv"));
+  return el("div", { class: "card class-overview" }, el("h3", {}, "🏫 " + t("classOverview")), table, download);
 }

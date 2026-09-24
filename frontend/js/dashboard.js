@@ -12,7 +12,8 @@ async function parentPanel() {
   const tabs = el("div", { class: "tabs" }, ...visibleTabs.map(([id, icon, key]) =>
     el("button", { class: "tab" + (id === parentTab ? " on" : ""), onclick: () => { parentTab = id; parentPanel(); } }, `${icon} ${t(key)}`)));
   const panel = el("div", { class: "panel wide" },
-    el("h2", {}, "🔓 " + t("parentArea") + (settings.profile_count > 1 ? ` · ${avatarOf(settings.profile_id)} ${settings.child_name || t("child.unnamed")}` : "")), tabs, body,
+    el("h2", {}, "🔓 " + t(settings.classroom ? "teacherArea" : "parentArea") + (settings.profile_count > 1
+      ? ` · ${avatarOf(settings.profile_id)} ${settings.child_name || (settings.classroom ? "" : t("child.unnamed"))}` : "")), tabs, body,
     // Exit and Back stay visible at the bottom even when the tab scrolls.
     el("div", { class: "panel-actions" },
       el("button", { class: "big-btn exit-btn small-btn", onclick: exitApp }, t("exitApp")),

@@ -18,12 +18,27 @@ FROZEN = bool(getattr(sys, "frozen", False))
 ROOT = Path(sys._MEIPASS) if FROZEN else Path(__file__).resolve().parent.parent   # code and content
 
 
+PORTABLE_FOLDER = "tippy-data"
+
+
+def portable_dir(executable: Path, platform: str) -> Path | None:
+    """Portable mode (docs/REVAMP_BRIEF.md section 4.6, for schools and USB sticks): a folder called
+    "tippy-data" next to the program makes Tippy keep everything in it instead of the user's folder.
+    On a Mac the program is Tippy.app/Contents/MacOS/Tippy, so "next to it" means next to Tippy.app."""
+    beside = executable.parents[3] if platform == "darwin" and len(executable.parents) > 3 else executable.parent
+    folder = beside / PORTABLE_FOLDER
+    return folder if folder.is_dir() else None
+
+
 def _home_dir() -> Path:
     """Where the family's files live. TIPPY_HOME overrides it (used by the tests)."""
     if os.environ.get("TIPPY_HOME"):
         return Path(os.environ["TIPPY_HOME"])
     if not FROZEN:
         return ROOT
+    portable = portable_dir(Path(sys.executable), sys.platform)
+    if portable:
+        return portable
     if sys.platform == "darwin":
         return Path.home() / "Library" / "Application Support" / "Tippy"
     if sys.platform == "win32":

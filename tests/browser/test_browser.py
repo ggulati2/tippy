@@ -84,3 +84,7 @@ def test_germany_specific_levels_ss_key_and_stickers(server):
 
 def test_content_security_policy_is_enforced(server):
     assert_clean(run_script(server, "csp.js", budget_ms=120_000))
+
+
+def test_classroom_mode(fresh_server):
+    assert_clean(run_script(fresh_server, "classroom.js", "de", budget_ms=400_000))

@@ -12,6 +12,8 @@ T.run(async () => {
   T.check("every language is offered by its own name", ["English", "Deutsch", "Español"].every((n) => choices.includes(n)), choices.join(","));
   const native = { en: "English", de: "Deutsch", es: "Español" }[lang];
   button(native).click(); await T.wait(500);
+  T.check("the next step asks: at home or in a classroom", !!modal().querySelector(".place-home") && !!modal().querySelector(".place-class"));
+  modal().querySelector(".place-home").click(); await T.wait(500);
   T.check("the PIN step is shown in the chosen language", modal().querySelector("h2").textContent.length > 3 && modal().querySelector(".keypad"), modal().querySelector("h2").textContent);
   await digits("2468"); await digits("2468");
   const basics = modal().textContent;

@@ -31,8 +31,8 @@ function keypadPanel(title, hint, onSubmit, onBack) {
 }
 
 // Ask for a new PIN twice. Calls done(pin) when both entries match.
-function chooseNewPin(done, onBack) {
-  const first = (hint) => openModal(keypadPanel(t("setup.choosePin"), hint || t("setup.pinNote"), (pin) => confirm(pin), onBack));
+function chooseNewPin(done, onBack, title = t("setup.choosePin")) {
+  const first = (hint) => openModal(keypadPanel(title, hint || t("setup.pinNote"), (pin) => confirm(pin), onBack));
   const confirm = (pin) => openModal(keypadPanel(t("setup.confirmPin"), "", (again, say) => {
     if (again === pin) done(pin); else first(t("setup.mismatch"));
   }, () => first()));
@@ -41,7 +41,8 @@ function chooseNewPin(done, onBack) {
 
 function setupWizard() {
   setupActive = true;
-  const data = { pin: "", language: settings.language, child_name: "", daily_limit_minutes: 30 };
+  const data = { pin: "", language: settings.language, child_name: "", daily_limit_minutes: 30,
+                 classroom: false, class_size: 20, daily_reset: false };
   $("#parent-btn").hidden = true;
 
   function stepLanguage() {
@@ -49,10 +50,34 @@ function setupWizard() {
     openModal(el("div", { class: "panel" }, mascotSVG(), el("h2", {}, "Welcome · Willkommen · Bienvenido"),
       el("div", { class: "choices" },
         ...languageOptions().map(([code, label]) =>
-          el("button", { class: "big-btn blue", onclick: () => { data.language = settings.language = code; stepPin(); } }, label)))));
+          el("button", { class: "big-btn blue", onclick: () => { data.language = settings.language = code; stepPlace(); } }, label)))));
   }
 
-  function stepPin() { chooseNewPin((pin) => { data.pin = pin; stepBasics(); }, stepLanguage); }
+  // At home, or in a classroom (brief section 6.5: a separate teacher setup with a teacher PIN).
+  function stepPlace() {
+    const pick = (classroom) => { data.classroom = classroom; if (classroom) data.daily_limit_minutes = 0; stepPin(); };
+    openModal(el("div", { class: "panel" }, el("h2", {}, t("setup.where")),
+      el("div", { class: "choices" },
+        el("button", { class: "choice small place-home", onclick: () => pick(false) }, el("span", { class: "choice-icon" }, "🏠"), el("span", { class: "choice-label" }, t("setup.home"))),
+        el("button", { class: "choice small place-class", onclick: () => pick(true) }, el("span", { class: "choice-icon" }, "🏫"), el("span", { class: "choice-label" }, t("setup.classroom")))),
+      el("button", { class: "big-btn blue", onclick: stepLanguage }, t("back"))));
+  }
+
+  function stepPin() {
+    chooseNewPin((pin) => { data.pin = pin; (data.classroom ? stepClass : stepBasics)(); }, stepPlace,
+      t(data.classroom ? "setup.chooseTeacherPin" : "setup.choosePin"));
+  }
+
+  // A class is anonymous by default: each child is told apart by their picture, no names needed.
+  function stepClass() {
+    const size = toggleRow(t("setup.classSize"), [10, 15, 20, 25, 30].map((v) => [v, String(v)]), data.class_size,
+      (v) => { data.class_size = v; stepClass(); });
+    const reset = toggleRow(t("setDailyReset"), [[false, t("setOff")], [true, t("on")]], data.daily_reset,
+      (v) => { data.daily_reset = v; stepClass(); });
+    openModal(el("div", { class: "panel wide" }, el("h2", {}, t("setup.basics")), size, reset,
+      el("p", { class: "muted" }, t("setup.classNote")),
+      el("button", { class: "big-btn play-btn", onclick: finish }, "▶ " + t("setup.start"))));
+  }
 
   function stepBasics() {
     const name = el("input", { class: "text-input", type: "text", maxlength: "20", value: data.child_name,
@@ -72,8 +97,8 @@ function setupWizard() {
     setupActive = false;
     $("#parent-btn").hidden = false;
     closeModal();
-    startLimits();
-    welcomeScreen();
+    startLimits(!data.classroom);
+    if (data.classroom) whoIsPlaying(); else welcomeScreen();
   }
 
   stepLanguage();

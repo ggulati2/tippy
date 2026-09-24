@@ -481,7 +481,36 @@ languages. 287 unit/i18n tests, 9 voice tests and 21 browser tests pass; new lin
 Settings → own word list "Haus, Baum" → Word Woods shows 📝; Data → reset with a wrong PIN, then the right one;
 Progress → print a certificate; the Datenschutz tab.
 
+## Brief milestone 8 — Classroom mode and portable mode (tagged `revamp-m9`)
+
+- **Teacher setup:** the first-run wizard now asks "At home / In a classroom" after the language. A classroom gets a
+  *teacher* PIN, a class size (10–30) and an optional "start fresh every day", and opens on "who is playing?".
+- **Anonymous by default:** children in a class have only a picture (30 different animal pictures now, the first 12
+  unchanged so saved children keep theirs); a nickname is optional. The picker drops the "Player" label for them and
+  switches to a compact 6-column grid for big classes (checked visually with 30).
+- **Up to 30 children** in classroom mode (6 at home); "Add 5 children" in the Children tab; switching back to home
+  mode is refused while there are more than 6 children.
+- **Daily reset:** the first start (or first child picked) of a new day resets every child's progress.
+- **Class overview** in the Children tab: every child against the 7 stages (✓ when a stage is done) plus stars, and a
+  CSV download. The CSV quotes every cell and neutralises a leading `= + - @` so no cell can run as a spreadsheet formula.
+- **Portable mode:** a folder called `tippy-data` next to the program (next to `Tippy.app` on a Mac) makes Tippy keep
+  everything there, for USB sticks. Documented in `docs/ADVANCED.md`.
+- In classroom mode the parent area is titled "Teacher area" / "Lehrerbereich".
+
+**A regression of my own, fixed:** `scripts/fetch_emoji.py` still scanned `content/*.json`, but milestone 2 moved those
+files into `content/packs/`. Running it would have found none of the content emoji and deleted their pictures. It now
+scans recursively; rerunning it added 7 new pictures and removed none. Branch-only (not on `main`).
+
+**Tests:** unit tests for classroom setup (25 anonymous children, distinct pictures, the cap of 30, refusing home mode
+with too many), home setup, the class overview (needs the PIN, per-child counts), daily reset (off by default, once a
+day), and portable-folder detection (Windows, Mac, a file of that name). A new browser test runs the whole classroom
+setup in German on a fresh install, checks the 25-card picker fits the screen, the overview table, the CSV contents,
+and filling the class to 30. The wizard test now picks "At home". 294 unit/i18n tests and 22 browser tests pass.
+
+**What to test:** a fresh install (or "delete everything") → choose "In der Klasse" → 20 children → the picture
+picker; teacher area → Kinder → class overview and CSV.
+
 ## Status and what is next
 
-Brief milestones 1–7 are complete (tags `revamp-m1` to `revamp-m8`); `main` untouched. Next is the brief's
-**milestone 8: classroom mode and portable mode** (tag `revamp-m9`).
+Brief milestones 1–8 are complete (tags `revamp-m1` to `revamp-m9`); `main` untouched. Next is the brief's
+**milestone 9: feature flags and offline licence file** (tag `revamp-m10`).

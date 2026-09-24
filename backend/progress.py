@@ -142,6 +142,12 @@ def record_completion(db_path: Path, world: str, level: int, stars: int, today: 
     return {"new_stickers": new_stickers}
 
 
+def world_counts(state: dict) -> dict:
+    """Core levels done and core levels in total, per world, from a get_progress() result."""
+    return {w: {"done": len([lv for lv in info["levels"] if int(lv) <= LEVEL_COUNTS.get(w, 0)]), "total": LEVEL_COUNTS.get(w, 0)}
+            for w, info in state["worlds"].items()}
+
+
 def get_progress(db_path: Path, today: date | None = None) -> dict:
     today = today or date.today()
     with db.connect(db_path) as conn:
