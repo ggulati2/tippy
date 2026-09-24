@@ -98,10 +98,13 @@ async function childrenTab(body) {
 
   function askRemove(p, row) {
     if (profileList.profiles.length < 2) { message.textContent = "⚠️ " + t("children.last"); return; }
+    const pin = pinConfirmField();   // removing a child asks for the PIN again (brief section 6.4)
     const box = el("div", { class: "reset-box" }, el("p", {}, "⚠️ " + t("children.removeAsk").replace("{name}", p.name || t("child.unnamed"))),
+      pin,
       el("div", { class: "panel-actions inline" },
         el("button", { class: "big-btn exit-btn small-btn", onclick: async () => {
-          if (await send(`/api/parent/profiles/${p.id}/delete`, { confirm: "DELETE" })) { await loadProfiles(); refresh(); }
+          if (await send(`/api/parent/profiles/${p.id}/delete`, { confirm: "DELETE", pin: pin.value })) { await loadProfiles(); refresh(); }
+          else { message.textContent = "⚠️ " + t("wrongPin"); pin.value = ""; }
         } }, t("children.removeYes")),
         el("button", { class: "big-btn blue small-btn", onclick: () => box.remove() }, t("dataCancel"))));
     row.after(box);

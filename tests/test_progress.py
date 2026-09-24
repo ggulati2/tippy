@@ -201,7 +201,7 @@ def test_bonus_levels_are_accepted_up_to_the_last_one_and_award_their_stickers(t
     path = tmp_path / "p.db"
     db.init_db(path)
     # (world, last level, a bonus level with a sticker, that sticker). Some of the numbers in between are German-only.
-    for world, last, level, sticker in (("letters", 9, 8, "fish"), ("words", 15, 10, "flamingo"), ("sentences", 13, 8, "peacock"),
+    for world, last, level, sticker in (("letters", 9, 8, "fish"), ("words", 16, 10, "flamingo"), ("sentences", 13, 8, "peacock"),
                                         ("keyboard", 7, 7, "crocodile"), ("basics", 19, 10, "sloth")):
         assert progress.max_level(world) == last
         assert sticker in progress.record_completion(path, world, level, 3)["new_stickers"]

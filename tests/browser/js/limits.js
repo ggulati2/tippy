@@ -47,4 +47,13 @@ T.run(async () => {
   await T.post("/api/parent/settings", { daily_limit_minutes: 90 }, H);
   await T.wait(61000);
   T.check("goodnight screen clears by itself when the limit no longer applies", T.modalCount() === 0 && !limitReached);
+
+  // Outside the parent's play hours the same goodnight screen appears (a window that leaves out the current hour).
+  const outside = new Date().getHours() < 12 ? "13-24" : "0-11";
+  await T.post("/api/parent/settings", { play_window: outside }, H);
+  await refreshLimits(); await T.wait(300);
+  T.check("outside the play hours the goodnight screen appears", limitReached && T.modalCount() === 1, outside);
+  await T.post("/api/parent/settings", { play_window: "" }, H);
+  await refreshLimits(); await T.wait(300);
+  T.check("without a play window Tippy is usable again", !limitReached);
 });

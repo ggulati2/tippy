@@ -21,10 +21,21 @@ const WORD_BONUS = {
   13: { special: "country_words", text: "words.countries", icon: "🌍" },
   14: { special: "food_words", text: "words.food", icon: "🍕" },
   15: { special: "wild_words", text: "words.wild", icon: "🦓" },
+  // The parent's own word list (brief section 4.2, "this week's spelling words"): only there once a list is set.
+  16: { custom: true, text: "words.custom", icon: "📝" },
 };
 
 async function startWordRound(round) {
   const bonus = WORD_BONUS[round];
+  if (bonus && bonus.custom) {
+    const words = settings.custom_words.split(",").map((w) => foldForKeyboard(w)).filter(isTypable).slice(0, 10);
+    if (!words.length) words.push(t("defaultFavorite"));   // nothing in the list fits this keyboard
+    return typingRound({
+      screen: "words", icon: bonus.icon, text: t(bonus.text),
+      items: words.map((word) => ({ text: shout(word), speak: word })),
+      onDone: () => completeLevel("words", round, wordWoods),
+    });
+  }
   const maxLen = round <= 2 ? 3 : 4; // the first two rounds use the shortest words
   const url = bonus && bonus.special ? `/api/content/special?set=${bonus.special}&count=5`
     : `/api/content/words?count=5&pictured=true&${bonus ? bonus.query : "max_len=" + maxLen}`;

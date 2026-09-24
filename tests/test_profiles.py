@@ -222,9 +222,10 @@ def test_profiles_api_flow(api):
     assert client.post("/api/parent/profiles", json={"name": "<b>", "avatar": AVATARS[0]}, headers=parent).status_code == 422
     assert client.post("/api/parent/profiles", json={"name": "", "avatar": AVATARS[0]}, headers=parent).status_code == 422
     assert client.post(f"/api/parent/profiles/{mia}/delete", json={"confirm": "no"}, headers=parent).status_code == 422
-    assert client.post(f"/api/parent/profiles/{mia}/delete", json={"confirm": "DELETE"}, headers=parent).status_code == 200
+    assert client.post(f"/api/parent/profiles/{mia}/delete", json={"confirm": "DELETE"}, headers=parent).status_code == 403   # PIN again
+    assert client.post(f"/api/parent/profiles/{mia}/delete", json={"confirm": "DELETE", "pin": "4321"}, headers=parent).status_code == 200
     assert client.post("/api/profiles/select", json={"id": mia}).status_code == 422
-    assert client.post("/api/parent/profiles/1/delete", json={"confirm": "DELETE"}, headers=parent).status_code == 422   # the last child
+    assert client.post("/api/parent/profiles/1/delete", json={"confirm": "DELETE", "pin": "4321"}, headers=parent).status_code == 422   # the last child
 
 
 def test_helper_model_is_household_wide(api):

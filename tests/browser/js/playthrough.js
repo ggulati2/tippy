@@ -8,7 +8,8 @@ T.run(async () => {
   const saved = await fetch("/api/parent/settings", { method: "POST", headers: { "Content-Type": "application/json", ...H }, body: JSON.stringify({
     language: lang, keyboard_layout: LANGUAGES.find((l) => l.code === lang).keyboard,
     child_name: { en: "Mia", de: "Jürgen", es: "José" }[lang],       // names with accents are typed with the plain letters
-    favorite_word: "hund", font_scale: Number(scale || 1), daily_limit_minutes: 0, session_minutes: 0 }) }).then((r) => r.json());
+    favorite_word: "hund", custom_words: "sun,tree",                   // the parent's own list adds a Word Woods level
+    font_scale: Number(scale || 1), daily_limit_minutes: 0, session_minutes: 0 }) }).then((r) => r.json());
   await T.post("/api/parent/unlock", { world: "all" }, H);
   settings = { ...settings, ...saved }; applyLook(); await loadProgress();
 

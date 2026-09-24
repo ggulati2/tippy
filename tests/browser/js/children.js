@@ -80,7 +80,8 @@ T.run(async () => {
   button("👧").click(); await T.wait(600);
   rows()[0].querySelectorAll(".seg button")[1].click(); await T.wait(300);
   T.check("removing asks first", /⚠️/.test(modal().textContent) && (await profiles()).profiles.length === 2);
+  modal().querySelector(".reset-box .pin-confirm").value = "2468";
   [...modal().querySelectorAll(".reset-box button")][0].click(); await T.wait(900);
   T.check("Ben is removed", (await profiles()).profiles.length === 1 && (await profiles()).profiles[0].name === "Mia");
-  T.check("the last child has no remove option that works", (await fetch("/api/parent/profiles/" + mia + "/delete", { method: "POST", headers: { "Content-Type": "application/json", ...H }, body: JSON.stringify({ confirm: "DELETE" }) })).status === 422);
+  T.check("the last child has no remove option that works", (await fetch("/api/parent/profiles/" + mia + "/delete", { method: "POST", headers: { "Content-Type": "application/json", ...H }, body: JSON.stringify({ confirm: "DELETE", pin: "2468" }) })).status === 422);
 });

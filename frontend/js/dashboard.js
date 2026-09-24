@@ -1,8 +1,8 @@
-// The parent area: four tabs (Progress, Settings, Online helper, Data).
+// The parent area: Progress, Settings, Children, Online helper, Data and Datenschutz (privacy).
 // Everything here is for the parent only. The child never sees these numbers.
 
 let parentTab = "progress";
-const TABS = [["progress", "📊", "tabProgress"], ["settings", "⚙️", "tabSettings"], ["children", "👧", "tabChildren"], ["helper", "🤖", "tabHelper"], ["data", "🗄️", "tabData"]];
+const TABS = [["progress", "📊", "tabProgress"], ["settings", "⚙️", "tabSettings"], ["children", "👧", "tabChildren"], ["helper", "🤖", "tabHelper"], ["data", "🗄️", "tabData"], ["privacy", "🛡️", "tabPrivacy"]];
 
 async function parentPanel() {
   const body = el("div", { class: "tab-body" });
@@ -18,7 +18,7 @@ async function parentPanel() {
       el("button", { class: "big-btn exit-btn small-btn", onclick: exitApp }, t("exitApp")),
       el("button", { class: "big-btn blue small-btn", onclick: leaveParentArea }, t("back"))));
   openModal(panel);
-  const render = { progress: progressTab, settings: settingsTab, children: childrenTab, helper: helperTab, data: dataTab }[parentTab];
+  const render = { progress: progressTab, settings: settingsTab, children: childrenTab, helper: helperTab, data: dataTab, privacy: privacyTab }[parentTab];
   await render(body);
 }
 
@@ -205,7 +205,28 @@ async function progressTab(body) {
       chartCard(t("chartPlay"), playChart(d.play_minutes),
         tableView([t("colDay"), t("colMinutes")], d.play_minutes.map((p) => [shortDate(p.day), p.minutes])))),
     heatMap(d.keys),
-    summaryCard());
+    summaryCard(),
+    printCard(d.worlds));
+}
+
+// ---------- Tab: Datenschutz (privacy) ----------
+// The same text as docs/PRIVACY.md (brief section 7), in German for German and in English otherwise.
+// "### " lines are headings and "- " lines are list items; everything is added as text, never as HTML.
+function privacyTab(body) {
+  const text = PRIVACY_TEXT[settings.language === "de" ? "de" : "en"];
+  const nodes = [];
+  let list = null;
+  for (const line of text.split("\n")) {
+    if (line.startsWith("- ")) {
+      if (!list) { list = el("ul"); nodes.push(list); }
+      list.append(el("li", {}, line.slice(2)));
+      continue;
+    }
+    list = null;
+    if (line.startsWith("### ")) nodes.push(el("h3", {}, line.slice(4)));
+    else if (line.trim()) nodes.push(el("p", {}, line));
+  }
+  body.replaceChildren(el("div", { class: "privacy-text" }, ...nodes));
 }
 
 // ---------- Tab: Settings ----------
@@ -255,11 +276,15 @@ async function settingsTab(body) {
     el("div", { class: "row" }, el("span", {}, t("setPin")), el("button", { class: "big-btn blue small-btn", onclick: changePinFlow }, "🔑 " + t("setPinBtn"))),
     textRow(t("childName"), "child_name", settings.child_name, 20),
     textRow(t("favoriteWord"), "favorite_word", settings.favorite_word, 15),
-    familyWordsRow(),
+    // Family words (section 6.1) feed Sentence Sky; the custom list (section 4.2) becomes a Word Woods level.
+    wordListRow(t("setFamilyWords"), "family_words", t("familyWordsHint"), 8),
+    wordListRow(t("setCustomWords"), "custom_words", t("customWordsHint"), 20),
     toggleRow(t("setAgeBand"), AGE_BANDS.map((b) => [b, b]), settings.age_band || "6", (v) => saveSetting({ age_band: v })),
     el("div", { class: "row" }, el("span", {}, t("setInterests")), el("div", { class: "seg wrap" }, ...interestButtons)),
     minutes(t("setSession"), "session_minutes", [5, 10, 15, 20, 0], settings.session_minutes),
     minutes(t("setDaily"), "daily_limit_minutes", [0, 30, 45, 60, 90], settings.daily_limit_minutes),
+    toggleRow(t("setWindow"), [["", t("setOff")], ["7-19", "7–19"], ["8-18", "8–18"], ["9-17", "9–17"], ["14-19", "14–19"]],
+      settings.play_window || "", (v) => saveSetting({ play_window: v })),
     toggleRow(t("setAsk"), [[true, t("on")], [false, t("off")]], settings.ask_tippy, (v) => saveSetting({ ask_tippy: v })),
     el("div", { class: "row" }, el("span", {}, t("setUnlock")), el("div", { class: "seg wrap" }, ...worldButtons)),
     el("button", { class: "big-btn blue small-btn", onclick: async () => {
@@ -327,14 +352,26 @@ async function dataTab(body) {
     message.textContent = "✓ " + t("dataExported");
   }
 
-  function askReset() {
-    resetBox.replaceChildren(el("p", {}, "⚠️ " + t("dataResetAsk")), el("div", { class: "panel-actions inline" },
+  // Both deletions ask for the PIN again (section 6.4); a wrong one leaves everything as it was.
+  function askDelete(box, question, yes, path, confirm, onDone) {
+    const pin = pinConfirmField();
+    const note = el("p", { class: "muted" });
+    box.replaceChildren(el("p", {}, "⚠️ " + question), pin, note, el("div", { class: "panel-actions inline" },
       el("button", { class: "big-btn exit-btn small-btn", onclick: async () => {
-        await api("/api/parent/reset", { method: "POST", body: JSON.stringify({ confirm: "RESET" }) });
-        resetBox.replaceChildren(el("p", {}, "✓ " + t("dataDone")));
-      } }, t("dataResetYes")),
-      el("button", { class: "big-btn blue small-btn", onclick: () => resetBox.replaceChildren() }, t("dataCancel"))));
+        const { status } = await api(path, { method: "POST", body: JSON.stringify({ confirm, pin: pin.value }) });
+        if (status === 200) return onDone();
+        note.textContent = "⚠️ " + t(status === 429 ? "locked" : "wrongPin");
+        pin.value = "";
+      } }, yes),
+      el("button", { class: "big-btn blue small-btn", onclick: () => box.replaceChildren() }, t("dataCancel"))));
+    pin.focus();
   }
+  const askReset = () => askDelete(resetBox, t("dataResetAsk"), t("dataResetYes"), "/api/parent/reset", "RESET",
+    () => resetBox.replaceChildren(el("p", {}, "✓ " + t("dataDone"))));
+  const eraseBox = el("div", { class: "reset-box erase-box" });
+  // Everything goes, the PIN too: Tippy starts again with the first-run setup, like a new install.
+  const askErase = () => askDelete(eraseBox, t("dataEraseAsk"), t("dataEraseYes"), "/api/parent/delete-everything",
+    "DELETE EVERYTHING", () => location.reload());
 
   // Restore: pick a file, then choose between replacing the shown child and adding a new one.
   const restoreBox = el("div", { class: "reset-box restore-box" });
@@ -371,5 +408,7 @@ async function dataTab(body) {
     el("div", { class: "row" }, el("button", { class: "big-btn blue small-btn", onclick: () => fileInput.click() }, "📂 " + t("dataRestore")), fileInput),
     restoreBox,
     el("div", { class: "row" }, el("button", { class: "big-btn small-btn danger", onclick: askReset }, "🗑️ " + t("dataReset"))),
-    resetBox);
+    resetBox,
+    el("div", { class: "row" }, el("button", { class: "big-btn small-btn danger erase-btn", onclick: askErase }, "🧨 " + t("dataErase"))),
+    eraseBox);
 }

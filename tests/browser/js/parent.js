@@ -95,12 +95,37 @@ T.run(async () => {
   T.check("reset asks for confirmation", mtext().includes("⚠️"));
   [...modal().querySelectorAll(".reset-box button")].pop().click(); await T.wait(200);
   T.check("cancelling leaves the data alone", !modal().querySelector(".reset-box").textContent.includes("⚠️"));
+  await T.post("/api/progress/complete", { world: "mouse", level: 1, stars: 3 });   // something to lose
   button("🗑️").click(); await T.wait(300);
+  modal().querySelector(".pin-confirm").value = "0000";
+  [...modal().querySelectorAll(".reset-box button")][0].click(); await T.wait(600);
+  T.check("a wrong PIN deletes nothing", (await fetch("/api/progress").then((r) => r.json())).stickers.length > 0 && mtext().includes("⚠️"));
+  modal().querySelector(".pin-confirm").value = "2468";
   [...modal().querySelectorAll(".reset-box button")][0].click(); await T.wait(800);
   const after = await fetch("/api/progress").then((r) => r.json());
   T.check("reset clears stickers", after.stickers.length === 0);
   const kept = await settingsNow();
   T.check("reset keeps the settings and the PIN", kept.child_name === "Zoë Ünal" && !kept.setup_needed);
+
+  // Delete everything asks for the PIN too; a wrong one leaves everything as it was (a right one would reload the page).
+  button("🧨").click(); await T.wait(300);
+  T.check("delete everything asks first", !!modal().querySelector(".erase-box .pin-confirm"));
+  modal().querySelector(".erase-box .pin-confirm").value = "1111";
+  modal().querySelector(".erase-box .exit-btn").click(); await T.wait(600);
+  T.check("delete everything with a wrong PIN deletes nothing", !(await settingsNow()).setup_needed && (await settingsNow()).child_name === "Zoë Ünal");
+
+  // Datenschutz: the same text as docs/PRIVACY.md.
+  button("🛡️").click(); await T.wait(400);
+  T.check("the privacy tab shows the privacy text", modal().querySelectorAll(".privacy-text h3").length >= 4 && modal().querySelectorAll(".privacy-text li").length >= 6);
+  fits("privacy tab");
+
+  // Printables: the keyboard sheet is drawn into #print-root and the browser's print dialog is opened.
+  let printed = 0; const realPrint = window.print; window.print = () => { printed++; };
+  button("📊").click(); await T.wait(600);
+  T.check("the progress tab offers printables", !!modal().querySelector(".print-card .print-sheet"));
+  modal().querySelector(".print-sheet").click(); await T.wait(200);
+  T.check("the keyboard sheet is printed with every letter key", printed === 1 && document.querySelectorAll("#print-root .sheet-key").length >= 26);
+  window.print = realPrint;
 
   // Change the PIN.
   button("⚙️").click(); await T.wait(500);

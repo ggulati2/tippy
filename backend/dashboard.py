@@ -3,7 +3,7 @@
 All of this stays on this computer. The child never sees these numbers.
 """
 import json
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from backend import bank, db, difficulty, progress
@@ -34,8 +34,17 @@ def _int_setting(settings: dict, key: str, default: int) -> int:
         return default
 
 
-def limits_state(db_path: Path, today: date | None = None) -> dict:
+def outside_play_window(window: str, hour: int) -> bool:
+    """`window` is "" (no window) or "8-18": play is allowed from 8:00 until 18:00."""
+    if not window:
+        return False
+    start, end = (int(part) for part in window.split("-"))
+    return not start <= hour < end
+
+
+def limits_state(db_path: Path, today: date | None = None, hour: int | None = None) -> dict:
     today = today or date.today()
+    hour = datetime.now().hour if hour is None else hour
     settings = db.get_settings(db_path)
     with db.connect(db_path) as conn:
         row = conn.execute("SELECT seconds FROM play_time WHERE day = ?", (today.isoformat(),)).fetchone()
@@ -46,6 +55,9 @@ def limits_state(db_path: Path, today: date | None = None) -> dict:
         "session_minutes": _int_setting(settings, "session_minutes", 10),
         "daily_limit_minutes": daily,
         "daily_reached": daily > 0 and played >= daily * 60,
+        # docs/REVAMP_BRIEF.md section 6.4: "allowed time windows". Outside the window Tippy shows the same
+        # calm goodnight screen as the daily limit.
+        "outside_window": outside_play_window(settings.get("play_window", ""), hour),
     }
 
 

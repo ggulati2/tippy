@@ -118,6 +118,14 @@ def create_app() -> FastAPI:
         if not guard.is_valid_token(x_parent_token):
             raise HTTPException(status_code=401, detail="pin required")
 
+    def confirm_pin(pin: str) -> None:
+        """Deleting data needs the PIN typed again (docs/REVAMP_BRIEF.md section 6.4), even with a valid token:
+        a parent who walked away from an open parent area should not lose everything to a curious child."""
+        if guard.seconds_locked():
+            raise HTTPException(status_code=429, detail="locked")
+        if guard.verify(pin) is None:
+            raise HTTPException(status_code=403, detail="wrong pin")
+
     # ---------- Child-facing endpoints ----------
 
     @app.get("/api/settings")
@@ -313,6 +321,9 @@ def create_app() -> FastAPI:
         family_words: str | None = Field(default=None, pattern=r"^$|^[\p{L}]{1,15}(,[\p{L}]{1,15}){0,7}$")
         session_minutes: int | None = Field(default=None, ge=0, le=60)
         daily_limit_minutes: int | None = Field(default=None, ge=0, le=480)
+        play_window: str | None = Field(default=None, pattern=r"^$|^([0-9]|1[0-9]|2[0-3])-([1-9]|1[0-9]|2[0-4])$")
+        # The parent's own word list (section 4.2): up to 20 words, letters only, like every word in a pack.
+        custom_words: str | None = Field(default=None, max_length=320, pattern=r"^[\p{L},]*$")
         ask_tippy: bool | None = None
         font_scale: float | None = Field(default=None, ge=1, le=1.25)
         reduce_motion: bool | None = None
@@ -327,6 +338,13 @@ def create_app() -> FastAPI:
     @app.post("/api/parent/settings")
     def update_settings(body: SettingsBody, _parent: None = Depends(parent_only)):
         data = body.model_dump(exclude_none=True)
+        words = data.get("custom_words", "").split(",") if data.get("custom_words") else []
+        if len(words) > 20 or any(not 1 <= len(word) <= 15 for word in words):
+            raise HTTPException(status_code=422, detail="up to 20 words, each 1 to 15 letters")
+        if data.get("play_window"):
+            start, end = (int(x) for x in data["play_window"].split("-"))
+            if start >= end:
+                raise HTTPException(status_code=422, detail="the window must start before it ends")
         interests = data.pop("interests", None)
         if interests is not None:
             if not interests or any(topic not in bank.THEMES for topic in interests):
@@ -391,11 +409,13 @@ def create_app() -> FastAPI:
 
     class DeleteProfileBody(BaseModel):
         confirm: str
+        pin: str = Field(default="", max_length=12)
 
     @app.post("/api/parent/profiles/{profile_id}/delete")
     def delete_profile(profile_id: int, body: DeleteProfileBody, _parent: None = Depends(parent_only)):
         if body.confirm != "DELETE":
             raise HTTPException(status_code=422, detail="type DELETE to confirm")
+        confirm_pin(body.pin)
         try:
             family.delete(profile_id)
         except ProfileError as error:
@@ -463,13 +483,26 @@ def create_app() -> FastAPI:
 
     class ResetBody(BaseModel):
         confirm: str
+        pin: str = Field(default="", max_length=12)
 
     @app.post("/api/parent/reset")
     def parent_reset(body: ResetBody, _parent: None = Depends(parent_only)):
         if body.confirm != "RESET":
             raise HTTPException(status_code=400, detail="confirmation missing")
+        confirm_pin(body.pin)
         dashboard.reset_progress(family.db_path)
         log.info("Progress reset from parent area")
+        return {"ok": True}
+
+    @app.post("/api/parent/delete-everything")
+    def delete_everything(body: ResetBody, _parent: None = Depends(parent_only)):
+        """Every child, every copy and the PIN are erased; Tippy starts again as a fresh install."""
+        if body.confirm != "DELETE EVERYTHING":
+            raise HTTPException(status_code=400, detail="confirmation missing")
+        confirm_pin(body.pin)
+        family.erase_everything()
+        guard.forget()
+        log.info("Everything deleted from parent area")
         return {"ok": True}
 
     @app.post("/api/parent/exit")

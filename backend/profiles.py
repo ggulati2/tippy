@@ -180,6 +180,16 @@ class Family:
         db.set_setting(self.family_db, "active_profile", str(profile_id))
         return profile
 
+    def erase_everything(self) -> None:
+        """Delete every child, every kept-aside copy and the family file (PIN included), then start again with
+        one blank child, as on a brand-new install. Nothing is kept: this is the "delete everything" button."""
+        with self._lock:
+            shutil.rmtree(self.profiles_dir, ignore_errors=True)
+            for path in self.data_dir.iterdir():
+                if path.is_file() and path.name.startswith(("family.db", "tippy.db")):
+                    path.unlink()
+            self._open(None)
+
     def delete(self, profile_id: int) -> None:
         """Remove a child. The database file is kept aside (renamed), not erased, in case it was a mistake."""
         self.get(profile_id)

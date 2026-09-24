@@ -219,7 +219,7 @@ def test_cards_are_saved_listed_capped_and_validated(client):
     assert len(cards) == 12 and cards[0]["words"] == "dog o"      # newest first, oldest dropped
     headers = parent_headers(client)
     assert len(client.get("/api/parent/export", headers=headers).json()["tables"]["cards"]) == 12
-    client.post("/api/parent/reset", json={"confirm": "RESET"}, headers=headers)
+    client.post("/api/parent/reset", json={"confirm": "RESET", "pin": "4321"}, headers=headers)
     assert client.get("/api/cards").json() == {"cards": []}
 
 
@@ -233,8 +233,37 @@ def test_dashboard_summary_export_reset_need_pin(client):
     assert client.get("/api/parent/summary", headers=headers).json()["source"] == "builtin"
     assert client.get("/api/parent/export", headers=headers).json()["tables"]["progress"]
     assert client.post("/api/parent/reset", json={"confirm": "yes"}, headers=headers).status_code == 400
-    assert client.post("/api/parent/reset", json={"confirm": "RESET"}, headers=headers).json()["ok"] is True
+    assert client.post("/api/parent/reset", json={"confirm": "RESET"}, headers=headers).status_code == 403   # PIN not typed again
+    assert client.post("/api/parent/reset", json={"confirm": "RESET", "pin": "0000"}, headers=headers).status_code == 403
+    assert client.get("/api/parent/dashboard", headers=headers).json()["total_stars"] == 3                    # nothing lost
+    assert client.post("/api/parent/reset", json={"confirm": "RESET", "pin": "4321"}, headers=headers).json()["ok"] is True
     assert client.get("/api/parent/dashboard", headers=headers).json()["total_stars"] == 0
+
+
+def test_delete_everything_needs_the_pin_and_starts_fresh(client):
+    headers = parent_headers(client)
+    client.post("/api/parent/settings", json={"child_name": "Mia"}, headers=headers)
+    client.post("/api/progress/complete", json={"world": "mouse", "level": 1, "stars": 3})
+    assert client.post("/api/parent/delete-everything", json={"confirm": "DELETE EVERYTHING", "pin": "1111"}, headers=headers).status_code == 403
+    assert client.post("/api/parent/delete-everything", json={"confirm": "yes", "pin": "4321"}, headers=headers).status_code == 400
+    assert client.get("/api/settings").json()["child_name"] == "Mia"
+    assert client.post("/api/parent/delete-everything", json={"confirm": "DELETE EVERYTHING", "pin": "4321"}, headers=headers).json()["ok"]
+    fresh = client.get("/api/settings").json()
+    assert fresh["setup_needed"] is True and fresh["child_name"] == "" and fresh["profile_count"] == 1
+    assert client.get("/api/progress").json()["total_stars"] == 0
+    assert client.get("/api/parent/dashboard", headers=headers).status_code == 401    # the old sign-in is gone too
+
+
+def test_play_window_and_custom_words_are_validated(client):
+    headers = parent_headers(client)
+    for good in ("8-18", "0-24", ""):
+        assert client.post("/api/parent/settings", json={"play_window": good}, headers=headers).status_code == 200
+    for bad in ("18-8", "8-8", "25-26", "8to18"):
+        assert client.post("/api/parent/settings", json={"play_window": bad}, headers=headers).status_code == 422
+    assert client.post("/api/parent/settings", json={"custom_words": "Hund,Katze,Maus"}, headers=headers).status_code == 200
+    assert client.get("/api/settings").json()["custom_words"] == "Hund,Katze,Maus"
+    for bad in ("Hund,,Maus", ",".join(["ab"] * 21), "a" * 16, "Hund Katze", "<b>"):
+        assert client.post("/api/parent/settings", json={"custom_words": bad}, headers=headers).status_code == 422
 
 
 def test_accessibility_settings(client):

@@ -66,6 +66,12 @@ class PinGuard:
             self._locked_until = time.monotonic() + self._lockout_seconds
         return None
 
+    def forget(self) -> None:
+        """No PIN any more ("delete everything"): the next start asks for a new one, like a fresh install."""
+        self._stored = None
+        self._tokens.clear()
+        self._failures = 0
+
     def is_valid_token(self, token: str | None) -> bool:
         return bool(token) and token in self._tokens
 

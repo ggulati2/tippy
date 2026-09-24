@@ -38,7 +38,7 @@ async function refreshLimits() {
 function applyLimits(state) {
   settings.session_minutes = state.session_minutes;
   settings.daily_limit_minutes = state.daily_limit_minutes;
-  limitReached = state.daily_reached;
+  limitReached = state.daily_reached || state.outside_window;   // outside the parent's play hours: the same goodnight
   if (limitReached) showLimit();
   else if (limitShown) { // the limit no longer applies (a new day, or the parent raised it)
     limitShown = false;

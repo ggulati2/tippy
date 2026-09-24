@@ -62,6 +62,8 @@ def _setting(key: str, value):
         "family_words": lambda: text if len(text.split(",")) <= 8 and all(_name_ok(w, 15, False) for w in text.split(",") if w) else None,
         "session_minutes": lambda: str(n) if (n := _int(_num(text), 0, 60)) is not None else None,
         "daily_limit_minutes": lambda: str(n) if (n := _int(_num(text), 0, 480)) is not None else None,
+        "play_window": lambda: text if re.match(r"^$|^([0-9]|1[0-9]|2[0-3])-([1-9]|1[0-9]|2[0-4])$", text) and (not text or int(text.split("-")[0]) < int(text.split("-")[1])) else None,
+        "custom_words": lambda: text if len(text.split(",")) <= 20 and all(_name_ok(w, 15, False) for w in text.split(",") if w) else None,
         "font_scale": lambda: text if text in ("1", "1.0", "1.125", "1.25") else None,
         "letters_unlocked": lambda: str(n) if (n := _int(_num(text), difficulty.MIN_UNLOCKED, len(difficulty.LETTER_ORDER))) is not None else None,
         "unlocked_worlds": lambda: text if text == "all" or all(w in progress.WORLD_ORDER for w in text.split(",") if w) else None,

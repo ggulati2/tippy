@@ -422,18 +422,22 @@ function textRow(label, key, value, maxLength) {
   return el("div", { class: "row" }, el("span", {}, label), input);
 }
 
-// Up to 8 family words (brief section 6.1: "Mama, Papa, Oma, siblings, a pet"), typed as one
-// comma-separated line and normalised (trimmed, empties dropped, capped at 8) before saving, since
-// the backend stores and validates them the same way it already does unlocked_worlds.
-function familyWordsRow() {
-  const input = el("input", { class: "text-input", type: "text", maxlength: "160",
-    placeholder: t("familyWordsHint"), value: settings.family_words || "",
+// Deleting data asks for the PIN again (brief section 6.4): the parent types it into this field.
+function pinConfirmField() {
+  return el("input", { class: "text-input pin-confirm", type: "password", inputmode: "numeric", maxlength: "8",
+    autocomplete: "off", placeholder: t("pinAgain"), "aria-label": t("pinAgain") });
+}
+
+// A comma-separated word list typed by the parent, tidied (spaces, empty entries, too many) before it is saved.
+function wordListRow(label, key, hint, maxWords) {
+  const input = el("input", { class: "text-input", type: "text", maxlength: String(maxWords * 17),
+    placeholder: hint, value: (settings[key] || "").split(",").filter(Boolean).join(", "),
     onchange: () => {
-      const words = input.value.split(",").map((w) => w.trim()).filter(Boolean).slice(0, 8);
+      const words = input.value.split(",").map((w) => w.trim()).filter(Boolean).slice(0, maxWords);
       input.value = words.join(", ");
-      saveSetting({ family_words: words.join(",") });
+      saveSetting({ [key]: words.join(",") });
     } });
-  return el("div", { class: "row" }, el("span", {}, t("setFamilyWords")), input);
+  return el("div", { class: "row" }, el("span", {}, label), input);
 }
 
 // Language, text size and reduced motion are applied to the page here.

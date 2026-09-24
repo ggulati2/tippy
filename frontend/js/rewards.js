@@ -92,7 +92,8 @@ const BONUS = {
     { level: 9, icon: "Ä", langs: ["de"], when: () => layoutHas("ß") }],          // umlauts and ß need the German keyboard
   words: [{ level: 6, icon: "🐘" }, { level: 7, icon: "🐾" }, { level: 8, icon: "🚀" }, { level: 9, icon: "🦖" }, { level: 10, icon: "🚗" },
     { level: 11, icon: "🥨", langs: ["de"] }, { level: 12, icon: "🎄", langs: ["de"] },
-    { level: 13, icon: "🌍" }, { level: 14, icon: "🍕" }, { level: 15, icon: "🦓" }],
+    { level: 13, icon: "🌍" }, { level: 14, icon: "🍕" }, { level: 15, icon: "🦓" },
+    { level: 16, icon: "📝", when: () => !!settings.custom_words }],                // the parent's own word list
   sentences: [{ level: 6, icon: "🦜" }, { level: 7, icon: "❓" }, { level: 8, icon: "💛" },
     { level: 9, icon: "🏰", langs: ["de"] }, { level: 10, icon: "🎃", langs: ["de"] },
     { level: 11, icon: "🗺️" }, { level: 12, icon: "🍰" }, { level: 13, icon: "🐪" }],

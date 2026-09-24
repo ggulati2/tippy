@@ -102,6 +102,8 @@ DEFAULT_SETTINGS = {
     "family_words": "",
     "session_minutes": "10",       # Tippy suggests a break after this many minutes (0 = never)
     "daily_limit_minutes": "0",    # 0 = no daily limit
+    "play_window": "",             # "" = any time, or "8-18": play only from 8:00 until 18:00
+    "custom_words": "",            # the parent's own word list ("this week's spelling words"), comma-joined
     "font_scale": "1",             # text size: 1, 1.125 or 1.25
     "reduce_motion": "0",          # 1 = no animations
     "has_numpad": "0",             # 1 = this computer has a number pad: Number Land then asks for its keys
@@ -204,7 +206,7 @@ def set_setting(db_path: Path, key: str, value: str) -> None:
 # progress counters...) stays on the server and is only shown in the parent area.
 CHILD_SETTINGS = ("language", "keyboard_layout", "voice_on", "sound_on", "letter_case", "child_name",
                   "favorite_word", "family_words", "session_minutes", "daily_limit_minutes", "ask_tippy",
-                  "font_scale", "reduce_motion", "has_numpad", "layout_mismatch_flag")
+                  "font_scale", "reduce_motion", "has_numpad", "layout_mismatch_flag", "play_window", "custom_words")
 
 # docs/REVAMP_BRIEF.md section 4.5: how old the child roughly is, nothing more precise than that
 # (never a birthdate). Like interests, it lives on child_profile, not in the generic settings table,

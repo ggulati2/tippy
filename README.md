@@ -41,6 +41,8 @@ Tap the small pale gear, enter the PIN. Four tabs: **Progress** (streak, accurac
 
 Everything — progress, settings, backups — stays on this computer. The server only listens on `127.0.0.1`, so nothing on your network can reach it. Nothing is sent anywhere unless a parent explicitly turns on the online helper, and even then only a practice theme and language are sent, never the child's name or anything they typed.
 
+The full privacy notice, in German and English, is in [docs/PRIVACY.md](docs/PRIVACY.md) and in the parent area's *Datenschutz* tab.
+
 ## Troubleshooting
 
 - **Nothing opens:** open http://127.0.0.1:8765 in any browser while Tippy is running.

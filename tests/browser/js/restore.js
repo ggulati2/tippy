@@ -30,6 +30,7 @@ T.run(async () => {
   document.querySelector("#parent-btn").click(); await T.wait(300); await typePin("2468");
   button("🗄️").click(); await T.wait(500);
   button("🗑️").click(); await T.wait(300);
+  modal().querySelector(".pin-confirm").value = "2468";
   [...modal().querySelectorAll(".reset-box:not(.restore-box) button")][0].click(); await T.wait(800);
   T.check("reset empties the progress", levelCount(await progress()) === 0);
 

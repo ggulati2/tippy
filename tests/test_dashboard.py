@@ -135,3 +135,12 @@ def test_reset_clears_progress_but_keeps_settings(db_path):
     assert progress.get_progress(db_path, D)["total_stars"] == 0
     assert difficulty.get_letters(db_path)["unlocked"] == 2 and dashboard.key_report(db_path) == []
     assert db.get_settings(db_path)["child_name"] == "Kim"
+
+
+def test_play_window_shows_the_goodnight_screen_outside_it(db_path):
+    assert dashboard.limits_state(db_path, D, hour=21)["outside_window"] is False    # no window by default
+    db.set_setting(db_path, "play_window", "8-18")
+    assert dashboard.limits_state(db_path, D, hour=7)["outside_window"] is True
+    assert dashboard.limits_state(db_path, D, hour=8)["outside_window"] is False
+    assert dashboard.limits_state(db_path, D, hour=17)["outside_window"] is False
+    assert dashboard.limits_state(db_path, D, hour=18)["outside_window"] is True
