@@ -29,3 +29,12 @@ Format for each entry:
   clickable (text is only ever added with textContent), but the brief rules out external links for children entirely.
 - Suggested fix (one line): refuse text where a full stop is directly followed by a letter (regex `\.[^\W\d_]`).
 
+
+## After an update the browser could keep showing the old screens
+- Commit: `3123ae9` on `revamp/erster-computer`
+- Also present on `main` at: `tippy-v1-baseline` (seen in the v0.14.0 release)
+- What goes wrong and how to see it: app files (`/`, `js/*.js`, `css/*.css`) were sent without a
+  `Cache-Control` header, so Chrome guessed how long its saved copy stays good and reused it without asking. Every
+  Tippy version shares one browser profile (`~/Library/Caches/Tippy/…` on a Mac), so after running a newer build,
+  opening the genuine 0.14.0 app still showed the newer screens until that cache was deleted by hand.
+- Suggested fix (one line): in `protective_headers` in `backend/app.py`, send `Cache-Control: no-cache` for every path outside `/api/`.
