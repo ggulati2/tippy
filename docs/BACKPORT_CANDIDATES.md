@@ -19,3 +19,13 @@ Format for each entry:
 - Also present on `main` at: `tippy-v1-baseline` (or a later commit, if found after this tag)
 - What goes wrong and how to see it:
 - Suggested fix (one line):
+
+## Text from the online helper could contain a web address
+- Commit: `e08c986` on `revamp/erster-computer`
+- Also present on `main` at: `tippy-v1-baseline`
+- What goes wrong and how to see it: `clean_line()` in `backend/validators.py` allows letters, digits, spaces and
+  simple punctuation, so `clean_line("Visit www.example.com now.")` returned the text unchanged. With the online helper
+  on, an answer containing a web address could become typing material or an "Ask Tippy" answer. Links are never
+  clickable (text is only ever added with textContent), but the brief rules out external links for children entirely.
+- Suggested fix (one line): refuse text where a full stop is directly followed by a letter (regex `\.[^\W\d_]`).
+
