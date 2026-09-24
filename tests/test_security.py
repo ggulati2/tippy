@@ -65,6 +65,14 @@ def test_api_answers_are_never_cached(api):
         assert client.get(path, headers=parent).headers["cache-control"] == "no-store", path
 
 
+def test_app_files_are_checked_before_a_saved_copy_is_used(api):
+    # Without this, an updated app could keep showing the old screens from the browser's cache.
+    client, _ = api
+    for path in ("/", "/js/app.js", "/css/style.css"):
+        answer = client.get(path)
+        assert answer.status_code == 200 and answer.headers["cache-control"] == "no-cache", path
+
+
 # ---------- Secrets and private files ----------
 
 def test_the_api_key_never_appears_in_any_answer(api):

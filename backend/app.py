@@ -110,6 +110,10 @@ def create_app() -> FastAPI:
             response.headers[name] = value
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"   # never keep the child's data in a cache
+        else:
+            # The browser must ask before reusing a saved copy of an app file, so after an update (or when two
+            # Tippy versions share one browser profile) it never shows the old screens. Cheap: it's this computer.
+            response.headers["Cache-Control"] = "no-cache"
         return response
 
     @app.exception_handler(Exception)
