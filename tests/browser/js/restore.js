@@ -9,7 +9,7 @@ T.run(async () => {
   const levelCount = (p) => Object.values(p.worlds).reduce((n, w) => n + Object.keys(w.levels).length, 0);
   const H = await T.parentLogin();
   const send = (file) => {                                     // like choosing a file in the file dialog
-    const input = modal().querySelector('input[type="file"]');
+    const input = modal().querySelector("input.restore-file");
     const transfer = new DataTransfer(); transfer.items.add(file);
     input.files = transfer.files;
     input.dispatchEvent(new Event("change"));

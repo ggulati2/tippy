@@ -3,6 +3,7 @@
 // print stylesheet shows, and the browser's own print dialog does the rest (print, or save as PDF).
 
 function printCard(worlds) {
+  if (!hasFeature("printables")) return el("div", { class: "card print-card" }, el("h3", {}, "🖨️ " + t("printTitle")), el("p", { class: "muted" }, t("needsPlus")));
   const finished = STAGES.filter((stage) => stage.worlds.every((w) => worlds[w] && worlds[w].total && worlds[w].done >= worlds[w].total));
   const certificates = finished.length
     ? finished.map((stage) => el("button", { class: "big-btn blue small-btn print-cert", onclick: () => printCertificate(stage.key) }, "🏅 " + t(stage.key)))

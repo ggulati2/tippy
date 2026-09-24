@@ -241,7 +241,8 @@ def test_helper_model_is_household_wide(api):
 @pytest.fixture()
 def fresh(tmp_path, monkeypatch):
     """A brand-new install: no PIN yet, so the first-run setup is allowed."""
-    for key, value in {"TIPPY_DB_PATH": str(tmp_path / "tippy.db"), "PARENT_PIN": "", "LLM_MODE": "off", "OPENROUTER_API_KEY": ""}.items():
+    for key, value in {"TIPPY_DB_PATH": str(tmp_path / "tippy.db"), "PARENT_PIN": "", "LLM_MODE": "off", "OPENROUTER_API_KEY": "",
+                       "DEV_UNLOCK_ALL": "1"}.items():
         monkeypatch.setenv(key, value)
     return TestClient(create_app())
 
@@ -264,7 +265,8 @@ def test_home_setup_stays_a_family(fresh):
     assert fresh.get("/api/profiles").json()["max"] == 6
 
 
-def test_class_overview_needs_the_pin_and_shows_each_child(api):
+def test_class_overview_needs_the_pin_and_shows_each_child(api, monkeypatch):
+    monkeypatch.setenv("DEV_UNLOCK_ALL", "1")
     client, parent = api
     assert client.get("/api/parent/class/overview").status_code == 401
     client.post("/api/parent/class", json={"classroom": True, "add": 2}, headers=parent)

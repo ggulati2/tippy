@@ -510,7 +510,35 @@ and filling the class to 30. The wizard test now picks "At home". 294 unit/i18n 
 **What to test:** a fresh install (or "delete everything") → choose "In der Klasse" → 20 children → the picture
 picker; teacher area → Kinder → class overview and CSV.
 
+## Brief milestone 9 — Feature flags and offline licence file (tagged `revamp-m10`)
+
+- **Three tiers** (`backend/licence.py`): *core* (free: every stage, every language, the own word list),
+  *plus* (online helper, printables), *school* (classroom mode, portable mode). "Unlimited custom lists" is part of
+  *plus* in the brief, but Tippy only has one own word list, so there is nothing to lock there yet.
+- **Offline licence file:** signed JSON (Ed25519), checked on the computer against a public key built into the app.
+  No payments, no accounts, no online check. A parent adds it in Data → "Add a licence"; it is kept in Tippy's data
+  folder ("delete everything" leaves it). For portable mode it goes in `tippy-data/data/licence.json` on the stick.
+- **Owner's signing tool:** `scripts/make_licence.py --tiers plus,school --to "Name"`. The key pair was made once
+  with `--init`: **the private key is in `~/.config/tippy/licence-signing-key` on this Mac, outside the project and
+  never committed.** Losing it means making a new pair and new licences; anyone who has it can make licences.
+- **`DEV_UNLOCK_ALL=true`** (environment or `.env`) switches everything on. The browser test servers use it.
+- **Where it is enforced (a decision):** only where something is switched on: choosing classroom mode (setup or the
+  Children tab), the print card, the online helper (with LLM_MODE=live but no *plus*, Tippy uses built-in content)
+  and portable mode (without *school* the `tippy-data` folder is ignored). A class that already exists keeps working;
+  nothing a child is using gets locked mid-way.
+- **New dependency:** `cryptography==50.0.1` (the standard Python library cannot check this kind of signature;
+  writing signature checking by hand would be home-made cryptography).
+
+**Heads-up for the owner:** your own Tippy with `LLM_MODE=live` in `.env` now needs either a *plus* licence
+(make one for yourself) or `DEV_UNLOCK_ALL=true`, or the online helper stays off.
+
+**Tests:** `tests/test_licence.py` signs with a throwaway key per test (the real key is never used by tests): no
+licence = core; a licence unlocks only its tiers; a hand-edited or foreign-signed file is refused; unknown tiers
+ignored; dev unlock; without a licence classroom cannot be switched on and the helper stays off; installing a licence
+through the parent area (PIN needed, bad files refused); portable mode needs *school*. The real key pair was checked
+once end to end (a licence made with the owner's key verifies with the app's built-in key). 302 unit/i18n tests pass.
+
 ## Status and what is next
 
-Brief milestones 1–8 are complete (tags `revamp-m1` to `revamp-m9`); `main` untouched. Next is the brief's
-**milestone 9: feature flags and offline licence file** (tag `revamp-m10`).
+Brief milestones 1–9 are complete (tags `revamp-m1` to `revamp-m10`); `main` untouched. Next is the brief's
+**milestone 10: optional AI extras** (tag `revamp-m11`).

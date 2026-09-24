@@ -8,7 +8,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from backend import languages
+from backend import languages, licence
 
 # The packaged app (built with PyInstaller, see packaging/) keeps its code and content inside the app
 # bundle, which is read-only and replaced on every update. The family's own files (database, logs,
@@ -37,7 +37,8 @@ def _home_dir() -> Path:
     if not FROZEN:
         return ROOT
     portable = portable_dir(Path(sys.executable), sys.platform)
-    if portable:
+    # Portable mode is part of the "school" tier: the licence sits in the stick's own data folder.
+    if portable and "portable" in licence.features(portable / "data"):
         return portable
     if sys.platform == "darwin":
         return Path.home() / "Library" / "Application Support" / "Tippy"
@@ -99,6 +100,9 @@ class Settings:
 def load_settings() -> Settings:
     """Environment variables win over the .env file, so tests can override."""
     file_values = _read_env_file(HOME_DIR / ".env")
+    # backend/licence.py reads DEV_UNLOCK_ALL from the environment; this lets .env set it too (the environment wins).
+    if "DEV_UNLOCK_ALL" in file_values:
+        os.environ.setdefault("DEV_UNLOCK_ALL", file_values["DEV_UNLOCK_ALL"])
 
     def get(key: str, default: str = "") -> str:
         return os.environ.get(key, file_values.get(key, default))

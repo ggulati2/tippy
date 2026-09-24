@@ -59,7 +59,9 @@ function setupWizard() {
     openModal(el("div", { class: "panel" }, el("h2", {}, t("setup.where")),
       el("div", { class: "choices" },
         el("button", { class: "choice small place-home", onclick: () => pick(false) }, el("span", { class: "choice-icon" }, "🏠"), el("span", { class: "choice-label" }, t("setup.home"))),
-        el("button", { class: "choice small place-class", onclick: () => pick(true) }, el("span", { class: "choice-icon" }, "🏫"), el("span", { class: "choice-label" }, t("setup.classroom")))),
+        el("button", { class: "choice small place-class", onclick: () => pick(true), ...(hasFeature("classroom") ? {} : { disabled: "" }) },
+          el("span", { class: "choice-icon" }, "🏫"), el("span", { class: "choice-label" }, t("setup.classroom")))),
+      hasFeature("classroom") ? "" : el("p", { class: "muted" }, t("needsSchool")),
       el("button", { class: "big-btn blue", onclick: stepLanguage }, t("back"))));
   }
 

@@ -15,6 +15,9 @@ let parentToken = null; // set after the correct PIN, kept only in memory
 let keyHandler = null;
 let reopenPicker = null;   // how the Back button gets from a game to the level picker it came from
 
+// What this copy of Tippy may use (backend/licence.py): "printables", "ai_extras", "classroom", "portable".
+const hasFeature = (name) => (settings.features || []).includes(name);
+
 const t = (key) => (STRINGS[settings.language] || STRINGS.en)[key] || STRINGS.en[key] || key;
 
 // Build an element. Text is always added with textContent, never as HTML,

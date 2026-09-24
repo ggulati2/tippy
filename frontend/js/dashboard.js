@@ -376,7 +376,7 @@ async function dataTab(body) {
 
   // Restore: pick a file, then choose between replacing the shown child and adding a new one.
   const restoreBox = el("div", { class: "reset-box restore-box" });
-  const fileInput = el("input", { type: "file", accept: ".json,application/json", hidden: "hidden", "aria-label": t("dataRestore") });
+  const fileInput = el("input", { class: "restore-file", type: "file", accept: ".json,application/json", hidden: "hidden", "aria-label": t("dataRestore") });
   fileInput.addEventListener("change", async () => {
     const file = fileInput.files[0];
     fileInput.value = "";
@@ -403,8 +403,27 @@ async function dataTab(body) {
       el("button", { class: "big-btn small-btn", onclick: () => restoreBox.replaceChildren() }, t("dataCancel"))));
   });
 
+  // The licence (brief section 8): a signed file the parent was given, checked on this computer, never online.
+  const licenceLine = el("span", { class: "llm-result licence-status" });
+  const { body: lic } = await api("/api/parent/licence");
+  licenceLine.textContent = lic.dev_unlock ? t("licenceDev") : lic.tiers.length
+    ? `${t("licenceTiers")}: ${lic.tiers.map((x) => x[0].toUpperCase() + x.slice(1)).join(" + ")}${lic.issued_to ? " · " + lic.issued_to : ""}`
+    : t("licenceNone");
+  const licenceInput = el("input", { class: "licence-file", type: "file", accept: ".json,application/json", hidden: "hidden", "aria-label": t("licenceAdd") });
+  licenceInput.addEventListener("change", async () => {
+    const file = licenceInput.files[0];
+    licenceInput.value = "";
+    if (!file || file.size > 64 * 1024) { licenceLine.textContent = "⚠️ " + t("licenceBad"); return; }
+    const { status } = await api("/api/parent/licence", { method: "POST", body: await file.text() });
+    if (status !== 200) { licenceLine.textContent = "⚠️ " + t("licenceBad"); return; }
+    await reloadSettings();
+    parentPanel();
+  });
+
   body.replaceChildren(
     el("p", {}, "🔒 " + t("dataWhere")),
+    el("div", { class: "row" }, el("button", { class: "big-btn blue small-btn licence-btn", onclick: () => licenceInput.click() }, "📜 " + t("licenceAdd")),
+      licenceLine, licenceInput),
     el("div", { class: "row" }, el("button", { class: "big-btn blue small-btn", onclick: exportBackup }, "💾 " + t("dataExport")), message),
     el("div", { class: "row" }, el("button", { class: "big-btn blue small-btn", onclick: () => fileInput.click() }, "📂 " + t("dataRestore")), fileInput),
     restoreBox,

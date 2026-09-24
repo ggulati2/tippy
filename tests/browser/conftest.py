@@ -71,7 +71,8 @@ def _start_server(tmp_path, do_setup: bool):
     shutil.copytree(ROOT / "frontend", frontend)
     port = free_port()
     env = dict(os.environ, TIPPY_PORT=str(port), TIPPY_FRONTEND_DIR=str(frontend), TIPPY_DB_PATH=str(tmp_path / "tippy.db"),
-               TIPPY_HOME=str(tmp_path / "home"), TIPPY_NO_BROWSER="1", LLM_MODE="off", PARENT_PIN="", OPENROUTER_API_KEY="")
+               TIPPY_HOME=str(tmp_path / "home"), TIPPY_NO_BROWSER="1", LLM_MODE="off", PARENT_PIN="", OPENROUTER_API_KEY="",
+               DEV_UNLOCK_ALL="1")   # the browser tests play every feature, the licensed ones too
     # TIPPY_APP_BINARY runs the tests against the packaged app instead of the source code, for example
     #   TIPPY_APP_BINARY=dist/Tippy.app/Contents/MacOS/Tippy python -m pytest -m browser
     binary = os.environ.get("TIPPY_APP_BINARY")

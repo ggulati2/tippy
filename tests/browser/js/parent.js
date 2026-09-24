@@ -83,6 +83,7 @@ T.run(async () => {
   // Data tab: backup and reset.
   button("🗄️").click(); await T.wait(500);
   fits("data tab");
+  T.check("the data tab shows the licence (everything unlocked on the test server)", /developer|Entwickler|desarrollo/.test(modal().querySelector(".licence-status").textContent));
   let downloads = 0; const realClick = HTMLAnchorElement.prototype.click;
   HTMLAnchorElement.prototype.click = function () { downloads++; T.check("the backup is a JSON download", this.download.endsWith(".json") && this.href.startsWith("blob:"), this.download); };
   button("💾").click(); await T.wait(600);

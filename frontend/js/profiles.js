@@ -134,8 +134,10 @@ async function childrenTab(body) {
     } }, "➕ " + t("children.addBtn")));
 
   const classBox = el("div", { class: "class-box" },
-    toggleRow(t("classMode"), [[false, t("setup.home")], [true, t("setup.classroom")]], classroom,
-      async (v) => { await send("/api/parent/class", { classroom: v }); refresh(); }),
+    classroom || hasFeature("classroom")
+      ? toggleRow(t("classMode"), [[false, t("setup.home")], [true, t("setup.classroom")]], classroom,
+        async (v) => { await send("/api/parent/class", { classroom: v }); refresh(); })
+      : el("p", { class: "muted" }, t("needsSchool")),
     ...(classroom ? [
       toggleRow(t("setDailyReset"), [[false, t("setOff")], [true, t("on")]], profileList.daily_reset,
         async (v) => { await send("/api/parent/class", { daily_reset: v }); refresh(); }),

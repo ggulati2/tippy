@@ -26,3 +26,6 @@ data/
 .venv-build/
 build/
 dist/
+
+# Licence files name who they were issued to (scripts/make_licence.py); the signing key lives outside the project.
+licence*.json

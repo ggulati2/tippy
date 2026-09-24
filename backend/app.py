@@ -3,6 +3,7 @@
 It only listens on 127.0.0.1, so nobody else on the network can reach it.
 It serves the frontend files and a few small JSON endpoints under /api.
 """
+import dataclasses
 import json
 import logging
 import os
@@ -15,7 +16,7 @@ from pydantic import BaseModel, Field
 
 from datetime import date
 
-from backend import bank, dashboard, db, difficulty, languages, progress, restore, summary
+from backend import bank, dashboard, db, difficulty, languages, licence, progress, restore, summary
 from backend.config import FRONTEND_DIR, LOG_DIR, PORT, load_settings
 from backend.content import ContentService
 from backend.llm.client import LLMClient
@@ -65,6 +66,10 @@ def create_app() -> FastAPI:
     # PARENT_PIN from .env; otherwise the parent is asked to choose one on the first start.
     saved_pin = db.get_settings(family.family_db).get("pin_hash")
     guard = PinGuard(pin=settings.parent_pin or None, stored=saved_pin or None)
+    # The online helper is part of the "plus" tier (section 8). Without it Tippy uses its built-in content only.
+    if settings.llm_mode == "live" and "ai_extras" not in licence.features(family.data_dir):
+        log.info("Online helper not in this licence: using built-in content (LLM_MODE=off)")
+        settings = dataclasses.replace(settings, llm_mode="off")
     llm = LLMClient(settings, state_db=family.family_db)
     content = ContentService(family, llm)
     app = FastAPI(title="Tippy", docs_url=None, redoc_url=None, openapi_url=None)
@@ -142,6 +147,7 @@ def create_app() -> FastAPI:
         out["profile_id"] = family.active_id
         out["profile_count"] = len(family.list())
         out["classroom"] = family.classroom
+        out["features"] = sorted(licence.features(family.data_dir))
         out["age_band"] = db.get_age_band(family.db_path)
         for number in ("session_minutes", "daily_limit_minutes"):
             out[number] = int(stored.get(number) or 0)
@@ -299,6 +305,8 @@ def create_app() -> FastAPI:
         """Runs once, on the very first start: the parent chooses a PIN and a few basics."""
         if guard.has_pin:
             raise HTTPException(status_code=409, detail="already set up")
+        if body.classroom and "classroom" not in licence.features(family.data_dir):
+            raise HTTPException(status_code=403, detail="classroom mode needs a school licence")
         db.set_setting(family.family_db, "pin_hash", guard.set_pin(body.pin))
         db.set_setting(family.db_path, "language", body.language)
         db.set_setting(family.db_path, "keyboard_layout", languages.default_keyboard(body.language))
@@ -405,6 +413,8 @@ def create_app() -> FastAPI:
     def update_class(body: ClassBody, _parent: None = Depends(parent_only)):
         if body.classroom is False and len(family.list()) > profiles_module.MAX_PROFILES:
             raise HTTPException(status_code=422, detail=f"Remove children first: home mode has up to {profiles_module.MAX_PROFILES}.")
+        if body.classroom and not family.classroom and "classroom" not in licence.features(family.data_dir):
+            raise HTTPException(status_code=403, detail="classroom mode needs a school licence")
         if body.classroom is not None:
             family.set_classroom(body.classroom)
         if body.daily_reset is not None:
@@ -421,6 +431,24 @@ def create_app() -> FastAPI:
             state = progress.get_progress(family.path_for(profile["id"]))
             children.append({**profile, "worlds": progress.world_counts(state), "stars": state["total_stars"]})
         return {"children": children}
+
+    @app.post("/api/parent/licence")
+    async def install_licence(request: Request, _parent: None = Depends(parent_only)):
+        """The parent picks the licence file they were given; it is checked here and kept in the data folder."""
+        try:
+            data = json.loads(await request.body())
+            payload = licence.verify(data)
+        except (ValueError, licence.LicenceError) as error:
+            raise HTTPException(status_code=422, detail=str(error) if isinstance(error, licence.LicenceError) else "not-a-licence")
+        (family.data_dir / licence.FILE_NAME).write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        log.info("Licence installed: %s", ", ".join(payload["tiers"]))
+        return {"features": sorted(licence.features(family.data_dir)), "tiers": payload["tiers"], "issued_to": payload.get("issued_to", "")}
+
+    @app.get("/api/parent/licence")
+    def licence_status(_parent: None = Depends(parent_only)):
+        found = licence.read(family.data_dir)
+        return {"features": sorted(licence.features(family.data_dir)), "tiers": found["tiers"] if found else [],
+                "issued_to": found.get("issued_to", "") if found else "", "dev_unlock": licence.dev_unlock()}
 
     class NewProfileBody(BaseModel):
         name: str = Field(min_length=1, pattern=NAME_PATTERN)
