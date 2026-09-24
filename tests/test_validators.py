@@ -62,3 +62,10 @@ def test_blocklist_is_per_language():
     assert clean_line("Die Katze schläft.", lang="en") is None                     # English "die" is blocked
     assert clean_line("Die Katze schläft.") is None                                # unknown language: both lists
     assert clean_line("Wir mögen Krieg.", lang="de") is None
+
+
+def test_rejects_web_addresses_but_not_normal_sentences():
+    for bad in ("Visit www.example.com now.", "Go to shop.de today", "Look at tippy.app"):
+        assert clean_line(bad) is None
+    for good in ("I like cats. Cats like me.", "Hello, friend!", "It is 3.5 metres long."):
+        assert clean_line(good) == good

@@ -10,6 +10,10 @@ from backend import languages
 # Letters (with the accents of the supported languages), digits, spaces and simple punctuation only.
 _ALLOWED = re.compile(r"^[" + languages.LETTERS + r"0-9 .,!?¡¿'\-]+$")
 
+# A web address ("www.example.com", "shop.de"): the allowed characters above let one through otherwise. An e-mail
+# address is already refused, because "@" is not allowed.
+_WEB_ADDRESS = re.compile(r"\.[^\W\d_]")
+
 # Words we never want to show a 6-year-old. Kept short here; extend it freely.
 # One list per language, because a harmless word in one language can be a bad
 # word in the other (German "die" is just "the"). Without a language we check both.
@@ -36,6 +40,8 @@ def clean_line(text, max_words: int = 12, max_chars: int = 80, lang: str | None 
     if not text or len(text) > max_chars or len(text.split()) > max_words:
         return None
     if not _ALLOWED.match(text):  # also rejects "<", ">" and emoji, so no HTML can sneak in
+        return None
+    if _WEB_ADDRESS.search(text):  # "www.example.com": a full stop right before a letter never happens in a child's sentence
         return None
     words = re.findall(r"[a-zäöüßñáéíóú]+", text.lower())
     if any(word in _blocked(lang) for word in words):
