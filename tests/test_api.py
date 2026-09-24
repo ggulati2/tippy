@@ -207,6 +207,22 @@ def test_family_words_is_validated_and_saved(client):
     assert client.get("/api/settings").json()["family_words"] == ""
 
 
+def test_cards_are_saved_listed_capped_and_validated(client):
+    assert client.get("/api/cards").json() == {"cards": []}
+    assert client.post("/api/cards", json={"words": "red cat"}).status_code == 200
+    assert client.get("/api/cards").json()["cards"][0]["words"] == "red cat"
+    for bad in ("", "   ", "cat!", "a" * 15):
+        assert client.post("/api/cards", json={"words": bad}).status_code == 422
+    for i in range(15):
+        client.post("/api/cards", json={"words": "dog " + "abcdefghijklmno"[i]})
+    cards = client.get("/api/cards").json()["cards"]
+    assert len(cards) == 12 and cards[0]["words"] == "dog o"      # newest first, oldest dropped
+    headers = parent_headers(client)
+    assert len(client.get("/api/parent/export", headers=headers).json()["tables"]["cards"]) == 12
+    client.post("/api/parent/reset", json={"confirm": "RESET"}, headers=headers)
+    assert client.get("/api/cards").json() == {"cards": []}
+
+
 def test_dashboard_summary_export_reset_need_pin(client):
     for method, path in (("get", "/api/parent/dashboard"), ("get", "/api/parent/summary"), ("get", "/api/parent/export")):
         assert getattr(client, method)(path).status_code == 401

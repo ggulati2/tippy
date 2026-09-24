@@ -65,6 +65,11 @@ CREATE TABLE IF NOT EXISTS stickers (
     id TEXT PRIMARY KEY,
     earned_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS cards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    words TEXT NOT NULL,
+    made_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS content_cache (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     type TEXT NOT NULL,
@@ -211,3 +216,21 @@ def get_age_band(db_path: Path) -> str:
     with connect(db_path) as conn:
         row = conn.execute("SELECT age_band FROM child_profile WHERE id = 1").fetchone()
     return row["age_band"] if row else ""
+
+
+# Create Studio (docs/REVAMP_BRIEF.md section 5, stage 7): a child can save a Free Play scene as a "card"
+# and open it again later. Only the typed words are kept; the scene is redrawn from them.
+MAX_CARDS = 12
+
+
+def list_cards(db_path: Path) -> list[dict]:
+    with connect(db_path) as conn:
+        rows = conn.execute("SELECT id, words FROM cards ORDER BY id DESC").fetchall()
+    return [dict(r) for r in rows]
+
+
+def save_card(db_path: Path, words: str) -> None:
+    with connect(db_path) as conn:
+        conn.execute("INSERT INTO cards (words, made_at) VALUES (?, ?)", (words, datetime.now().isoformat(timespec="seconds")))
+        # Keep the newest MAX_CARDS: an older card makes room rather than the save being refused.
+        conn.execute("DELETE FROM cards WHERE id NOT IN (SELECT id FROM cards ORDER BY id DESC LIMIT ?)", (MAX_CARDS,))

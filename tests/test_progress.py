@@ -221,3 +221,26 @@ def test_german_only_stickers_are_marked_and_awarded_like_any_other(tmp_path):
     assert german == {"pretzel", "xmastree", "castle", "pumpkin", "bear", "firetruck", "trafficlight"}
     assert progress.record_completion(path, "words", 11, 3)["new_stickers"] == ["pretzel"]
     assert all(s["langs"] is None for s in progress.public_catalog() if s["id"] not in german)
+
+
+def test_ten_finger_path_opens_only_when_a_parent_opens_it(tmp_path):
+    path = tmp_path / "p.db"
+    db.init_db(path)
+    for world in progress.WORLD_ORDER:                     # finishing every other world does not open it
+        if world != "tenfinger":
+            for level in range(1, progress.LEVEL_COUNTS[world] + 1):
+                progress.record_completion(path, world, level, 3)
+    assert not progress.get_progress(path)["worlds"]["tenfinger"]["unlocked"]
+    progress.unlock_world(path, "tenfinger")
+    assert progress.get_progress(path)["worlds"]["tenfinger"]["unlocked"]
+    got = []
+    for level in range(1, 6):
+        got += progress.record_completion(path, "tenfinger", level, 3)["new_stickers"]
+    assert "piano" in got
+
+
+def test_unlock_all_includes_the_ten_finger_path(tmp_path):
+    path = tmp_path / "p.db"
+    db.init_db(path)
+    progress.unlock_world(path, "all")
+    assert progress.get_progress(path)["worlds"]["tenfinger"]["unlocked"]

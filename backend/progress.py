@@ -11,11 +11,12 @@ from pathlib import Path
 from backend import db, packs
 
 # Worlds in the order they unlock. A world unlocks when the one before it is complete.
-WORLD_ORDER = ["mouse", "keyboard", "letters", "words", "sentences", "basics", "free", "numbers", "paint", "desktop", "internet", "robot"]
+WORLD_ORDER = ["mouse", "keyboard", "letters", "words", "sentences", "basics", "free", "numbers", "paint", "desktop", "internet", "robot",
+               "tenfinger"]
 
 # How many levels each *built* world has. Add a world here when it is built.
 LEVEL_COUNTS = {"mouse": 4, "keyboard": 5, "letters": 5, "words": 5, "sentences": 5, "basics": 6, "free": 1, "numbers": 6,
-                "paint": 5, "desktop": 7, "internet": 5, "robot": 5}
+                "paint": 5, "desktop": 7, "internet": 5, "robot": 5, "tenfinger": 5}
 
 # Bonus levels come after the core levels of a world. They give stars and stickers, but they never
 # change whether the world counts as complete, so adding them cannot re-lock anything for a child
@@ -33,6 +34,10 @@ UNLOCK_AFTER = {"numbers": "keyboard",
                 # painting needs the mouse, the robot needs the arrow keys (Keyboard Kingdom), the pretend desktop needs
                 # the Computer Cove lessons (windows, folders) and the pretend internet needs typing sentences.
                 "paint": "mouse", "robot": "keyboard", "desktop": "basics", "internet": "sentences"}
+
+# Worlds that never open by playing, only when a parent opens them (by hand, or with "unlock all").
+# docs/REVAMP_BRIEF.md section 5: the Ten-Finger Path is for 7+ and "locked by default; the parent enables it".
+PARENT_ONLY = {"tenfinger"}
 
 
 def max_level(world: str) -> int:
@@ -155,7 +160,7 @@ def get_progress(db_path: Path, today: date | None = None) -> dict:
     worlds = {}
     for i, world in enumerate(WORLD_ORDER):
         before = UNLOCK_AFTER.get(world) or (WORLD_ORDER[i - 1] if i else None)
-        unlocked = before is None or world in manual or complete(before)
+        unlocked = world in manual if world in PARENT_ONLY else (before is None or world in manual or complete(before))
         worlds[world] = {"unlocked": unlocked, "complete": complete(world), "built": world in LEVEL_COUNTS,
                          "levels": levels[world]}
     return {

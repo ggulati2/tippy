@@ -18,7 +18,7 @@ MAX_BACKUP_BYTES = 5 * 1024 * 1024
 MAX_ROWS = 20_000
 
 # What comes back from a backup. Everything else (llm_usage, sessions, the cache, ...) is ignored.
-DATA_TABLES = ("progress", "stickers", "keystroke_stats", "daily_stats", "play_time", "play_days")
+DATA_TABLES = ("progress", "stickers", "keystroke_stats", "daily_stats", "play_time", "play_days", "cards")
 # Settings that are known but deliberately not restored (internal counters, household secrets): ignored without counting.
 IGNORED_SETTINGS = {"letters_changed_at", "weekly_summary", "pin_hash", "openrouter_model", "layout_mismatch_flag"}
 _KEY = re.compile(r"^([A-ZÄÖÜÑ]|[0-9]|SPACE|ENTER|BACKSPACE|SHIFT|UP|DOWN|LEFT|RIGHT|CAPS)$")
@@ -134,6 +134,10 @@ def prepare(backup) -> dict:
     for r in tables.get("play_days", []):
         day = _day(r.get("day"))
         keep("play_days", (day,) if day else None)
+    for r in tables.get("cards", [])[-db.MAX_CARDS:]:
+        words, at = r.get("words"), r.get("made_at")
+        ok = isinstance(words, str) and words.strip() and _name_ok(words, 14, True) and isinstance(at, str)
+        keep("cards", (words.strip(), at[:40]) if ok else None)
 
     if not plan["settings"] and plan["interests"] is None and plan["age_band"] is None and not any(plan["rows"].values()):
         raise RestoreError("empty")
@@ -168,6 +172,7 @@ def apply(db_path: Path, plan: dict) -> dict:
             "daily_stats": "INSERT INTO daily_stats (day, attempts, correct) VALUES (?, ?, ?)",
             "play_time": "INSERT INTO play_time (day, seconds) VALUES (?, ?)",
             "play_days": "INSERT INTO play_days (day) VALUES (?)",
+            "cards": "INSERT INTO cards (words, made_at) VALUES (?, ?)",
         }
         for table, statement in sql.items():
             conn.executemany(statement.replace("INSERT INTO", "INSERT OR REPLACE INTO"), plan["rows"][table])   # duplicates in the file: last one wins

@@ -31,7 +31,7 @@ T.run(async () => {
     return true;
   }
 
-  const CORE = { mouse: 4, keyboard: 5, letters: 5, words: 5, sentences: 5, basics: 6, numbers: 6, paint: 5, desktop: 7, internet: 5, robot: 5 };
+  const CORE = { mouse: 4, keyboard: 5, letters: 5, words: 5, sentences: 5, basics: 6, numbers: 6, paint: 5, desktop: 7, internet: 5, robot: 5, tenfinger: 5 };
   const expected = {};
   for (const [world, core] of Object.entries(CORE)) {
     const levels = core + bonusLevels(world).length;                       // core levels plus the bonus levels for this language
@@ -40,6 +40,16 @@ T.run(async () => {
     T.check(`${world}: the picker shows ${levels} levels`, document.querySelectorAll(".world.level").length === levels, document.querySelectorAll(".world.level").length);
     for (let i = 0; i < levels; i++) if (!(await playLevel(world, i))) { openWorld(world); await T.wait(600); }
   }
+
+  // Create Studio: a scene can be saved as a card and opened again.
+  await loadProgress(); openWorld("free"); await T.wait(800);
+  await T.act();                                                              // types "cat" and Enter: a scene appears
+  document.querySelector(".save-card").click(); await T.wait(300);
+  document.querySelector(".open-cards").click(); await T.wait(300);
+  const cardList = [...document.querySelectorAll("#modal-root .saved-card")];
+  T.check("a saved card is listed", cardList.length === 1 && cardList[0].textContent === "cat", cardList.map((c) => c.textContent).join());
+  cardList[0]?.click(); await T.wait(300);
+  T.check("opening a card closes the list and shows its scene", T.modalCount() === 0 && document.querySelectorAll(".canvas .sprite").length > 0);
 
   await loadProgress(); openWorld("free"); await T.wait(800);
   for (let tick = 0; tick < 300 && T.name() !== "celebrate"; tick++) { await T.act(); await T.wait(60); }

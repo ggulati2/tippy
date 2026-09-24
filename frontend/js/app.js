@@ -284,7 +284,7 @@ async function welcomeScreen() {
 
 const WORLD_ICONS = {
   mouse: "🐭", paint: "🖌️", keyboard: "⌨️", letters: "🔤", numbers: "🔢", words: "🌳",
-  sentences: "☁️", internet: "🌐", basics: "🖥️", desktop: "🗂️", free: "🎨", robot: "🤖",
+  sentences: "☁️", internet: "🌐", basics: "🖥️", desktop: "🗂️", free: "🎨", robot: "🤖", tenfinger: "🖐️",
 };
 // The child's map groups the twelve worlds into the seven "Mein erster Computer" readiness
 // stages (brief §5); nothing about how a world unlocks or plays changes, only how it is labelled
@@ -300,6 +300,8 @@ const STAGES = [
   { key: "stage.7", worlds: ["free"] },
 ];
 const EXTRA_WORLDS = ["robot"];
+// Optional, for 7+: locked until a parent opens it (backend/progress.py PARENT_ONLY).
+const OPTIONAL_WORLDS = ["tenfinger"];
 
 async function mapScreen() {
   reopenPicker = null;
@@ -316,6 +318,7 @@ async function mapScreen() {
     el("div", { class: "stage-row" }, ...worldIds.map(worldButton)));
   for (const stage of STAGES) grid.append(stageRow(stage.key, stage.worlds));
   grid.append(stageRow("stage.extras", EXTRA_WORLDS));
+  grid.append(stageRow("stage.optional", OPTIONAL_WORLDS));
   const chips = el("div", { class: "map-top" },
     el("span", { class: "chip" }, `⭐ ${progress.total_stars}`),
     el("button", { class: "chip", onclick: () => { sfx("tap"); albumScreen(); } }, `📖 ${progress.stickers.length}`));
@@ -341,6 +344,7 @@ function openWorld(id) {
   else if (id === "desktop") desktopDock();
   else if (id === "internet") internetIsland();
   else if (id === "robot") robotHelper();
+  else if (id === "tenfinger") tenFingerPath();
   else comingSoonScreen(id);
 }
 

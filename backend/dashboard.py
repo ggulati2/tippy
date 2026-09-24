@@ -166,7 +166,7 @@ def local_summary(stats: dict, lang: str = "en") -> dict:
 # ---------- Export and reset ----------
 
 EXPORT_TABLES = ("child_profile", "settings", "progress", "stickers", "keystroke_stats", "daily_stats",
-                 "play_time", "play_days", "llm_usage", "sessions")
+                 "play_time", "play_days", "llm_usage", "sessions", "cards")
 
 
 def export_data(db_path: Path) -> dict:
@@ -180,9 +180,9 @@ def export_data(db_path: Path) -> dict:
 
 
 def reset_progress(db_path: Path) -> None:
-    """Forget progress, stickers, statistics and play time. Settings (name, language...) stay."""
+    """Forget progress, stickers, statistics, play time and saved cards. Settings (name, language...) stay."""
     with db.connect(db_path) as conn:
         for table in ("progress", "stickers", "keystroke_stats", "keystroke_log", "daily_stats", "play_time",
-                      "play_days", "sessions", "content_cache"):
+                      "play_days", "sessions", "content_cache", "cards"):
             conn.execute(f"DELETE FROM {table}")  # nosec B608 - table names come from a fixed tuple in this function, never from input
         conn.execute("DELETE FROM settings WHERE key IN ('letters_unlocked', 'letters_changed_at', 'unlocked_worlds', 'weekly_summary')")

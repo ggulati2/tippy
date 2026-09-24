@@ -97,6 +97,18 @@ def test_family_words_is_restored_and_a_bad_one_is_ignored(tmp_path):
     assert db.get_settings(path)["child_name"] == "Mia"
 
 
+def test_cards_are_restored_and_bad_ones_skipped(tmp_path):
+    backup = {"app": "tippy", "exported_at": "2026-09-24", "tables": {
+        "settings": [], "progress": [], "child_profile": [],
+        "cards": [{"id": 1, "words": "red cat", "made_at": "2026-09-24T10:00:00"},
+                  {"id": 2, "words": "<script>", "made_at": "2026-09-24T10:01:00"}]}}
+    path = tmp_path / "c.db"
+    db.init_db(path, "en")
+    result = restore.apply(path, restore.prepare(backup))
+    assert [c["words"] for c in db.list_cards(path)] == ["red cat"]
+    assert result["skipped"] == 1
+
+
 def test_old_0_9_backup_still_restores(tmp_path):
     old_backup = {"app": "tippy", "exported_at": "2026-09-19", "tables": {
         "settings": [{"key": "language", "value": "de"}, {"key": "child_name", "value": "Lea"}, {"key": "openrouter_model", "value": "x"},

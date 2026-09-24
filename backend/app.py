@@ -166,6 +166,22 @@ def create_app() -> FastAPI:
         lang = content.language()
         return {**bank.FREE_PLAY.get(lang, {}), **bank.PICTURES.get(lang, {})}
 
+    class CardBody(BaseModel):
+        # The same limit as the Free Play text box (MAX_FREE_CHARS in freeplay.js): letters and spaces only.
+        words: str = Field(pattern=r"^[\p{L} ]{1,14}$")
+
+    @app.get("/api/cards")
+    def cards():
+        """The child's saved Free Play cards, newest first. They never leave this computer."""
+        return {"cards": db.list_cards(family.db_path)}
+
+    @app.post("/api/cards")
+    def save_card(body: CardBody):
+        if not body.words.strip():
+            raise HTTPException(status_code=422, detail="empty card")
+        db.save_card(family.db_path, body.words.strip())
+        return {"cards": db.list_cards(family.db_path)}
+
     @app.get("/api/content/sentences")
     def practice_sentences(count: int = Query(default=4, ge=1, le=10),
                            kind: str = Query(default="normal", pattern="^(normal|long|question|themed)$")):

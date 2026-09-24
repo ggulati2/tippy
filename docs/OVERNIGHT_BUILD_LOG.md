@@ -392,9 +392,52 @@ for this milestone.
    judge the tone for yourself — the goal was warm and matter-of-fact, never scary.
 4. Completing level 19 should award a new "Wise owl" 🦉 sticker, visible in the sticker album.
 
+## A note on milestone numbers (tags vs. the brief)
+
+The brief's §12 bundles "Everyday Computer **and** Safe & Smart" into one milestone (its number 5). They were
+built and tagged separately here (`revamp-m5` desktop tasks, `revamp-m6` Safe & Smart), so from this point the
+tag numbers run one ahead of the brief's. Pushed tags are not renamed; this is the mapping:
+
+| Tag | Brief §12 milestone |
+|---|---|
+| `revamp-m1` ... `revamp-m4` | 1 ... 4 |
+| `revamp-m5` + `revamp-m6` | 5. Everyday Computer and Safe & Smart |
+| `revamp-m7` | 6. Create Studio and optional Ten-Finger Path |
+| `revamp-m8` onwards | 7 onwards (always the brief's number + 1) |
+
+## Brief milestone 6 — Create Studio and optional Ten-Finger Path (tagged `revamp-m7`)
+
+**Create Studio: save a scene as a card and open it again.** Free Play gained two buttons: 💾 saves the scene
+on the canvas as a "card", 🖼️ opens a list of saved cards, and tapping one draws that scene again. Only the typed
+words are stored (a new `cards` table in the child's own database, newest 12 kept; a new card makes room rather
+than being refused). Cards are part of the parent's backup (export), a restore brings them back (checked like
+every other restored row: letters and spaces only, at most 14 characters), and "reset progress" clears them.
+Nothing about a card ever leaves the computer.
+
+*Decision made on the user's behalf:* the brief's stage 7 says "draw, type a caption, make a card, save and
+reopen it." Drawing already exists in Paint Place and typing-into-a-scene in Free Play; the two were **not**
+merged into one combined draw-plus-caption editor. Saving and reopening was the part genuinely missing, and it
+now exists; merging two working worlds would have been a much larger, riskier change for the same goal.
+
+**Ten-Finger Path** (`frontend/js/tenfinger.js`, world id `tenfinger`): five short levels using the existing
+typing engine and the on-screen keyboard's finger colours — the two keys with a bump (F, J), left hand (A S D F),
+right hand (J K L), both hands plus the reach to G and H, then real words made only of home-row letters
+(English "dad, sad, all, fall, glad"; German "das, als, Glas, Hals, Saal"; Spanish "sala, hada, falda, salsa,
+gala"). It is **locked by default and never opens by playing**: `PARENT_ONLY` in `backend/progress.py` means
+only a parent opening it (by hand in Settings, or with "unlock all") makes it available, exactly as the brief
+asks. It sits on the map under a new "Optional: for age 7 and up" heading, and finishing it earns a 🎹 sticker.
+
+**Tests:** new unit tests for cards (save, list, 12-card cap, validation, export, reset), for restoring cards
+(a bad one is skipped), and for the Ten-Finger Path (stays locked after finishing every other world; opens by
+parent; opens with "unlock all"; awards its sticker). The browser playthrough now plays all five Ten-Finger
+levels in English, German and Spanish, and saves a card, opens the list, and reopens it. One bug was in the
+test itself (a reused variable name) and was fixed before anything was committed. 282 unit/i18n tests, 9 voice
+tests, and 21 browser tests pass; the 13 new spoken lines were recorded in all three languages.
+
+**What to test:** in Free Play, make a scene, tap 💾, then 🖼️ and tap the saved card. In the parent area's
+Settings, open the Ten-Finger Path (🖐️) by hand and play a level; before that, it should show as locked on the map.
+
 ## Status and what is next
 
-Milestones 3 through 6 are complete, tagged (`revamp-m3` through `revamp-m6`), and pushed. `main` is
-untouched. The next milestone is **7: parent area upgrades** (brief §6.4) — the audit notes time controls
-and data export/delete already exist and template weekly reports already match the brief; what's new is
-custom word lists, printable certificates and a colouring sheet, and a privacy/Datenschutz screen.
+Brief milestones 1–6 are complete (tags `revamp-m1` to `revamp-m7`), all pushed; `main` untouched. Next is the
+brief's **milestone 7: parent area upgrades** (tag `revamp-m8`).

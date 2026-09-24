@@ -19,8 +19,12 @@ async function freePlay() {
   const board = renderKeyboard();
   const magicButton = el("button", { class: "big-btn magic", "aria-label": "magic", onclick: magic }, "✨");
   const clearButton = el("button", { class: "big-btn round", "aria-label": "clear", onclick: clear }, "🗑️");
+  // Create Studio (brief section 5, stage 7): keep a scene as a card and open it again later.
+  let shownWords = "";   // the words behind the scene on the canvas right now
+  const saveButton = el("button", { class: "big-btn round save-card", "aria-label": "save", disabled: "", onclick: saveCard }, "💾");
+  const cardsButton = el("button", { class: "big-btn round open-cards", "aria-label": "my cards", onclick: openCards }, "🖼️");
   setScreen("free", instruction("🎨", t("free.type")), canvas,
-    el("div", { class: "free-row" }, typed, magicButton, clearButton), board.node);
+    el("div", { class: "free-row" }, typed, magicButton, clearButton, saveButton, cardsButton), board.node);
   drawText();
 
   function drawText() {
@@ -34,6 +38,8 @@ async function freePlay() {
 
   function clear() {
     text = "";
+    shownWords = "";
+    saveButton.disabled = true;
     canvas.replaceChildren(el("span", { class: "canvas-hint" }, "🎨"));
     sfx("key");
     drawText();
@@ -58,15 +64,27 @@ async function freePlay() {
   }
 
   function magic() {
-    const words = text.trim().toLowerCase().split(" ").filter(Boolean);
-    if (!words.length) { sfx("key"); return board.pulse("A"); }
+    if (!text.trim()) { sfx("key"); return board.pulse("A"); }
+    showScene(text.trim());
+    text = ""; // the scene stays on the canvas; the next word starts fresh
+    drawText();
+    scenes++;
+    // A little reward the first time: a sticker for making a few scenes.
+    if (scenes === SCENES_FOR_STICKER && !progress.worlds.free.levels[1]) {
+      keyHandler = null;
+      later(() => completeLevel("free", 1, freePlay), 3000);
+    }
+  }
+
+  function showScene(phrase) {
+    const words = phrase.toLowerCase().split(" ").filter(Boolean);
     const emojis = words.map(pictureFor).filter(Boolean).slice(0, 3);
     const parts = [];
     if (emojis.length) {
       for (let i = 0; i < 14; i++) parts.push(sprite(emojis[i % emojis.length]));
     } else {
       // A word we have no picture for: the letters put on a show instead.
-      const dancers = el("div", { class: "dancers" }, ...[...text.trim()].map((ch, i) => {
+      const dancers = el("div", { class: "dancers" }, ...[...phrase].map((ch, i) => {
         const tile = el("span", { class: "dancer" }, ch === " " ? " " : showLetter(ch));
         tile.style.animationDelay = i * 0.12 + "s";
         tile.style.color = ch === " " ? "inherit" : zoneColor(ch.toUpperCase());
@@ -78,15 +96,31 @@ async function freePlay() {
     $("#screen").append(confetti());
     sfx("sparkle");
     setTimeout(() => sfx("success"), 300);
-    speak(text.trim());
-    text = ""; // the scene stays on the canvas; the next word starts fresh
-    drawText();
-    scenes++;
-    // A little reward the first time: a sticker for making a few scenes.
-    if (scenes === SCENES_FOR_STICKER && !progress.worlds.free.levels[1]) {
-      keyHandler = null;
-      later(() => completeLevel("free", 1, freePlay), 3000);
-    }
+    speak(phrase);
+    shownWords = phrase;
+    saveButton.disabled = false;
+  }
+
+  async function saveCard() {
+    if (!shownWords) return;
+    const { status } = await api("/api/cards", { method: "POST", body: JSON.stringify({ words: shownWords }) });
+    if (status !== 200) return;
+    saveButton.disabled = true;   // saved: the same scene is not saved twice
+    sfx("success");
+    speak(t("free.saved"));
+  }
+
+  async function openCards() {
+    sfx("tap");
+    const { body } = await api("/api/cards");
+    const list = body.cards || [];
+    const pick = (words) => { closeModal(); showScene(words); saveButton.disabled = true; };
+    openModal(el("div", { class: "panel" }, el("h2", {}, "🖼️ " + t("free.gallery")),
+      list.length ? el("div", { class: "choices card-list" }, ...list.map((c) =>
+        el("button", { class: "choice small saved-card", onclick: () => pick(c.words) }, c.words)))
+        : el("p", {}, t("free.empty")),
+      el("button", { class: "big-btn blue", onclick: closeModal }, "✓")));
+    speak(list.length ? t("free.gallery") : t("free.empty"));
   }
 
   keyHandler = (e) => {

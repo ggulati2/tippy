@@ -62,5 +62,6 @@
   {"id": "shield", "emoji": "🛡️", "award": "internet:done", "name": {"en": "Safe surfer", "de": "Sicher surfen", "es": "Navegante seguro"}},
   {"id": "robot", "emoji": "🤖", "award": "robot:2", "name": {"en": "Robot", "de": "Roboter", "es": "Robot"}},
   {"id": "battery", "emoji": "🔋", "award": "robot:4", "name": {"en": "Battery", "de": "Batterie", "es": "Batería"}},
-  {"id": "gear", "emoji": "⚙️", "award": "robot:done", "name": {"en": "Engineer", "de": "Ingenieur", "es": "Ingeniero"}}
+  {"id": "gear", "emoji": "⚙️", "award": "robot:done", "name": {"en": "Engineer", "de": "Ingenieur", "es": "Ingeniero"}},
+  {"id": "piano", "emoji": "🎹", "award": "tenfinger:done", "name": {"en": "Ten fingers", "de": "Zehn Finger", "es": "Diez dedos"}}
 ]
