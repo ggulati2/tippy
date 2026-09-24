@@ -7,8 +7,7 @@ import json
 import os
 from pathlib import Path
 
-from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from backend import ed25519
 
 # core: every readiness stage, all languages, one own word list. plus: the online helper, printables.
 # school: classroom mode and portable mode. (There is only one own word list, so "unlimited lists" has nothing to gate yet.)
@@ -34,9 +33,10 @@ def verify(data) -> dict:
     if not isinstance(data, dict) or not isinstance(data.get("licence"), dict) or not isinstance(data.get("signature"), str):
         raise LicenceError("not-a-licence")
     try:
-        key = Ed25519PublicKey.from_public_bytes(base64.b64decode(PUBLIC_KEY))
-        key.verify(base64.b64decode(data["signature"], validate=True), canonical(data["licence"]))
-    except (InvalidSignature, ValueError):
+        signature = base64.b64decode(data["signature"], validate=True)
+    except ValueError:
+        raise LicenceError("bad-signature")
+    if not ed25519.verify(base64.b64decode(PUBLIC_KEY), canonical(data["licence"]), signature):
         raise LicenceError("bad-signature")
     tiers = data["licence"].get("tiers")
     if not isinstance(tiers, list) or not all(isinstance(t, str) for t in tiers):
@@ -48,12 +48,22 @@ def dev_unlock() -> bool:
     return os.environ.get("DEV_UNLOCK_ALL", "").lower() in ("1", "true", "yes")
 
 
+_checked: dict = {}   # file -> (its size and time, the result): checking a signature takes a few milliseconds
+
+
 def read(folder: Path) -> dict | None:
     """The valid licence saved in `folder`, or None (no file, or one that does not check out)."""
+    path = folder / FILE_NAME
     try:
-        return verify(json.loads((folder / FILE_NAME).read_text(encoding="utf-8")))
-    except (OSError, ValueError):
+        stamp = (path.stat().st_mtime_ns, path.stat().st_size)
+    except OSError:
         return None
+    if _checked.get(path, (None,))[0] != stamp:
+        try:
+            _checked[path] = (stamp, verify(json.loads(path.read_text(encoding="utf-8"))))
+        except (OSError, ValueError):
+            _checked[path] = (stamp, None)
+    return _checked[path][1]
 
 
 def features(folder: Path) -> set[str]:

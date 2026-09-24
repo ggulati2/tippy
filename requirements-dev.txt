@@ -1,4 +1,5 @@
 # For developers: everything Tippy needs plus the test tools.
 -r requirements.txt
 pytest==9.1.1
+cryptography==50.0.1   # only for scripts/make_licence.py (signing licences) and the licence tests; the app checks signatures without it
 regex==2026.9.10   # only for scripts/fetch_emoji.py (correctly groups multi-character emoji like flags)

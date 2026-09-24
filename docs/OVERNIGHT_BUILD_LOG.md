@@ -566,7 +566,33 @@ online helper`): a full stop directly followed by a letter is refused. Listed in
 and without the helper the level uses built-in sentences. The consent screen was checked visually in German; the
 throwaway server made no request to OpenRouter. 309 unit/i18n tests pass. The privacy page was updated to match.
 
+## Brief milestone 11 — Packaging (tagged `revamp-m12`)
+
+Success criteria, all met on this (Intel) Mac: the app builds with everything added since v0.14.0; the smoke test
+passes; **the whole 22-test browser suite passes against the packaged app** (`TIPPY_APP_BINARY=...`), not just the
+source code; portable mode works with the real app.
+
+- **A packaging bug caught by building for real:** the first build did not start at all. `cryptography` (added in
+  milestone 9) has no ready-made package for Intel Macs, so pip compiled it against Homebrew's OpenSSL, and the app
+  then carried a different OpenSSL. **Decision (revising milestone 9's):** the app now checks licence signatures with
+  `backend/ed25519.py`, the verification part of the reference code in the Ed25519 standard (RFC 8032), in plain
+  Python. It is tested against the RFC's official test vectors, against signatures from `cryptography` (10 random
+  keys), and against tampered inputs. `cryptography` is now only a developer tool (`requirements-dev.txt`) for signing
+  licences. A check takes about 8 ms and is remembered until the licence file changes.
+- **Linux build:** new `.github/workflows/linux-app.yml` (Ubuntu 22.04, PyInstaller, the same smoke test, a
+  `.tar.gz`), run on version tags, packaging pull requests, or by hand, like the Windows and Mac ones.
+- **`docs/BUILD.md`:** what is built where, how to make a release, how a built app is tested, portable mode,
+  licences, signing.
+- **Portable mode checked with the real app:** a copy of Tippy.app next to a `tippy-data` folder with a *school*
+  licence kept its data, logs and licence in that folder.
+
+**Not done, on purpose — a decision for the owner:** the brief asks for a native window (`pywebview`) with the
+browser as fallback. Tippy relies on downloads (backups, CSV), the print dialog, autoplay of the recorded voice and a
+real kiosk fullscreen, which a native web view does differently on each system; switching without checking each on
+real Windows and Mac machines could quietly break those for families. The kiosk browser stays the default; the reasons
+are in `docs/BUILD.md`.
+
 ## Status and what is next
 
-Brief milestones 1–10 are complete (tags `revamp-m1` to `revamp-m11`); `main` untouched. Next is the brief's
-**milestone 11: packaging** (tag `revamp-m12`).
+Brief milestones 1–11 are complete (tags `revamp-m1` to `revamp-m12`); `main` untouched. Next is the brief's
+**milestone 12: polish and review** (tag `revamp-m13`).

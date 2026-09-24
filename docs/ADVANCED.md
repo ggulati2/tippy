@@ -47,6 +47,8 @@ Change the mascot's name and colours in `branding.json`, then run `python script
 
 The Mac and Windows apps you can download from Releases are ready to use; these are the commands behind them, for building your own.
 
+The full build and release process (including Linux, testing a built app, and why the window is a kiosk browser) is in [docs/BUILD.md](BUILD.md).
+
 - **Mac** (build on the Mac it should run on): `scripts/build_mac.sh` → `dist/Tippy.app` and a zip. Runs on the CPU it was built on (Intel or Apple silicon). The Apple silicon build on the Releases page is built by `.github/workflows/mac-app.yml`, since this project's own Mac is Intel.
 - **Windows**: `windows\build.bat` (needs Python and, for the single installer file, Inno Setup) → `dist\Tippy\Tippy.exe` and, if Inno Setup is installed, `Tippy-Setup-<version>.exe`. GitHub Actions builds this automatically on every release; see `.github/workflows/windows-app.yml`.
 
