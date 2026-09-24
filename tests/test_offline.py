@@ -10,18 +10,44 @@ import pytest
 from fastapi.testclient import TestClient
 
 
+LOOPBACK = {"127.0.0.1", "localhost", "::1"}
+
+
 @pytest.fixture()
 def blocked(monkeypatch):
+    """Connections to this computer itself stay allowed (on Windows, Python's event loop connects a socket to
+    127.0.0.1 when it starts); every connection to anywhere else is refused and recorded."""
     attempts = []
+    real = {"connect": socket.socket.connect, "connect_ex": socket.socket.connect_ex, "create": socket.create_connection}
 
-    def refuse(*args, **kwargs):
-        attempts.append(args)
-        raise OSError("network blocked by the offline test")
+    def outbound(address) -> bool:
+        return isinstance(address, tuple) and address[0] not in LOOPBACK
 
-    monkeypatch.setattr(socket.socket, "connect", refuse)
-    monkeypatch.setattr(socket.socket, "connect_ex", refuse)
-    monkeypatch.setattr(socket, "create_connection", refuse)
+    def guard(name):
+        def call(self, address, *args, **kwargs):
+            if outbound(address):
+                attempts.append(address)
+                raise OSError("network blocked by the offline test")
+            return real[name](self, address, *args, **kwargs)
+        return call
+
+    def create_connection(address, *args, **kwargs):
+        if outbound(address):
+            attempts.append(address)
+            raise OSError("network blocked by the offline test")
+        return real["create"](address, *args, **kwargs)
+
+    monkeypatch.setattr(socket.socket, "connect", guard("connect"))
+    monkeypatch.setattr(socket.socket, "connect_ex", guard("connect_ex"))
+    monkeypatch.setattr(socket, "create_connection", create_connection)
     return attempts
+
+
+def test_the_blocker_catches_a_real_outbound_request(blocked):
+    import httpx
+    with pytest.raises(httpx.ConnectError):
+        httpx.get("https://openrouter.ai", timeout=3)
+    assert blocked and blocked[0][0] == "openrouter.ai"
 
 
 def test_the_core_flow_makes_no_network_calls(blocked, tmp_path, monkeypatch):
