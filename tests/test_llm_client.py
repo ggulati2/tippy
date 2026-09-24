@@ -15,6 +15,7 @@ def make_settings(tmp_path, **changes):
     values.update(changes)
     settings = Settings(**values)
     db.init_db(settings.db_path)
+    db.set_setting(settings.db_path, "ai_consent", "1")   # a parent has switched the online helper on
     return settings
 
 
@@ -120,3 +121,20 @@ def test_prompt_builder_has_no_place_for_a_name():
                  {"kind": "mascot", "lang": "en", "event": "oops", "count": 5}):
         text = " ".join(m["content"] for m in prompts.build_messages(task))
         assert "6-year-old" in text and "Never ask for or mention names" in text
+
+
+def test_nothing_is_sent_until_a_parent_switches_the_helper_on(tmp_path):
+    settings = make_settings(tmp_path)
+    db.set_setting(settings.db_path, "ai_consent", "0")
+    sent = []
+    client = client_with(settings, lambda request: sent.append(request) or httpx.Response(200, json=reply()))
+    assert not client.enabled and client.generate({"kind": "ping"}) is None
+    assert not client.test_connection()["ok"] and sent == []                          # not even the test ping
+    db.set_setting(settings.db_path, "ai_consent", "1")
+    assert client.enabled and client.generate({"kind": "ping"}) is not None and len(sent) == 1
+
+
+def test_llm_mode_openrouter_is_the_same_as_live(monkeypatch):
+    from backend import config
+    monkeypatch.setenv("LLM_MODE", "openrouter")
+    assert config.load_settings().llm_mode == "live"

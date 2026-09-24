@@ -99,3 +99,17 @@ def test_portable_mode_needs_the_school_tier(key, tmp_path, monkeypatch):
     assert config._home_dir() != tmp_path / "tippy-data"                                  # no licence: the user folder
     (tmp_path / "tippy-data" / "data" / "licence.json").write_text(json.dumps(signed(key, ["school"])))
     assert config._home_dir() == tmp_path / "tippy-data"
+
+
+def test_the_online_helper_needs_the_parents_yes_even_when_licensed(key, tmp_path, monkeypatch):
+    monkeypatch.setenv("DEV_UNLOCK_ALL", "1")
+    for name, value in {"TIPPY_DB_PATH": str(tmp_path / "tippy.db"), "PARENT_PIN": "4321", "LLM_MODE": "openrouter", "OPENROUTER_API_KEY": "x"}.items():
+        monkeypatch.setenv(name, value)
+    from backend.app import create_app
+    client = TestClient(create_app(), base_url="http://127.0.0.1:8765")
+    parent = {"X-Parent-Token": client.post("/api/parent/verify", json={"pin": "4321"}).json()["token"]}
+    status = client.get("/api/parent/status", headers=parent).json()
+    assert status["mode"] == "live" and status["consent"] is False
+    assert client.post("/api/parent/ai-consent", json={"on": True}).status_code == 401
+    assert client.post("/api/parent/ai-consent", json={"on": True}, headers=parent).json()["consent"] is True
+    assert client.post("/api/parent/ai-consent", json={"on": False}, headers=parent).json()["consent"] is False

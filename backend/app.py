@@ -432,6 +432,16 @@ def create_app() -> FastAPI:
             children.append({**profile, "worlds": progress.world_counts(state), "stars": state["total_stars"]})
         return {"children": children}
 
+    class ConsentBody(BaseModel):
+        on: bool
+
+    @app.post("/api/parent/ai-consent")
+    def ai_consent(body: ConsentBody, _parent: None = Depends(parent_only)):
+        """The parent's yes (or no) to the online helper, after the consent screen. Household-wide."""
+        db.set_setting(family.family_db, "ai_consent", "1" if body.on else "0")
+        log.info("Online helper %s by the parent", "switched on" if body.on else "switched off")
+        return llm.status()
+
     @app.post("/api/parent/licence")
     async def install_licence(request: Request, _parent: None = Depends(parent_only)):
         """The parent picks the licence file they were given; it is checked here and kept in the data folder."""

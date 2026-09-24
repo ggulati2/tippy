@@ -72,6 +72,8 @@ def test_daily_limit(db_path):
 
 def make_llm(tmp_path, mode="mock", reply=None):
     settings = Settings("k" if mode == "live" else "", "m", "b", "en", "1234", mode, 50, tmp_path / "d.db")
+    db.init_db(settings.db_path)
+    db.set_setting(settings.db_path, "ai_consent", "1")   # a parent has switched the online helper on
 
     class Fake(LLMClient):
         calls = 0

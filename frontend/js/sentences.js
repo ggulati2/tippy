@@ -18,9 +18,10 @@ const SENTENCE_BONUS = {
   13: { special: "wild_sentences", text: "sentences.wild", icon: "🐪" },
 };
 
-// Three sentences, shortest first, for one of the bonus levels.
-function bonusSentences(round, bonus, sentences) {
-  const chosen = typableEntries(sentences).sort((a, b) => a.text.length - b.text.length).slice(0, SENTENCES_PER_ROUND);
+// Three sentences, shortest first, for one of the bonus levels. A tiny story from the online helper keeps its order.
+function bonusSentences(round, bonus, sentences, source) {
+  const entries = typableEntries(sentences);
+  const chosen = source === "story" ? entries : entries.sort((a, b) => a.text.length - b.text.length).slice(0, SENTENCES_PER_ROUND);
   if (!chosen.length) throw new Error("no typable sentences");
   typingRound({
     screen: "sentences", icon: bonus.icon, text: t(bonus.text),
@@ -54,7 +55,7 @@ async function startSkyRound(round) {
   const { status, body } = await api(!bonus ? "/api/content/sentences?count=10"
     : bonus.special ? `/api/content/special?set=${bonus.special}&count=6` : `/api/content/sentences?count=6&kind=${bonus.kind}`);
   if (status !== 200) throw new Error("no sentences available");
-  if (bonus) return bonusSentences(round, bonus, body.items);
+  if (bonus) return bonusSentences(round, bonus, body.items, body.source);
   // Shortest first, so round 1 is easiest. Rounds 1, 2 and 3 take the short, middle and long ones.
   const entries = typableEntries(body.items).sort((a, b) => a.text.length - b.text.length);
   const start = Math.min((round - 1) * SENTENCES_PER_ROUND, Math.max(0, entries.length - SENTENCES_PER_ROUND));

@@ -23,6 +23,7 @@ class FakeLLM(LLMClient):
 def settings(tmp_path):
     s = Settings("k", "a", "b", "en", "1234", "live", 50, tmp_path / "c.db")
     db.init_db(s.db_path)
+    db.set_setting(s.db_path, "ai_consent", "1")   # a parent has switched the online helper on
     return s
 
 
@@ -191,3 +192,31 @@ def test_every_ask_topic_has_question_icon_and_both_answers():
             # Built-in answers are trusted. Most also pass the LLM filter. The "password" answers do not, because
             # the blocklist rejects that word in LLM output, so LLM answers for that topic always fall back to these.
             assert clean_answers([answer], lang) == [answer] or topic == "password", (lang, topic)
+
+
+# ---------- Tiny stories (docs/REVAMP_BRIEF.md section 6.6) ----------
+
+def test_a_tiny_story_is_served_whole_and_in_order_for_the_themed_level(settings):
+    story = json.dumps({"stories": [["Tippy sees a big star.", "The star is very bright."],
+                                    ["Tippy has a red hat.", "The hat is on a dog.", "The dog is happy."]]})
+    svc = ContentService(settings.db_path, FakeLLM(settings, story), background=False)
+    first = svc.sentences(3, "themed")                    # nothing cached yet: built-in sentences, and a refill
+    assert first["source"] == "fallback"
+    served = svc.sentences(3, "themed")
+    assert served["source"] == "story" and served["items"] == ["Tippy sees a big star.", "The star is very bright."]
+
+
+def test_a_story_with_one_bad_sentence_is_dropped_whole(settings):
+    story = json.dumps({"stories": [["Tippy sees a big star.", "Visit www.example.com now."],
+                                    ["Tippy likes the sun.", "The sun is warm."]]})
+    svc = ContentService(settings.db_path, FakeLLM(settings, story), background=False)
+    svc.sentences(3, "themed")
+    stories = [svc.sentences(3, "themed")["items"] for _ in range(3)]
+    assert all(items == ["Tippy likes the sun.", "The sun is warm."] for items in stories)
+
+
+def test_without_the_online_helper_the_themed_level_uses_built_in_sentences(settings):
+    db.set_setting(settings.db_path, "ai_consent", "0")
+    llm = FakeLLM(settings, "{}")
+    svc = ContentService(settings.db_path, llm, background=False)
+    assert svc.sentences(3, "themed")["source"] == "fallback" and llm.calls == 0

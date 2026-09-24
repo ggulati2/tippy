@@ -301,6 +301,16 @@ const MODEL_SUGGESTIONS = ["nvidia/nemotron-3-super-120b-a12b:free", "deepseek/d
 
 async function helperTab(body) {
   const { body: status } = await api("/api/parent/status");
+  const setConsent = async (on) => { await api("/api/parent/ai-consent", { method: "POST", body: JSON.stringify({ on }) }); parentPanel(); };
+  // Nothing goes online until the parent has read this and said yes (brief section 4.1). The same text, every time.
+  if (status.mode === "live" && !status.consent) {
+    body.replaceChildren(el("div", { class: "consent" },
+      el("h3", {}, "✨ " + t("consentTitle")), el("p", {}, t("consentIntro")),
+      el("ul", {}, ...["consentSent", "consentNever", "consentWhere", "consentCost", "consentOff"].map((key) =>
+        el("li", {}, t(key).replace("{cap}", status.cap)))),
+      el("button", { class: "big-btn blue small-btn consent-yes", onclick: () => setConsent(true) }, t("consentYes"))));
+    return;
+  }
   const list = el("datalist", { id: "model-list" }, ...MODEL_SUGGESTIONS.map((m) => el("option", { value: m })));
   const modelInput = el("input", { class: "text-input wide-input", type: "text", list: "model-list", maxlength: "80", value: status.model,
     onchange: () => saveSetting({ openrouter_model: modelInput.value.trim() }) });
@@ -308,7 +318,8 @@ async function helperTab(body) {
     llmSection(status),
     el("div", { class: "row" }, el("span", {}, t("helperModel")), modelInput, list),
     el("div", { class: "row" }, el("span", {}, t("helperFallback")), el("span", { class: "muted" }, status.fallback_model)),
-    el("p", { class: "muted" }, t("helperNote")));
+    el("p", { class: "muted" }, t("helperNote")),
+    status.mode === "live" ? el("button", { class: "big-btn small-btn danger consent-stop", onclick: () => setConsent(false) }, t("consentStop")) : "");
 }
 
 // The online helper's status, cost and a "Test connection" button. Parent area only.

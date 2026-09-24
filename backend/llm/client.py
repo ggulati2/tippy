@@ -41,9 +41,15 @@ class LLMClient:
         return self.settings.llm_mode
 
     @property
+    def consented(self) -> bool:
+        """A parent switched the online helper on after reading what it sends and costs (docs/REVAMP_BRIEF.md 4.1).
+        Until then nothing at all goes out, not even the "Test connection" ping."""
+        return db.get_settings(self._state_db).get("ai_consent") == "1"
+
+    @property
     def enabled(self) -> bool:
-        """True if generate() can produce anything (mock always; live needs a key)."""
-        return self.mode == "mock" or (self.mode == "live" and bool(self.settings.openrouter_api_key))
+        """True if generate() can produce anything (mock always; live needs a key and the parent's yes)."""
+        return self.mode == "mock" or (self.mode == "live" and bool(self.settings.openrouter_api_key) and self.consented)
 
     @property
     def model(self) -> str:
@@ -78,6 +84,9 @@ class LLMClient:
             return mock.mock_generate(task)
         if not self.settings.openrouter_api_key:
             self.last_error = "no API key"
+            return None
+        if not self.consented:
+            self.last_error = "not switched on in the parent area"
             return None
 
         messages = prompts.build_messages(task)
@@ -154,7 +163,7 @@ class LLMClient:
 
     def status(self) -> dict:
         return {
-            "mode": self.mode, "key_set": bool(self.settings.openrouter_api_key),
+            "mode": self.mode, "key_set": bool(self.settings.openrouter_api_key), "consent": self.consented,
             "model": self.model, "fallback_model": self.settings.openrouter_fallback_model,
             "online": self.online, "last_error": self.last_error, **self.usage_today(),
         }

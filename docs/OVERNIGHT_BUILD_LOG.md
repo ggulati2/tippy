@@ -538,7 +538,35 @@ ignored; dev unlock; without a licence classroom cannot be switched on and the h
 through the parent area (PIN needed, bad files refused); portable mode needs *school*. The real key pair was checked
 once end to end (a licence made with the owner's key verifies with the app's built-in key). 302 unit/i18n tests pass.
 
+## Another bug found on the way (also on `main`)
+
+Testing tiny stories showed the filter for text from the online helper accepted "Visit www.example.com now." — web
+addresses are made only of allowed characters. Fixed in its own commit (`fix: refuse web addresses in text from the
+online helper`): a full stop directly followed by a letter is refused. Listed in `docs/BACKPORT_CANDIDATES.md`.
+
+## Brief milestone 10 — Optional AI extras (tagged `revamp-m11`)
+
+- **Provider modes** as the brief names them: `LLM_MODE=off` (default), `mock`, `openrouter` (`live`, the older name,
+  still works so existing `.env` files keep working).
+- **Consent screen:** the online helper now stays off until a parent opens "Extra: online helper" and says yes after
+  reading, in plain language, what is sent (a theme, the language, known letters; numbers only for the weekly report),
+  what is never sent, where it goes (OpenRouter) and what it can cost (free models by default, at most N requests a
+  day). Until then nothing goes out, not even the "Test connection" ping. A button switches it off again. The tab is
+  labelled "Extra" in all three languages. (It still also needs the *plus* tier from milestone 9 and a key in `.env`.)
+- **Tiny stories** (brief §6.6): 2–3 sentence stories about Tippy and the child's interest, used by Sentence Sky's
+  "things I like" level when the helper is on. Every sentence of a story must pass the same checks as any sentence, or
+  the whole story is dropped; stories are typed whole and in order. Without the helper (or before a story is ready)
+  the level uses built-in sentences, as before.
+- Personalised practice words by interest and "Ask Tippy" already existed and keep their filters.
+
+**Heads-up for the owner:** your own Tippy with the online helper now needs you to press "Yes" once on that screen.
+
+**Tests:** nothing is sent before consent (not even the test ping), consent needs the PIN and toggles both ways,
+`openrouter` equals `live`, a story is served whole and in order, a story with one bad sentence is dropped whole,
+and without the helper the level uses built-in sentences. The consent screen was checked visually in German; the
+throwaway server made no request to OpenRouter. 309 unit/i18n tests pass. The privacy page was updated to match.
+
 ## Status and what is next
 
-Brief milestones 1–9 are complete (tags `revamp-m1` to `revamp-m10`); `main` untouched. Next is the brief's
-**milestone 10: optional AI extras** (tag `revamp-m11`).
+Brief milestones 1–10 are complete (tags `revamp-m1` to `revamp-m11`); `main` untouched. Next is the brief's
+**milestone 11: packaging** (tag `revamp-m12`).

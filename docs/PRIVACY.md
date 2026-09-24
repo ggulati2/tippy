@@ -19,7 +19,7 @@ In einem Ordner auf diesem Computer: beim Mac-Programm unter „Library/Applicat
 
 ### Was den Computer verlässt
 - Standardmäßig: nichts. Tippy antwortet nur Programmen auf diesem Computer.
-- Nur wenn Sie den Online-Helfer in der Datei „.env“ selbst einschalten, fragt Tippy bei OpenRouter nach neuen Übungswörtern und Sätzen. Dabei werden nur ein Thema (zum Beispiel „Tiere“) und die Sprache geschickt, nie ein Name, Familienwort, Alter, Ort oder etwas, das Ihr Kind getippt hat.
+- Nur wenn Sie den Online-Helfer selbst einrichten (in der Datei „.env“) und ihn danach im Elternbereich unter „Extra: Online-Helfer“ ausdrücklich einschalten, fragt Tippy bei OpenRouter nach neuen Übungswörtern, Sätzen und kleinen Geschichten. Dabei werden nur ein Thema (zum Beispiel „Tiere“), die Sprache und die schon bekannten Buchstaben geschickt, für den Wochenbericht nur Zahlen, nie ein Name, Familienwort, Alter, Ort oder etwas, das Ihr Kind getippt hat.
 - Tippys Stimme ist fest eingebaut. Für Sätze ohne Aufnahme (zum Beispiel den Namen Ihres Kindes) nutzt Tippy nur die Stimmen, die auf diesem Computer installiert sind, nie eine Online-Stimme.
 
 ### Löschen
@@ -45,7 +45,7 @@ In one folder on this computer: for the Mac app in "Library/Application Support/
 
 ### What leaves this computer
 - By default: nothing. Tippy only answers programs on this computer.
-- Only if you switch on the online helper yourself in the ".env" file, Tippy asks OpenRouter for new practice words and sentences. It sends only a theme (for example "animals") and the language, never a name, family word, age, place or anything your child typed.
+- Only if you set up the online helper yourself (in the ".env" file) and then switch it on in the parent area under "Extra: online helper", Tippy asks OpenRouter for new practice words, sentences and tiny stories. It sends only a theme (for example "animals"), the language and the letters your child knows, and for the weekly report only numbers, never a name, family word, age, place or anything your child typed.
 - Tippy's voice is built in. For sentences without a recording (such as your child's name) Tippy only uses voices installed on this computer, never an online voice.
 
 ### Deleting

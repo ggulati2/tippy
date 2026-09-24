@@ -24,9 +24,9 @@ from backend.llm.schemas import SCHEMAS
 
 log = logging.getLogger("tippy.content")
 
-LOW_WATER = {"words": 10, "sentences": 6, "mascot": 4, "ask": 2}   # refill when fewer unused items remain
-BATCH = {"words": 20, "sentences": 10, "mascot": 8, "ask": 4}      # how many to ask for at once
-MIN_GOOD = {"words": 3, "sentences": 3, "mascot": 3, "ask": 1}   # a batch with fewer valid items is thrown away
+LOW_WATER = {"words": 10, "sentences": 6, "mascot": 4, "ask": 2, "story": 2}   # refill when fewer unused items remain
+BATCH = {"words": 20, "sentences": 10, "mascot": 8, "ask": 4, "story": 4}      # how many to ask for at once
+MIN_GOOD = {"words": 3, "sentences": 3, "mascot": 3, "ask": 1, "story": 1}   # a batch with fewer valid items is thrown away
 COOLDOWN_SECONDS = 600  # after a failed refill, wait before asking again (free accounts have a small daily limit)
 MIN_PRACTICE_LETTERS = 16  # Word Woods and Sentence Sky draw from at least this many letters (A to N in our order),
                            # or there would hardly be any real words; the on-screen keyboard guides each new key
@@ -118,6 +118,11 @@ class ContentService:
             good = validators.clean_sentences(items, allowed, lang)
         elif kind == "ask":
             good = validators.clean_answers(items, lang)
+        elif kind == "story":
+            # A story is kept only if every one of its 2 or 3 sentences passes the sentence checks; it is stored
+            # as one item with its sentences on separate lines, so it is always typed whole and in order.
+            stories = [validators.clean_sentences(story, allowed, lang) for story in items]
+            good = ["\n".join(clean) for clean, story in zip(stories, items) if 2 <= len(story) <= 3 and len(clean) == len(story)]
         else:
             good = validators.clean_mascot_lines(items, lang)
         if len(good) < MIN_GOOD[kind]:
@@ -205,6 +210,13 @@ class ContentService:
         if kind == "normal":
             return self._practice("sentences", count, min_letters=MIN_PRACTICE_LETTERS)
         everything = set(difficulty.LETTER_ORDER)
+        if kind == "themed" and self.llm.enabled:
+            # With the online helper switched on, "about what I like" is a tiny story (section 6.6) when one is ready.
+            lang = self.language()
+            story = self._take(f"story:{lang}", 0, 1)
+            self._maybe_refill("story", f"story:{lang}", 0, {"lang": lang, "letters": sorted(everything), "themes": self.interests()})
+            if story:
+                return {"items": story[0].split("\n"), "letters": list(difficulty.LETTER_ORDER), "source": "story"}
         themes = {bank.QUESTIONS} if kind == "question" else set(self.interests()) if kind == "themed" else None
         items = bank.pick(bank.SENTENCES, self.language(), everything, self.interests(), count, themes=themes,
                           min_words=5 if kind == "long" else 0)

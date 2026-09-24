@@ -57,6 +57,15 @@ def user_prompt(task: dict) -> str:
             f"Themes: {', '.join(task['themes'])}. Simple words, one full stop or nothing at the end. "
             'Return JSON like {"sentences": ["The sun is hot."]}.'
         )
+    if kind == "story":
+        # docs/REVAMP_BRIEF.md section 6.6: "tiny stories of two or three sentences featuring Tippy and the child's
+        # interest". Only the interest (a theme word such as "space") goes out, never anything about the child.
+        return (
+            f"Write {task['count']} different tiny stories in {language} for a 6-year-old to type. "
+            f"Each story has 2 or 3 sentences of 3 to 6 simple words, about Tippy, a friendly little helper, and {', '.join(task['themes'])}. "
+            f"Use ONLY these letters (ignoring spaces): {' '.join(task['letters'])}. Each sentence ends with a full stop. "
+            'Return JSON like {"stories": [["Tippy sees a big star.", "The star is very bright."]]}.'
+        )
     if kind == "mascot":
         return (
             f"Give {task['count']} different warm encouragement lines in {language}, each at most 8 words, "

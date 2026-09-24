@@ -111,6 +111,8 @@ def load_settings() -> Settings:
     if not languages.is_language(language):
         language = languages.DEFAULT
     mode = get("LLM_MODE", "off").lower()
+    if mode == "openrouter":   # the name docs/REVAMP_BRIEF.md section 4.1 uses; "live" (older .env files) means the same
+        mode = "live"
     if mode not in ("off", "mock", "live"):
         mode = "off"
     return Settings(
