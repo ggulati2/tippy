@@ -279,12 +279,48 @@ the owner's own API key and is outside the scope of an unattended session).
    in the corner.
 4. Both should award their stickers and count toward Desktop Dock's completion medal like any other level.
 
-## Status and what is next
+## Why the night's work stops here, before Milestone 6
 
 Milestones 3, 4 and 5 are complete, tagged (`revamp-m3`, `revamp-m4`, `revamp-m5`), and pushed. `main` is
-untouched. The next milestone is **6: Safe & Smart** (brief §6.3) — short interactive two-choice safety
-stories (a stranger asks your name, a pop-up prize, someone asks for a password, when to ask a grown-up).
-Internet Island and Computer Cove already have one-shot picture-choice versions of some of this content
-per the audit; milestone 6 turns that into the branching short-story format the brief describes. This one
-carries real child-safety stakes in its content (not just its code), so it is a good candidate for the
-person testing this to read the actual story text once written, not just check that the mechanism works.
+untouched. Two things came up while starting milestone 6 that are worth explaining rather than working
+around silently.
+
+**A stray, unexplained edit to `CLAUDE.md` was found and reverted, uncommitted.** While staging milestone
+5's files, `git status` showed `CLAUDE.md` as modified, with four lines of generic-sounding "rules" text
+appended to it that nobody in this session's own history wrote deliberately (most likely a stray write
+from one of two earlier attempts at continuing this overnight run automatically — see below). It was never
+committed or pushed. It has been reverted with `git restore CLAUDE.md`, and the file is back to exactly
+its milestone-2 committed text. Flagging this explicitly because a file that states the rules for how this
+branch is worked on should never change without it being an obvious, intentional, logged commit — the user
+should know this happened even though nothing came of it.
+
+**Milestone 6 (Safe & Smart, brief §6.3) was not started, for two compounding reasons:**
+
+1. Checking the actual voice-recording coverage before writing any new spoken text
+   (`tests/test_voice.py::test_nearly_everything_the_app_says_is_recorded`) showed Spanish is now at
+   exactly its 3% budget (20 of 697 texts unrecorded) after milestones 3 to 5's new UI text — meaning
+   **any further new spoken text, in any language, needs either new voice recordings or the test's
+   threshold to move.** The app's own recordings were switched at some point from a free offline voice
+   (Piper) to a paid cloud voice (OpenAI TTS, per `scripts/make_voice_cloud.py`) for a nicer, more
+   consistent result — recorded in `docs/ADVANCED.md`'s git history, not this session's doing. Since that
+   needs the owner's own API key and spends real money per run, generating new recordings is a decision
+   for the owner to make, not something to do unattended overnight with an unknown key. (A Piper venv was
+   set up and then deliberately not used, once this was discovered, specifically to avoid mixing two
+   different-sounding voices into the same app.)
+2. Even without that constraint, Safe & Smart's content (a stranger asking a child's name, a prize pop-up,
+   someone asking for a password, when to ask a grown-up) is exactly the kind of thing that should not go
+   out into even a test build without a human reading the literal words first. The mechanism (a two-choice
+   picture story) already exists and works well elsewhere in the app (`chooseSteps` in `frontend/js/basics.js`,
+   already covering similar ground in Computer Cove's existing "ask a grown-up" and "keep secrets" lessons);
+   writing new instances of it is not the hard part. Writing genuinely good, warm, age-5-to-7-appropriate
+   safety copy at the end of a long unattended session, with no way to read it back aloud or show it to a
+   child, is a worse use of the remaining time than stopping here cleanly.
+
+**Recommendation for the next session:** decide whether to (a) budget for a small OpenAI TTS voice run
+first (the owner's call, since it costs real money and needs their key), (b) accept a temporarily wider
+gap between "recorded" and "spoken" text and adjust `tests/test_voice.py`'s 3% threshold deliberately
+(also the owner's call, since it's a real quality bar, not a rubber-stamp number), or (c) write milestone
+6's story text together in a normal session rather than an unattended overnight one, given its content
+sensitivity. Milestone 6 itself (brief §6.3) is otherwise unchanged and ready to pick up: a stranger asks
+your name, a pop-up prize, someone asks for a password, when to ask a grown-up — each as a short,
+two-choice interactive story, warm rather than scary, per the brief.
