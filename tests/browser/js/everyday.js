@@ -7,11 +7,13 @@ T.run(async () => {
   await T.post("/api/parent/settings", { daily_limit_minutes: 0, session_minutes: 0 }, H);
   await T.post("/api/parent/unlock", { world: "all" }, H);
   await loadProgress();
+  const COUNTS = { paint: 5, desktop: 7, internet: 5, robot: 5 };
   const only = (location.hash.slice(1) || "paint,desktop,internet,robot").split(",");
   for (const world of only) {
     openWorld(world); await T.wait(600);
-    T.check(`${world}: the picker shows 5 levels`, document.querySelectorAll(".world.level").length === 5, document.querySelectorAll(".world.level").length);
-    for (let i = 0; i < 5; i++) {
+    const count = COUNTS[world];
+    T.check(`${world}: the picker shows ${count} levels`, document.querySelectorAll(".world.level").length === count, document.querySelectorAll(".world.level").length);
+    for (let i = 0; i < count; i++) {
       const card = [...document.querySelectorAll(".world.level")][i];
       if (!card) { T.check(`${world} level ${i + 1} exists`, false); break; }
       T.act.droppedWrong = false; T.act.resetEveryday();

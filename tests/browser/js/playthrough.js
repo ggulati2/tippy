@@ -31,7 +31,7 @@ T.run(async () => {
     return true;
   }
 
-  const CORE = { mouse: 4, keyboard: 5, letters: 5, words: 5, sentences: 5, basics: 6, numbers: 6, paint: 5, desktop: 5, internet: 5, robot: 5 };
+  const CORE = { mouse: 4, keyboard: 5, letters: 5, words: 5, sentences: 5, basics: 6, numbers: 6, paint: 5, desktop: 7, internet: 5, robot: 5 };
   const expected = {};
   for (const [world, core] of Object.entries(CORE)) {
     const levels = core + bonusLevels(world).length;                       // core levels plus the bonus levels for this language

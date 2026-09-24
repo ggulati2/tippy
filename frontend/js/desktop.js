@@ -2,11 +2,12 @@
 // folders, gives a file a name, throws one in the trash bin and brings it back, and saves a picture.
 // Everything here is a picture on the page. No real files are touched.
 
-const DESKTOP_ICONS = ["📄", "📁", "✏️", "🗑️", "💾"];
+const DESKTOP_ICONS = ["📄", "📁", "✏️", "🗑️", "💾", "🔑", "🪧"];
+const DESKTOP_LEVELS = [deskOpen, deskSort, deskRename, deskTrash, deskSave, deskLogin, deskPopup];
 
 function desktopDock() {
   levelPicker("desktop", "🗂️", DESKTOP_ICONS, (n) => {
-    [deskOpen, deskSort, deskRename, deskTrash, deskSave][n - 1](() => completeLevel("desktop", n, desktopDock));
+    DESKTOP_LEVELS[n - 1](() => completeLevel("desktop", n, desktopDock));
   });
 }
 
@@ -243,4 +244,48 @@ function deskSave(done) {
     bubble.set("✕", t("desk.closeit"));
     deskNeeds("close");
   });
+}
+
+// ---------- Level 6: log in with a picture password ----------
+// Brief section 6.2: "choose three pictures in order," which teaches that a password is a secret
+// the child picks, not something anyone can guess by trying every button.
+const LOGIN_PICS = ["🐱", "🐶", "🌞", "🚗", "🎈", "🐟", "⭐", "🍎"];
+
+function deskLogin(done) {
+  const shuffled = [...LOGIN_PICS].sort(() => Math.random() - 0.5);
+  const secret = shuffled.slice(0, 3);
+  const grid = [...secret, ...shuffled.slice(3, 6)].sort(() => Math.random() - 0.5);
+  let picked = 0;
+  const hint = el("div", { class: "choices login-hint" }, ...secret.map((p) => el("div", { class: "choice small" }, p)));
+  const board = el("div", { class: "choices" });
+  const tiles = grid.map((pic) => {
+    const tile = el("button", { class: "choice", onclick: () => {
+      if (tile.disabled) return;
+      if (secret[picked] === pic) {
+        sfx("tap"); tile.classList.add("chosen"); tile.disabled = true; picked++;
+        if (picked === secret.length) { sfx("success"); deskNeeds(""); later(done, 900); }
+        else deskNeeds("login:" + secret.slice(picked).join(","));
+      } else {
+        sfx("key"); tile.classList.add("wobble"); setTimeout(() => tile.classList.remove("wobble"), 500);
+      }
+    } }, pic);
+    return tile;
+  });
+  board.append(...tiles);
+  setScreen("desktop-6", instruction("🔑", t("desk.login")), hint, board);
+  deskNeeds("login:" + secret.join(","));
+}
+
+// ---------- Level 7: recognise and close a pop-up ----------
+function deskPopup(done) {
+  const desk = el("div", { class: "desk" });
+  const bubble = instruction("🖥️", t("desk.popup.close"));
+  const claim = el("button", { class: "attention-btn popup-claim" }, "🎉 " + t("desk.popup.claim"));
+  claim.addEventListener("click", () => { sfx("key"); replayAnimation(claim, "wobble"); });
+  const win = deskWindow("🪧", [el("div", { class: "win-picture" }, "🎉"), claim], {
+    onClose: (node) => { node.classList.add("closing"); sfx("home"); deskNeeds(""); later(done, 500); },
+  });
+  desk.append(win.node);
+  setScreen("desktop-7", bubble, desk);
+  deskNeeds("close");
 }

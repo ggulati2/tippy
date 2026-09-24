@@ -130,7 +130,7 @@ def test_the_everyday_computer_worlds_open_after_the_skill_they_need(tmp_path):
     assert "desktop" in opened()
 
 
-@pytest.mark.parametrize("world", ["paint", "desktop", "internet", "robot"])
+@pytest.mark.parametrize("world", ["paint", "internet", "robot"])
 def test_everyday_worlds_have_five_levels_and_stickers(tmp_path, world):
     path = tmp_path / "p.db"
     db.init_db(path)
@@ -141,6 +141,20 @@ def test_everyday_worlds_have_five_levels_and_stickers(tmp_path, world):
     assert progress.get_progress(path)["worlds"][world]["complete"]
     with pytest.raises(ValueError):
         progress.record_completion(path, world, 6, 3)
+
+
+def test_desktop_dock_has_seven_levels_and_stickers(tmp_path):
+    # Milestone 5 added a picture-password log-in task (level 6) and a pop-up task (level 7);
+    # the existing level-2 and level-4 stickers, and the world medal, keep their positions.
+    path = tmp_path / "p.db"
+    db.init_db(path)
+    got = []
+    for level in range(1, 8):
+        got += progress.record_completion(path, "desktop", level, 3)["new_stickers"]
+    assert len(got) == 3, "two level stickers and the world medal"
+    assert progress.get_progress(path)["worlds"]["desktop"]["complete"]
+    with pytest.raises(ValueError):
+        progress.record_completion(path, "desktop", 8, 3)
 
 
 def test_number_land_has_six_levels_and_its_own_stickers(tmp_path):

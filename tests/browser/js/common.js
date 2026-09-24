@@ -187,6 +187,17 @@ T.actDesktop = async () => {
     T.check("choosing not to save keeps the question open", !!q(".dlg-save"));
     q(".dlg-save").click();
   }
+  else if (need.startsWith("login:")) {
+    const secret = need.slice("login:".length).split(",");
+    const tiles = [...document.querySelectorAll(".login-hint ~ .choices .choice:not(:disabled)")];
+    if (!T.actDesktop.wrongTap) {                                    // a wrong tap first: it only wobbles, nothing is lost
+      T.actDesktop.wrongTap = true;
+      const wrong = tiles.find((tile) => tile.textContent !== secret[0]);
+      if (wrong) { wrong.click(); await T.wait(50); T.check("tapping the wrong picture only wobbles it", !wrong.disabled); return; }
+    }
+    const next = tiles.find((tile) => tile.textContent === secret[0]);
+    next?.click();
+  }
 };
 T.actInternet = async () => {
   const q = (s) => document.querySelector(s), need = q("#screen").dataset.need || "";
@@ -218,5 +229,5 @@ T.actRobot = async (mistakes) => {
     await T.until(() => T.name() === "celebrate" || !q(".rrun"), 20000);
   }
 };
-T.act.resetEveryday = () => { T.actPaint.wrongColour = false; T.actDesktop.missed = false; T.actDesktop.slow = false; T.actInternet.wobbled = false; T.actRobot.failed = false; };
+T.act.resetEveryday = () => { T.actPaint.wrongColour = false; T.actDesktop.missed = false; T.actDesktop.slow = false; T.actDesktop.wrongTap = false; T.actInternet.wobbled = false; T.actRobot.failed = false; };
 })();

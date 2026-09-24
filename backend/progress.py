@@ -15,7 +15,7 @@ WORLD_ORDER = ["mouse", "keyboard", "letters", "words", "sentences", "basics", "
 
 # How many levels each *built* world has. Add a world here when it is built.
 LEVEL_COUNTS = {"mouse": 4, "keyboard": 5, "letters": 5, "words": 5, "sentences": 5, "basics": 6, "free": 1, "numbers": 6,
-                "paint": 5, "desktop": 5, "internet": 5, "robot": 5}
+                "paint": 5, "desktop": 7, "internet": 5, "robot": 5}
 
 # Bonus levels come after the core levels of a world. They give stars and stickers, but they never
 # change whether the world counts as complete, so adding them cannot re-lock anything for a child
