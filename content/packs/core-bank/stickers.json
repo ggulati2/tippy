@@ -50,6 +50,7 @@
   {"id": "nest", "emoji": "🪺", "award": "basics:14", "name": {"en": "Nest", "de": "Nest", "es": "Nido"}},
   {"id": "apple", "emoji": "🍎", "award": "basics:15", "name": {"en": "Apple", "de": "Apfel", "es": "Manzana"}},
   {"id": "umbrella", "emoji": "☔", "award": "basics:16", "name": {"en": "Umbrella", "de": "Regenschirm", "es": "Paraguas"}},
+  {"id": "owl", "emoji": "🦉", "award": "basics:19", "name": {"en": "Wise owl", "de": "Kluge Eule", "es": "Búho sabio"}},
   {"id": "brush", "emoji": "🖌️", "award": "paint:2", "name": {"en": "Brush", "de": "Pinsel", "es": "Pincel"}},
   {"id": "crayon", "emoji": "🖍️", "award": "paint:4", "name": {"en": "Crayon", "de": "Wachsmalstift", "es": "Cera"}},
   {"id": "artist", "emoji": "🖼️", "award": "paint:done", "name": {"en": "Artist", "de": "Künstler", "es": "Artista"}},

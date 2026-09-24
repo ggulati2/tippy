@@ -8,7 +8,8 @@ function computerCove() {
   levelPicker("basics", "🐚", BASICS_ICONS, (n) => {
     [lessonParts, lessonWindow, lessonFolders, lessonBreak, lessonAsk, lessonSecrets,
       lessonInternet, lessonSave, lessonKind, lessonPad, lessonEmergency, lessonTraffic,
-      lessonFlags, lessonAnimalHomes, lessonFood, lessonWeather][n - 1](
+      lessonFlags, lessonAnimalHomes, lessonFood, lessonWeather, lessonStranger, lessonPrizePopup,
+      lessonPasswordAsk][n - 1](
       () => completeLevel("basics", n, computerCove));
   });
 }
@@ -247,5 +248,31 @@ function lessonWeather(done) {
     { icon: "🌧️", prompt: t("b16.rain"), scene: "🌧️", options: gear, answer: 0, fact: t("b16.rain.fact") },
     { icon: "☀️", prompt: t("b16.sun"), scene: "☀️", options: gear, answer: 1, fact: t("b16.sun.fact") },
     { icon: "❄️", prompt: t("b16.snow"), scene: "❄️", options: gear, answer: 2, fact: t("b16.snow.fact") },
+  ], done);
+}
+
+// ---------- Bonus 17-19: Safe & Smart (docs/REVAMP_BRIEF.md section 6.3) ----------
+// Short, warm, two-choice scenarios. The correct choice is always "tell/ask a grown-up," never a
+// dead end: a wrong tap only wobbles, exactly like every other lesson, so nothing here can scare or
+// punish a child. "When to ask a grown-up" itself is already its own lesson (5, lessonAsk); these
+// three cover the brief's other named topics instead of repeating it.
+function lessonStranger(done) {
+  const options = [{ emoji: "🙋" }, { emoji: "💬" }];   // 🙋 = tell a grown-up, 💬 = answer them
+  chooseSteps("basics-17", [
+    { icon: "🕵️", prompt: t("ss.stranger"), scene: "💬 🕵️ ❓", options, answer: 0, fact: t("ss.stranger.fact") },
+  ], done);
+}
+
+function lessonPrizePopup(done) {
+  const options = [{ emoji: "🙋" }, { emoji: "👆" }];   // 🙋 = tell a grown-up, 👆 = tap it
+  chooseSteps("basics-18", [
+    { icon: "🎉", prompt: t("ss.prize"), scene: "🎉 🎁 ❓", options, answer: 0, fact: t("ss.prize.fact") },
+  ], done);
+}
+
+function lessonPasswordAsk(done) {
+  const options = [{ emoji: "🤐" }, { emoji: "💬" }];   // 🤐 = keep it secret, 💬 = tell them
+  chooseSteps("basics-19", [
+    { icon: "🔑", prompt: t("ss.password"), scene: "🔑 💬 ❓", options, answer: 0, fact: t("ss.password.fact") },
   ], done);
 }

@@ -11,7 +11,7 @@ T.run(async () => {
   await T.post("/api/parent/unlock", { world: "all" }, H);
   const cards = async (world) => { await loadProgress(); openWorld(world); await T.wait(500); return document.querySelectorAll(".world.level").length; };
   const core = { letters: 5, words: 5, sentences: 5, basics: 6 };
-  const general = { letters: 8, words: 13, sentences: 11, basics: 14 };      // core plus the bonus levels every language has
+  const general = { letters: 8, words: 13, sentences: 11, basics: 17 };      // core plus the bonus levels every language has
 
   // Other languages never see the German levels.
   for (const [language, keyboard] of [["en", "qwerty"], ["es", "qwerty_es"]]) {
@@ -25,7 +25,7 @@ T.run(async () => {
   await setLanguage("de", "qwertz");
   const german = {};
   for (const world of Object.keys(general)) german[world] = await cards(world);
-  T.check("German: letters 9, words 15, sentences 13, lessons 16", german.letters === 9 && german.words === 15 && german.sentences === 13 && german.basics === 16, JSON.stringify(german));
+  T.check("German: letters 9, words 15, sentences 13, lessons 19", german.letters === 9 && german.words === 15 && german.sentences === 13 && german.basics === 19, JSON.stringify(german));
 
   // The umlaut level needs the German keyboard: with another shape it is not offered.
   await setLanguage("de", "qwerty");

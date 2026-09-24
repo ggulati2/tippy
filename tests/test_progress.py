@@ -202,10 +202,12 @@ def test_bonus_levels_are_accepted_up_to_the_last_one_and_award_their_stickers(t
     db.init_db(path)
     # (world, last level, a bonus level with a sticker, that sticker). Some of the numbers in between are German-only.
     for world, last, level, sticker in (("letters", 9, 8, "fish"), ("words", 15, 10, "flamingo"), ("sentences", 13, 8, "peacock"),
-                                        ("keyboard", 7, 7, "crocodile"), ("basics", 16, 10, "sloth")):
+                                        ("keyboard", 7, 7, "crocodile"), ("basics", 19, 10, "sloth")):
         assert progress.max_level(world) == last
         assert sticker in progress.record_completion(path, world, level, 3)["new_stickers"]
-        progress.record_completion(path, world, last, 3)
+        last_stickers = progress.record_completion(path, world, last, 3)["new_stickers"]
+        if world == "basics":
+            assert "owl" in last_stickers, "the last Safe & Smart bonus level should award its own sticker"
         with pytest.raises(ValueError):
             progress.record_completion(path, world, last + 1, 3)
     state = progress.get_progress(path)["worlds"]

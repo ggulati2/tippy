@@ -324,3 +324,77 @@ gap between "recorded" and "spoken" text and adjust `tests/test_voice.py`'s 3% t
 sensitivity. Milestone 6 itself (brief §6.3) is otherwise unchanged and ready to pick up: a stranger asks
 your name, a pop-up prize, someone asks for a password, when to ask a grown-up — each as a short,
 two-choice interactive story, warm rather than scary, per the brief.
+
+---
+
+## Milestone 6 — Safe & Smart (complete, tagged `revamp-m6`)
+
+The two blockers above were resolved directly by the user once they were up: they authorised using their
+own OpenAI key (confirmed credit was available) for the voice recordings, and then said to go ahead and
+build the milestone. Both are recorded here for the same reason as everything else in this log — so
+nothing that happened is silent.
+
+**What was built**
+
+- Three new bonus levels in Computer Cove (`frontend/js/basics.js`), levels 17-19, each a single
+  two-choice picture story using the same `chooseSteps` engine every other lesson in this world already
+  uses (a wrong tap only wobbles and points at the right answer — nothing here can be "failed"):
+  - **17, a stranger asks your name** (🕵️): the safe choice is to tell a grown-up, not answer directly.
+  - **18, a pop-up says you've won a prize** (🎉): the safe choice is to tell a grown-up, not tap it.
+  - **19, someone asks for your password** (🔑): the safe choice is to keep it secret, not tell them.
+- **"When to ask a grown-up," the brief's fourth named topic, was deliberately not built as a fourth new
+  level.** Computer Cove's existing level 5 (`lessonAsk`) already teaches exactly that, with three
+  scenarios of its own (a prize, a link, a download) — adding a near-duplicate would pad the world without
+  teaching anything new. The three new levels reuse "ask/tell a grown-up" as the answer for two of their
+  three own scenarios anyway, so the message repeats without a fourth copy of the same lesson.
+- A new sticker, "Wise owl" 🦉, awarded on completing the last of the three (level 19), following the same
+  pattern as every other world's bonus track.
+- `backend/progress.py`'s `BONUS_LEVELS["basics"]` is now 13 (was 10); `frontend/js/rewards.js`'s `BONUS.basics`
+  gained the three new icons. None of the three are German-only, so every language sees all three.
+
+**Content note, for the record:** the story prompts are deliberately plain and concrete rather than
+dramatic ("Someone you don't know online asks: what is your name? What do you do?"), and every "fact" line
+after the correct choice explains *why* in one short, positive sentence, never a warning about what could
+go wrong. This follows the brief's own "keep the tone warm, not scary" instruction literally. This is a
+judgment call about tone and wording made without a second read from the person who asked for it, since
+this was still an unattended step even though the go-ahead was explicit — worth the user actually reading
+the six new lines (`ss.stranger`, `ss.prize`, `ss.password` and their `.fact` counterparts, in
+`frontend/js/i18n.js` and `frontend/js/i18n-es.js`) before considering this content final, especially the
+German and Spanish wording, which (per the audit, still true) has never been checked by a native-speaking
+teacher.
+
+**Voice:** all six new lines were recorded in English, German and Spanish with the user's own OpenAI key
+(`scripts/make_voice_cloud.py --lang <en|de|es> --voice coral`, same voice and settings as every existing
+recording), at a real cost of about $0.01 per language. The same run also caught up the 20 outstanding
+clips per language left over from milestones 3-5, so voice coverage is now current everywhere, not just
+for this milestone.
+
+**Test coverage**
+
+- `tests/test_progress.py::test_bonus_levels_are_accepted_up_to_the_last_one_and_award_their_stickers`:
+  the `basics` entry's "last level" moved from 16 to 19, and a new assertion checks the "owl" sticker is
+  awarded at the new last level.
+- `tests/browser/js/germany.js`: the hardcoded expected lesson counts moved from 14/16 to 17/19
+  (non-German/German), since the three new levels are not German-only and both counts grow by 3.
+- `tests/browser/js/playthrough.js` needed **no changes**: it computes each world's expected level count
+  from the live `bonusLevels()` function rather than a hardcoded number, so it automatically picked up
+  and played all three new levels (with deliberate wrong taps) the moment they existed.
+- Full suite: 278 unit/i18n tests, all 9 voice tests, and the full 21-test browser suite pass.
+
+**What to test in the morning (Milestone 6) — please actually read the words, not just click through**
+
+1. Open Computer Cove (🐚), scroll to the bonus levels (past the "✨ Bonus" divider): three new icons
+   should appear at the end — 🕵️, 🎉, 🔑 — after the existing weather umbrella ☔.
+2. Play through all three. Each is one screen with two big picture choices; picking the safe one (🙋 or
+   🤐, always the correct answer) should complete the level, and picking the other should just wobble and
+   point at the right one, never end the story badly.
+3. Listen to the spoken lines in at least English and German (switch language in parent Settings) and
+   judge the tone for yourself — the goal was warm and matter-of-fact, never scary.
+4. Completing level 19 should award a new "Wise owl" 🦉 sticker, visible in the sticker album.
+
+## Status and what is next
+
+Milestones 3 through 6 are complete, tagged (`revamp-m3` through `revamp-m6`), and pushed. `main` is
+untouched. The next milestone is **7: parent area upgrades** (brief §6.4) — the audit notes time controls
+and data export/delete already exist and template weekly reports already match the brief; what's new is
+custom word lists, printable certificates and a colouring sheet, and a privacy/Datenschutz screen.
