@@ -57,6 +57,7 @@ def _setting(key: str, value):
         "ask_tippy": lambda: text if text in ("0", "1") else None,
         "reduce_motion": lambda: text if text in ("0", "1") else None,
         "has_numpad": lambda: text if text in ("0", "1") else None,
+        "left_handed": lambda: text if text in ("0", "1") else None,
         "child_name": lambda: text if _name_ok(text, 20, True) else None,
         "favorite_word": lambda: text if _name_ok(text, 15, False) else None,
         "family_words": lambda: text if len(text.split(",")) <= 8 and all(_name_ok(w, 15, False) for w in text.split(",") if w) else None,

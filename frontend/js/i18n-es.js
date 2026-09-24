@@ -321,6 +321,7 @@ window.STRINGS.es = {
   "classOverview": "Resumen de la clase",
   "classCsv": "Guardar como tabla (CSV)",
   "teacherArea": "Zona del docente",
+  "setLeftHanded": "Ratón para zurdos (el botón derecho también hace clic)",
   "consentTitle": "Extra: el ayudante en línea",
   "consentIntro": "El ayudante en línea puede escribir palabras, frases e historias cortas nuevas sobre lo que le gusta a tu hijo o hija. Sigue apagado hasta que lo actives aquí.",
   "consentSent": "Qué se envía: un tema (por ejemplo \"animales\"), el idioma y qué letras conoce ya; para el resumen semanal solo números, como los minutos jugados.",

@@ -592,7 +592,45 @@ real kiosk fullscreen, which a native web view does differently on each system; 
 real Windows and Mac machines could quietly break those for families. The kiosk browser stays the default; the reasons
 are in `docs/BUILD.md`.
 
-## Status and what is next
+## Brief milestone 12 — Polish and review (tagged `revamp-m13`)
 
-Brief milestones 1–11 are complete (tags `revamp-m1` to `revamp-m12`); `main` untouched. Next is the brief's
-**milestone 12: polish and review** (tag `revamp-m13`).
+- **Left-handed mouse** (brief §9, was missing): a Settings option; with it on, the right mouse button clicks too (a
+  child using the mouse with the left hand presses the right button with the index finger).
+- **Offline test** (§10, §13): `tests/test_offline.py` runs the whole core flow — setup, every kind of content,
+  levels, stickers, cards, the parent area, backup — with every outgoing connection blocked and recorded, and
+  asserts none was attempted. The blocking itself was checked to catch a real request.
+- **CI on the revamp branch** (§10): `ci.yml` now also runs on pushes to `revamp/**` (tests and pack validation).
+- **Accessibility pass:** the fake prize pop-up's button was below the 64 px minimum; fixed. Every other new child-facing
+  control uses the existing big-button styles.
+- **CHANGELOG** updated (Unreleased section).
+- **CI builds of this branch:** Windows (installer and portable zip) and Mac Apple silicon built and passed their smoke
+  tests on GitHub. The new Linux workflow cannot be started by hand until it is on `main` (a GitHub rule), so it is
+  untested in CI; it will run on the first pull request that touches packaging, or on the next release tag.
+
+### Final check against the brief's definition of done (§13)
+
+| Item | Status |
+|---|---|
+| `main` unchanged, `tippy-v1-baseline` exists | Yes: `main` and the tag are both `3439652`. |
+| Fresh Windows install starts with one double-click, no key, no internet | The Windows build passes its smoke test in CI with the helper off and no key. Not tried on a real Windows PC here. |
+| A 6-year-old non-reader can pick a profile and finish a lesson in every core stage alone | Every level is played through automatically in three languages, every instruction is spoken (recordings for all screen text). **Needs a real child to confirm.** |
+| German UI complete, QWERTZ with ä/ö/ü/ß | Yes (i18n completeness test; German browser test incl. the ß key and umlaut level). |
+| The child never sees WPM, error rates, error messages, ads, links or chat | Yes (no WPM anywhere; errors show a smiley; web addresses from the helper are refused; Ask Tippy is picture answers, not chat). |
+| No personal data leaves the device; with AI off zero outbound calls, verified by test | Yes (`tests/test_offline.py`; and the system voice no longer uses online voices). |
+| Classroom mode: 30 anonymous profiles, CSV, works from a USB stick | Yes (browser test with 30 and CSV; portable mode checked with the real Mac app). |
+| All tests pass, packs validate, docs complete | Yes: 314 unit/i18n tests, 22 browser tests (also against the packaged Mac app); AUDIT, PRIVACY, BUILD, CHANGELOG. |
+
+## Open decisions for the owner
+
+1. **Native window (`pywebview`)**: not switched on; see `docs/BUILD.md` for why. Needs testing on real machines first.
+2. **Default language**: the underlying default (`APP_LANGUAGE`) is still English; the first-run wizard always asks,
+   so German families get German and QWERTZ. Changing the default is easy but touches existing setups and many tests.
+3. **Your own online helper** now needs a *plus* licence (or `DEV_UNLOCK_ALL=true`) and one "Yes" on the consent screen.
+4. **Licence signing key** is in `~/.config/tippy/licence-signing-key` on this Mac — back it up somewhere safe.
+5. **Content wording** that deserves a native speaker's read: the Safe & Smart stories and all German/Spanish text.
+6. **Two backport candidates** for `main` are listed in `docs/BACKPORT_CANDIDATES.md` (online voice, web addresses).
+
+## Status
+
+All twelve milestones of the brief are complete (tags `revamp-m1` to `revamp-m13`; see the numbering note above).
+`main` is untouched.

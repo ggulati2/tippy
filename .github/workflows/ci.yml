@@ -1,11 +1,11 @@
-# Continuous integration: runs on every pull request and every push to main.
+# Continuous integration: runs on every pull request, every push to main, and every push to the revamp branches.
 # It runs exactly what the git hooks run (scripts/check.sh), so "green" here means
 # "the same checks you ran on your own computer passed on a clean machine".
 name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "revamp/**"]   # docs/REVAMP_BRIEF.md section 10: tests and pack validation on the revamp branch
   pull_request:
   workflow_dispatch:        # lets you start it by hand from the Actions tab
 

@@ -351,3 +351,9 @@ def test_number_land_progress_and_stickers_through_the_api(client):
     assert client.post("/api/progress/complete", json={"world": "numbers", "level": 7, "stars": 3}).status_code == 400
     stickers = client.get("/api/progress").json()["stickers"]
     assert {"bee", "giraffe", "trophy"} <= set(stickers)
+
+
+def test_left_handed_mouse_setting(client):
+    headers = parent_headers(client)
+    assert client.get("/api/settings").json()["left_handed"] is False
+    assert client.post("/api/parent/settings", json={"left_handed": True}, headers=headers).json()["left_handed"] is True

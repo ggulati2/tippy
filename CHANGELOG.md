@@ -4,8 +4,24 @@ All notable changes to Tippy. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+The "Mein erster Computer" revamp (branch `revamp/erster-computer`, see `docs/REVAMP_BRIEF.md` and `docs/OVERNIGHT_BUILD_LOG.md`).
+
 ### Added
 - An Apple silicon (arm64) build of the Mac app, built in CI (`.github/workflows/mac-app.yml`) and added to releases automatically, alongside the Intel build made by hand.
+- Content packs with a JSON Schema and validator; `branding.json` as the one place for the mascot's name and colours; an age group per child (5, 6, 7, 8+, never a birthdate).
+- Keyboard shapes as data files, and a quiet note to the parent when the real keyboard seems not to match the chosen shape.
+- The world map grouped into seven readiness stages, a posture reminder at the start of a session, balloons that get smaller in Mouse Meadow, and up to eight family words for typing.
+- Desktop Dock: a picture-password log-in and a "close the fake prize pop-up" level. Computer Cove: three short safety stories (a stranger asks your name, a prize pop-up, someone asks for your password).
+- Free Play cards that can be saved and opened again, and the optional Ten-Finger Path (home-row typing), which only a parent can open.
+- Parent area: allowed play hours, an own word list (a Word Woods level), printable certificates and a keyboard to colour in, "delete everything", the PIN asked again before any deletion, a left-handed mouse option, and a Datenschutz tab with the same text as `docs/PRIVACY.md` (German and English).
+- Classroom mode (teacher PIN, up to 30 anonymous children told apart by picture, optional daily reset, class overview with CSV export) and portable mode (a `tippy-data` folder next to the program).
+- Feature tiers (core, plus, school) unlocked by an offline, signed licence file; `DEV_UNLOCK_ALL=true` for development.
+- The online helper needs a parent's yes on a plain-language consent screen before anything is sent; `LLM_MODE=openrouter`; tiny stories about the child's interests.
+- A Linux build (`.github/workflows/linux-app.yml`), `docs/BUILD.md`, an offline test proving zero outbound network calls with the online helper off, and CI on the revamp branch.
+
+### Fixed
+- The computer's own voice could be an online voice, which would send the child's name to a speech server; only voices built into the computer are used now.
+- Text from the online helper could contain a web address; such text is now refused.
 
 ## [0.14.0] - 2026-09-23
 

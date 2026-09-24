@@ -140,7 +140,7 @@ def create_app() -> FastAPI:
         stored = db.get_settings(family.db_path)
         out = {key: stored.get(key, "") for key in db.CHILD_SETTINGS}
         out["font_scale"] = float(stored.get("font_scale") or 1)
-        for flag in ("voice_on", "sound_on", "ask_tippy", "reduce_motion", "has_numpad", "layout_mismatch_flag"):
+        for flag in ("voice_on", "sound_on", "ask_tippy", "reduce_motion", "has_numpad", "layout_mismatch_flag", "left_handed"):
             out[flag] = stored.get(flag) == "1"
         out["online_helper"] = llm.mode == "live"  # the parent area hides the helper tab when off
         out["setup_needed"] = not guard.has_pin
@@ -348,6 +348,7 @@ def create_app() -> FastAPI:
         font_scale: float | None = Field(default=None, ge=1, le=1.25)
         reduce_motion: bool | None = None
         has_numpad: bool | None = None
+        left_handed: bool | None = None
         openrouter_model: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._:/\-]{0,80}$")
         interests: list[str] | None = Field(default=None, max_length=4)
         # "5", "6", "7" or "8+" (docs/REVAMP_BRIEF.md section 4.5) - never a birthdate.

@@ -509,6 +509,13 @@ document.addEventListener("keydown", capsLockChanged, true);
 document.addEventListener("keyup", capsLockChanged, true);
 document.addEventListener("keydown", (e) => { if (e.key !== "CapsLock") capsOn = e.getModifierState("CapsLock"); }, true);
 document.addEventListener("contextmenu", (e) => e.preventDefault());
+// Left-handed mouse (brief section 9): a child using the mouse with the left hand presses the right button with the
+// index finger. With the parent's setting on, that button clicks too, just like the left one.
+document.addEventListener("auxclick", (e) => {
+  if (!settings.left_handed || e.button !== 2) return;
+  const target = e.target.closest("button");
+  if (target && !target.disabled) target.click();
+});
 
 // ---------- Start-up ----------
 $("#home-btn").addEventListener("click", () => { sfx("home"); welcomeScreen(); });

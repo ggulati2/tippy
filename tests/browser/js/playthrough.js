@@ -56,6 +56,17 @@ T.run(async () => {
   for (let tick = 0; tick < 300 && T.name() !== "celebrate"; tick++) { await T.act(); await T.wait(60); }
   T.check("Free Play: three scenes earn the sticker", T.name() === "celebrate", T.name());
 
+  // Left-handed mouse (brief section 9): with the setting on, the right button clicks too; without it, it does nothing.
+  const rightClickBalloon = async (on) => {
+    settings.left_handed = on;
+    openWorld("mouse"); await T.wait(500); document.querySelectorAll(".world.level")[0].click(); await T.wait(400);
+    const balloon = document.querySelector(".balloon:not(:disabled)");
+    balloon.dispatchEvent(new MouseEvent("auxclick", { bubbles: true, button: 2 })); await T.wait(100);
+    return balloon.disabled;
+  };
+  T.check("left-handed mouse: the right button pops the balloon", await rightClickBalloon(true));
+  T.check("without the setting the right button does nothing", !(await rightClickBalloon(false)));
+
   const p = await fetch("/api/progress").then((r) => r.json());
   T.check("stickers were earned", p.stickers.length >= 20, p.stickers.length + " stickers");
   const done = Object.fromEntries(Object.entries(p.worlds).map(([k, v]) => [k, Object.keys(v.levels).length]));

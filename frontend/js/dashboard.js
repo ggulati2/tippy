@@ -274,6 +274,7 @@ async function settingsTab(body) {
     toggleRow(t("setFont"), [[1, "A"], [1.125, "A+"], [1.25, "A++"]], settings.font_scale || 1, (v) => saveSetting({ font_scale: v })),
     toggleRow(t("setNumpad"), [[true, t("on")], [false, t("off")]], !!settings.has_numpad, (v) => saveSetting({ has_numpad: v })),
     toggleRow(t("setMotion"), [[false, t("on")], [true, t("off")]], !!settings.reduce_motion, (v) => saveSetting({ reduce_motion: v })),
+    toggleRow(t("setLeftHanded"), [[false, t("off")], [true, t("on")]], !!settings.left_handed, (v) => saveSetting({ left_handed: v })),
     el("div", { class: "row" }, el("span", {}, t("setPin")), el("button", { class: "big-btn blue small-btn", onclick: changePinFlow }, "🔑 " + t("setPinBtn"))),
     textRow(t("childName"), "child_name", settings.child_name, 20),
     textRow(t("favoriteWord"), "favorite_word", settings.favorite_word, 15),
