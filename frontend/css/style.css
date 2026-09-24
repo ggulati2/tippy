@@ -465,12 +465,64 @@ body.reduce-motion *, body.reduce-motion *::before { animation: none !important;
 .worlds.many { grid-template-columns: repeat(5, 1fr); width: min(1100px, 100%); }
 .worlds .bonus-label { grid-column: 1 / -1; font-weight: 900; font-size: 1.2rem; color: #7a5a00; text-align: left; }
 .world.level.bonus { background: #fff9db; }
-.stage-map { display: flex; flex-direction: column; align-items: center; gap: 4px; max-width: min(1000px, 100%); }
-.stage-group { display: flex; flex-direction: column; align-items: center; }
-.stage-name { font-weight: 900; font-size: 1.1rem; color: #5a5a5a; margin: 10px 0 6px; }
-.stage-group:first-child .stage-name { margin-top: 0; }
-.stage-row { display: flex; flex-wrap: wrap; justify-content: center; gap: min(24px, 2.5vh); }
-.stage-row .world { flex: 0 0 auto; width: min(220px, 40vw); }
+/* ---------- World map: a 3 x 3 grid of stage cards (brief section 5) ---------- */
+#screen[data-name="map"] { gap: min(14px, 1.6vh); padding-top: min(16px, 2vh); padding-bottom: min(24px, 3vh); }
+#screen[data-name="map"] > .bubble { font-size: min(1.4rem, 3.6vh); padding: 10px 28px; }
+.stage-map {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: min(18px, 2vh);
+  width: min(1320px, calc(100vw - 48px));
+}
+.stage-card {
+  --accent: #74c0fc;
+  position: relative; display: flex; flex-direction: column; gap: min(10px, 1.1vh);
+  padding: min(14px, 1.5vh) min(16px, 1.6vw) min(14px, 1.6vh);
+  background: rgba(255,255,255,.72); border-radius: 28px;
+  border: 1px solid rgba(255,255,255,.9);
+  box-shadow: 0 10px 28px rgba(35,57,91,.10), 0 2px 0 rgba(35,57,91,.05);
+  backdrop-filter: blur(6px);
+  overflow: hidden;
+}
+.stage-card::before {                      /* a thin band of the stage's colour along the top */
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 6px; background: var(--accent);
+}
+.stage-card[data-stage="stage.1"] { --accent: #ffa94d; }
+.stage-card[data-stage="stage.2"] { --accent: #4dabf7; }
+.stage-card[data-stage="stage.3"] { --accent: #9775fa; }
+.stage-card[data-stage="stage.4"] { --accent: #51cf66; }
+.stage-card[data-stage="stage.5"] { --accent: #fcc419; }
+.stage-card[data-stage="stage.6"] { --accent: #ff6b6b; }
+.stage-card[data-stage="stage.7"] { --accent: #f06595; }
+.stage-card.extra { --accent: #20c997; }
+.stage-card.optional { --accent: #adb5bd; background: rgba(255,255,255,.5); border-style: dashed; border-color: #ced4da; }
+.stage-head { display: flex; align-items: center; gap: 10px; text-align: left; }
+.stage-badge {
+  flex: 0 0 auto; min-width: min(38px, 4.6vh); height: min(38px, 4.6vh); padding: 0 8px; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent); color: #fff; font-weight: 1000; font-size: min(1.1rem, 2.6vh);
+  box-shadow: 0 3px 0 rgba(0,0,0,.12);
+}
+.stage-name { font-weight: 900; font-size: min(1.15rem, 2.8vh); color: var(--ink); line-height: 1.15; }
+.stage-worlds { display: flex; gap: min(12px, 1.4vh); flex: 1; }
+.stage-card .map-world {
+  position: relative; flex: 1 1 0; min-width: 0; min-height: max(84px, min(118px, 12.5vh)); padding: 6px;
+  border-radius: 22px; gap: 4px; font-size: min(1rem, 2.4vh, 1.55vw);
+  background: #fff; background: color-mix(in srgb, var(--accent) 14%, #fff);
+  border: 2px solid color-mix(in srgb, var(--accent) 35%, #fff);
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--accent) 30%, #d9e2ec);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.stage-card .map-world .icon { font-size: min(3rem, 5.6vh); line-height: 1; }
+.stage-card .map-world:hover { transform: translateY(-3px); box-shadow: 0 8px 0 color-mix(in srgb, var(--accent) 30%, #d9e2ec); }
+.stage-card .map-world:active { transform: translateY(3px); box-shadow: 0 2px 0 color-mix(in srgb, var(--accent) 30%, #d9e2ec); }
+.stage-card .map-world.locked { filter: grayscale(.9); opacity: .55; }
+.world-name { hyphens: auto; overflow-wrap: break-word; line-height: 1.15; }   /* "Buchstaben-land", never "Buchstabenla-nd" */
+.done-badge {
+  position: absolute; top: 6px; right: 8px; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--happy); color: #fff; font-size: .85rem; font-weight: 1000;
+  display: flex; align-items: center; justify-content: center;
+}
+@media (max-width: 1000px) { .stage-map { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 620px) { .stage-map { grid-template-columns: 1fr; } }
 
 /* ---------- Keyboard Kingdom bonus games ---------- */
 .garden { display: grid; grid-template-columns: repeat(5, min(96px, 12vh)); grid-auto-rows: min(96px, 12vh); gap: 6px;

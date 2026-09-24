@@ -310,19 +310,27 @@ const OPTIONAL_WORLDS = ["tenfinger"];
 async function mapScreen() {
   reopenPicker = null;
   await loadProgress();
+  // A 3 x 3 grid of stage cards that fills the screen: each stage has its own colour and number, and its worlds
+  // share the card's width, so a stage with one world gets one wide tile instead of empty space beside it.
   const grid = el("div", { class: "stage-map" });
   const worldButton = (id) => {
     const info = progress.worlds[id];
-    const label = t("world." + id) + (info.complete ? " ✅" : "");
-    return el("button", { class: "world" + (info.unlocked ? "" : " locked"), onclick: () => openWorld(id) },
-      el("span", { class: "icon" }, info.unlocked ? WORLD_ICONS[id] : "🔒"), label);
+    return el("button", { class: "world map-world" + (info.unlocked ? "" : " locked") + (info.complete ? " done" : ""), onclick: () => openWorld(id) },
+      el("span", { class: "icon" }, info.unlocked ? WORLD_ICONS[id] : "🔒"),
+      el("span", { class: "world-name" }, t("world." + id)),
+      info.complete ? el("span", { class: "done-badge", "aria-label": "done" }, "✓") : "");
   };
-  const stageRow = (key, worldIds) => el("div", { class: "stage-group" },
-    el("div", { class: "stage-name" }, t(key)),
-    el("div", { class: "stage-row" }, ...worldIds.map(worldButton)));
-  for (const stage of STAGES) grid.append(stageRow(stage.key, stage.worlds));
-  grid.append(stageRow("stage.extras", EXTRA_WORLDS));
-  grid.append(stageRow("stage.optional", OPTIONAL_WORLDS));
+  const stageCard = (key, worldIds, badge, variant = "") => {
+    const done = worldIds.every((id) => progress.worlds[id].complete);
+    return el("section", { class: `stage-card ${variant}` + (done ? " done" : ""), "data-stage": key },
+      el("header", { class: "stage-head" },
+        el("span", { class: "stage-badge" }, done ? "★" : badge),
+        el("span", { class: "stage-name" }, t(key).replace(/^\d+\.\s*/, ""))),
+      el("div", { class: "stage-worlds" }, ...worldIds.map(worldButton)));
+  };
+  STAGES.forEach((stage, i) => grid.append(stageCard(stage.key, stage.worlds, String(i + 1))));
+  grid.append(stageCard("stage.extras", EXTRA_WORLDS, "✨", "extra"));
+  grid.append(stageCard("stage.optional", OPTIONAL_WORLDS, "7+", "optional"));
   const chips = el("div", { class: "map-top" },
     el("span", { class: "chip" }, `⭐ ${progress.total_stars}`),
     el("button", { class: "chip", onclick: () => { sfx("tap"); albumScreen(); } }, `📖 ${progress.stickers.length}`));
