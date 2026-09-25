@@ -119,18 +119,11 @@ function typingRound({ screen, icon, text, items, onDone, numpad = false }) {
     dots.textContent = progressDots(index + 1, items.length).textContent;
     sfx("success");
     replayAnimation(picture, "jump-up");
-    // Read it aloud, and move on only when the whole sentence has been said (and not before 1.8 s, as always).
-    // A child who has just typed a long sentence should hear all of it.
-    let waiting = 2, moved = false;
-    const moveOn = () => {
-      if (moved || --waiting > 0) return;
-      moved = true;
+    speak(item.speak); // read it aloud after success (later() waits until the whole sentence has been said)
+    later(() => {
       index++;
       if (index === items.length) { keyHandler = null; onDone(); } else load();
-    };
-    speak(item.speak, () => later(moveOn, 400));
-    later(moveOn, 1800);
-    later(() => { waiting = 1; moveOn(); }, 20000);   // some computer voices never report that they finished
+    }, 1800);
   }
 
   load();

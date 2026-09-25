@@ -9,8 +9,8 @@ T.run(async () => {
 
   const played = [], ended = [];
   window.Audio = function (src) {
-    this.src = src; this.pause = () => {};
-    this.addEventListener = (type, fn) => { if (type === "ended") ended.push(fn); };
+    this.src = src; this.paused = false; this.ended = false; this.pause = () => { this.paused = true; };
+    this.addEventListener = (type, fn) => { if (type === "ended") ended.push(() => { this.ended = true; fn(); }); };
     this.play = () => { played.push(src); return Promise.resolve(); };
   };
   const said = [], realSpeak = window.speechSynthesis && speechSynthesis.speak;
@@ -36,7 +36,8 @@ T.run(async () => {
   ended.forEach((fn) => fn());
   T.check("a new screen stops the old recording (nothing follows it)", played.length === 1 && said.length === 0);
 
-  // Brief bug report: after a typed sentence the round must wait until the whole sentence has been read aloud.
+  // Owner's bug report: after a typed sentence the round must wait until the whole sentence has been read aloud.
+  // (later() waits for Tippy in every world; the typing round is the case that was seen.)
   reset(); let finished = false;
   typingRound({ screen: "t", icon: "", text: "", items: [{ text: "A", speak: t("play") }], onDone: () => { finished = true; } });
   document.dispatchEvent(new KeyboardEvent("keydown", { key: "a", code: "KeyA" }));
@@ -44,6 +45,15 @@ T.run(async () => {
   T.check("a typing round waits while the sentence is still being read", played.length === 1 && !finished, JSON.stringify({ played, finished }));
   ended.shift()(); await T.wait(600);
   T.check("and moves on once it has been read", finished);
+
+  // The same holds for every world: a timed step waits for Tippy, but runs at once when Tippy is quiet.
+  reset(); setScreen("x", el("div", {}, "x")); let stepped = 0;
+  speak(t("play")); later(() => stepped++, 100); await T.wait(700);
+  T.check("a timed step waits while Tippy is talking", stepped === 0);
+  ended.shift()(); await T.wait(600);
+  T.check("and runs once Tippy has finished", stepped === 1);
+  later(() => stepped++, 100); await T.wait(250);
+  T.check("with Tippy quiet it runs on time", stepped === 2);
 
   reset(); settings.language = "de"; speak(t("play"));
   T.check("a language without recordings uses the computer's voice", played.length === 0, JSON.stringify(played));

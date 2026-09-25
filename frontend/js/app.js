@@ -128,11 +128,10 @@ function voiceTag() {
 // still on the same screen. (Before, every early sentence was queued and all of them were spoken later,
 // on whatever screen was showing: "press the glowing key", "welcome"... at random.)
 let pendingSpeech = null;
-// `onEnd` (optional) runs once the whole text has been said, or straight away when nothing is said.
-function speak(text, onEnd) {
-  if (!settings.voice_on || muted) return onEnd && onEnd();
-  if (speakRecorded(text, onEnd)) return;          // Tippy's own recorded voice (voice.js)
-  speakWithSystemVoice(text, onEnd);
+function speak(text) {
+  if (!settings.voice_on || muted) return;
+  if (speakRecorded(text)) return;                 // Tippy's own recorded voice (voice.js)
+  speakWithSystemVoice(text);
 }
 
 // The computer's own voice: used for anything that has no recording. `onEnd` runs when it has finished speaking.
@@ -235,10 +234,33 @@ function show(...nodes) {
 // the last balloon, say) uses later() instead of setTimeout(): if the child pressed Home in the
 // meantime, the screen number has changed and the pending step is quietly dropped. Without this,
 // a "level finished" screen could pop up on top of the home screen.
+// It also never interrupts Tippy: when the time is up but Tippy is still talking, it waits until the sentence is
+// finished (a new screen or a new sentence would cut it off in the middle). Taps (Home, Next) still act at once.
 let screenSerial = 0;
 function later(fn, ms) {
   const serial = screenSerial;
-  setTimeout(() => { if (serial === screenSerial) fn(); }, ms);
+  setTimeout(() => whenQuiet(() => { if (serial === screenSerial) fn(); }), ms);
+}
+
+// Is Tippy saying something right now: a recording, or the computer's own voice?
+function isSpeaking() {
+  const clip = voice.audio;
+  return !!(clip && !clip.paused && !clip.ended) || ("speechSynthesis" in window && (speechSynthesis.speaking || speechSynthesis.pending));
+}
+
+// Runs fn at once when Tippy is quiet, otherwise once Tippy has been quiet for a moment. The moment also bridges
+// the tiny gap between two pieces of one sentence ("Well done," + name). Some voices never report that they
+// finished, so after 15 seconds it goes ahead anyway.
+function whenQuiet(fn) {
+  if (!isSpeaking()) return fn();
+  const start = performance.now();
+  let quietSince = null;
+  (function check() {
+    const now = performance.now();
+    quietSince = isSpeaking() ? null : (quietSince ?? now);
+    if ((quietSince !== null && now - quietSince >= 350) || now - start > 15000) return fn();
+    setTimeout(check, 100);
+  })();
 }
 
 function setScreen(name, ...nodes) {
