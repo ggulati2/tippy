@@ -17,11 +17,14 @@ The "Mein erster Computer" revamp (branch `revamp/erster-computer`, see `docs/RE
 - Classroom mode (teacher PIN, up to 30 anonymous children told apart by picture, optional daily reset, class overview with CSV export) and portable mode (a `tippy-data` folder next to the program).
 - Feature tiers (core, plus, school) unlocked by an offline, signed licence file; `DEV_UNLOCK_ALL=true` for development.
 - The online helper needs a parent's yes on a plain-language consent screen before anything is sent; `LLM_MODE=openrouter`; tiny stories about the child's interests.
+- The Mac app opens in the Mac's own window instead of Chrome, so Chrome is no longer needed on a Mac.
 - A Linux build (`.github/workflows/linux-app.yml`), `docs/BUILD.md`, an offline test proving zero outbound network calls with the online helper off, and CI on the revamp branch.
 
 ### Fixed
 - The computer's own voice could be an online voice, which would send the child's name to a speech server; only voices built into the computer are used now.
 - Text from the online helper could contain a web address; such text is now refused.
+- After an update the app window could keep showing the old screens from its cache; it now always checks for newer files.
+- A typed sentence was cut off before it had been read aloud in full; the next round now waits for it.
 
 ## [0.14.0] - 2026-09-23
 

@@ -1,7 +1,9 @@
-"""Starts the server and opens Tippy in a fullscreen browser window.
+"""Starts the server and opens Tippy in a fullscreen window.
 
+On a Mac that is the Mac's own web view (pywebview), so Chrome is not needed; elsewhere, or when pywebview is
+missing, it is a Chrome or Edge window in kiosk mode.
 Used by start.command (macOS), start.sh (Linux) and start.bat (Windows).
-When the parent chooses "Exit" the server stops and the browser window closes.
+When the parent chooses "Exit" the server stops and the window closes.
 """
 import os
 import shutil
@@ -73,9 +75,36 @@ def already_running() -> bool:
         return False
 
 
+def native_window():
+    """The pywebview module on a Mac, or None when the browser window is used instead.
+
+    Mac only for now: Windows and Linux web views have not been checked by hand yet (downloads, printing, voice).
+    """
+    if sys.platform != "darwin" or os.environ.get("TIPPY_NO_BROWSER"):
+        return None
+    try:
+        import webview
+    except ImportError:
+        return None
+    webview.settings["ALLOW_DOWNLOADS"] = True   # backups and the class list are saved with a Save dialog
+    return webview
+
+
+def open_native_window(webview) -> None:
+    """Shows Tippy fullscreen in the Mac's own web view. Blocks until the window is closed."""
+    webview.create_window("Tippy", URL, fullscreen=True, background_color="#BFE9FF")   # Tippy's sky, no white flash
+    # Private mode (the default) starts with an empty web view each time: Tippy keeps nothing there, and no old
+    # copy of a screen can be shown after an update.
+    webview.start()
+
+
 def main() -> None:
+    webview = native_window()
     if already_running():
         print("Tippy is already running. Opening it again.")
+        if webview:
+            open_native_window(webview)
+            return
         browser = find_browser()
         if browser:
             subprocess.Popen([browser, f"--user-data-dir={BROWSER_PROFILE}", "--kiosk", f"--app={URL}"])
@@ -88,6 +117,21 @@ def main() -> None:
     config = uvicorn.Config(app, host=HOST, port=PORT, log_level="warning")
     server = uvicorn.Server(config)
     app.state.request_shutdown = lambda: setattr(server, "should_exit", True)
+
+    if webview:
+        # The Mac needs the window on the main thread, so the server runs next to it. "Exit" in the parent area
+        # closes the window; closing the window (or Cmd+Q) stops the server.
+        thread = threading.Thread(target=server.run, daemon=True)
+        thread.start()
+        if not wait_until_ready():
+            print(f"The server did not start. See {HOME_DIR / 'logs' / 'tippy.log'}")
+            return
+        app.state.request_shutdown = lambda: [w.destroy() for w in webview.windows]
+        print(f"Tippy is running at {URL}  (close it from the parent area, or close the window)")
+        open_native_window(webview)
+        server.should_exit = True
+        thread.join(timeout=5)
+        return
 
     browser_process = None
 

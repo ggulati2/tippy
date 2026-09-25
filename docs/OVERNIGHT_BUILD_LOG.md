@@ -622,13 +622,15 @@ are in `docs/BUILD.md`.
 
 ## Open decisions for the owner
 
-1. **Native window (`pywebview`)**: not switched on; see `docs/BUILD.md` for why. Needs testing on real machines first.
-2. **Default language**: the underlying default (`APP_LANGUAGE`) is still English; the first-run wizard always asks,
-   so German families get German and QWERTZ. Changing the default is easy but touches existing setups and many tests.
+1. **Native window (`pywebview`)**: decided — on for the Mac (done after the build, see `docs/BUILD.md`). Windows and
+   Linux keep the kiosk browser until their web views are checked by hand.
+2. **Default language**: decided — stays English (`APP_LANGUAGE`); the first-run wizard always asks, so German
+   families get German and QWERTZ.
 3. **Your own online helper** now needs a *plus* licence (or `DEV_UNLOCK_ALL=true`) and one "Yes" on the consent screen.
 4. **Licence signing key** is in `~/.config/tippy/licence-signing-key` on this Mac — back it up somewhere safe.
 5. **Content wording** that deserves a native speaker's read: the Safe & Smart stories and all German/Spanish text.
-6. **Two backport candidates** for `main` are listed in `docs/BACKPORT_CANDIDATES.md` (online voice, web addresses).
+6. **Four backport candidates** for `main` are listed in `docs/BACKPORT_CANDIDATES.md` (online voice, web addresses,
+   stale screens after an update, a typed sentence cut off before it was read aloud).
 
 ## Status
 

@@ -8,3 +8,5 @@ uvicorn==0.53.0
 pydantic==2.13.5
 httpx==0.28.1
 jsonschema==4.26.0
+# The Mac's own app window (scripts/launch.py). Mac only: Windows and Linux keep the Chrome/Edge window for now.
+pywebview==6.2.1; sys_platform == "darwin"

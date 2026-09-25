@@ -41,14 +41,18 @@ A test build without a release: Actions tab → pick a workflow → "Run workflo
 
 ## The window
 
-The packaged app starts Tippy's small local server and opens it in Chrome or Edge in **kiosk mode** (fullscreen, no
-address bar, closing the window quits Tippy). Without Chrome or Edge it opens the computer's normal browser.
+The packaged app starts Tippy's small local server and opens it in a fullscreen window. Closing the window, or "Exit"
+in the parent area, quits Tippy.
 
-The brief asks for a native window (`pywebview`) first, with the browser as fallback. That is **not switched on yet**,
-on purpose: Tippy depends on things a browser window is known to do well and a native web view on each system does
-not always do the same way — saving a backup or a CSV file (downloads), the print dialog for certificates, starting
-the recorded voice before the first tap (autoplay), and a real fullscreen kiosk a child cannot leave. Each would need
-checking by hand on real Windows and Mac machines. Until then the kiosk browser stays the default.
+- **Mac:** the Mac's own web view (`pywebview`, the engine inside Safari), so Chrome is not needed. Checked on macOS
+  26 (Intel): the recordings (Ogg Opus) play, also before the first tap; the built-in voices are there (German
+  "Anna"); `window.print()` opens the print dialog; saving a backup or a CSV opens a Save dialog. If `pywebview` is
+  missing (for example an old source install), the Chrome or Edge window below is used instead.
+- **Windows and Linux:** Chrome or Edge in **kiosk mode** (fullscreen, no address bar). Without either, the
+  computer's normal browser. Their native web views have not been checked by hand yet (downloads, printing, voice).
+
+Tippy's security rules forbid `eval` in the page, which `pywebview`'s own script bridge would need. Tippy does not use
+the bridge (it talks to its server over HTTP), and the print hook is added natively, so nothing is lost.
 
 ## Portable mode (schools, USB sticks)
 

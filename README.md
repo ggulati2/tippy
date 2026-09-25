@@ -8,7 +8,7 @@ A friendly, offline, computer-skills app for young kids: mouse, keyboard, typing
 
 **Mac:** download the zip for your Mac from [Releases](https://github.com/ggulati2/tippy/releases) (`-macos-arm64` for Apple silicon, `-macos-x86_64` for Intel — Apple menu → About This Mac tells you which), unzip and double-click `Tippy.app`. Or build your own with `scripts/build_mac.sh` (needs Python 3.11+ and internet the first time). Either way, macOS will ask you to allow it once: **System Settings → Privacy & Security → Open Anyway**.
 
-**From source (any OS):** install Python 3.11+ and Google Chrome, then double-click `start.command` (Mac), `start.bat` (Windows) or run `./start.sh` (Linux). The first start needs internet for a minute to set itself up; after that it's fully offline.
+**From source (any OS):** install Python 3.11+ (and Google Chrome on Windows and Linux; a Mac uses its own window), then double-click `start.command` (Mac), `start.bat` (Windows) or run `./start.sh` (Linux). The first start needs internet for a minute to set itself up; after that it's fully offline.
 
 On the very first start, a parent picks a language, sets a **PIN**, the child's name and a daily play limit — all changeable later in the parent area.
 
