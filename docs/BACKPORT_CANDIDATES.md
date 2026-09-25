@@ -38,3 +38,11 @@ Format for each entry:
   Tippy version shares one browser profile (`~/Library/Caches/Tippy/…` on a Mac), so after running a newer build,
   opening the genuine 0.14.0 app still showed the newer screens until that cache was deleted by hand.
 - Suggested fix (one line): in `protective_headers` in `backend/app.py`, send `Cache-Control: no-cache` for every path outside `/api/`.
+
+## A typed sentence was cut off before it had been read aloud
+- Commit: `ae11aaf` on `revamp/erster-computer`
+- Also present on `main` at: `tippy-v1-baseline`
+- What goes wrong and how to see it: after the last letter, `typingRound()` in `frontend/js/typing.js` starts reading
+  the word or sentence aloud and moves to the next one after a fixed 1.8 s. A longer sentence in Sentence Street
+  takes longer than that to say, so the next round (or the end of the level) cut it off. Seen by the owner.
+- Suggested fix (one line): give `speak()` an `onEnd` callback and move on only after both it and the 1.8 s have passed (with a 20 s safety limit).
