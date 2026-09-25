@@ -36,6 +36,15 @@ T.run(async () => {
   ended.forEach((fn) => fn());
   T.check("a new screen stops the old recording (nothing follows it)", played.length === 1 && said.length === 0);
 
+  // Brief bug report: after a typed sentence the round must wait until the whole sentence has been read aloud.
+  reset(); let finished = false;
+  typingRound({ screen: "t", icon: "", text: "", items: [{ text: "A", speak: t("play") }], onDone: () => { finished = true; } });
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: "a", code: "KeyA" }));
+  await T.wait(2500);
+  T.check("a typing round waits while the sentence is still being read", played.length === 1 && !finished, JSON.stringify({ played, finished }));
+  ended.shift()(); await T.wait(600);
+  T.check("and moves on once it has been read", finished);
+
   reset(); settings.language = "de"; speak(t("play"));
   T.check("a language without recordings uses the computer's voice", played.length === 0, JSON.stringify(played));
 });

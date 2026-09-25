@@ -63,8 +63,8 @@ function stopSpeaking() {
 }
 
 // Say `text` with the recordings if there are any. Returns false if this text has none (the caller then uses the
-// computer's voice).
-function speakRecorded(text) {
+// computer's voice). `onEnd` runs after the last piece.
+function speakRecorded(text, onEnd) {
   if (voice.lang !== settings.language) return false;
   const plan = voicePlan(text);
   if (!plan) return false;
@@ -72,11 +72,11 @@ function speakRecorded(text) {
   const token = voice.token;
   const serial = screenSerial;
   let i = 0;
-  const useComputerVoice = () => { if (token === voice.token && serial === screenSerial) speakWithSystemVoice(text); };
+  const useComputerVoice = () => { if (token === voice.token && serial === screenSerial) speakWithSystemVoice(text, onEnd); };
   const next = () => {
     if (token !== voice.token || serial !== screenSerial) return;      // the child moved on: drop the rest
     const part = plan[i++];
-    if (!part) return;
+    if (!part) return onEnd && onEnd();
     if (part.say) return speakWithSystemVoice(part.say, next);
     const audio = new Audio(`voice/${voice.lang}/${part.clip}.ogg`);
     voice.audio = audio;

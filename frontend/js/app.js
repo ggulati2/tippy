@@ -128,10 +128,11 @@ function voiceTag() {
 // still on the same screen. (Before, every early sentence was queued and all of them were spoken later,
 // on whatever screen was showing: "press the glowing key", "welcome"... at random.)
 let pendingSpeech = null;
-function speak(text) {
-  if (!settings.voice_on || muted) return;
-  if (speakRecorded(text)) return;                 // Tippy's own recorded voice (voice.js)
-  speakWithSystemVoice(text);
+// `onEnd` (optional) runs once the whole text has been said, or straight away when nothing is said.
+function speak(text, onEnd) {
+  if (!settings.voice_on || muted) return onEnd && onEnd();
+  if (speakRecorded(text, onEnd)) return;          // Tippy's own recorded voice (voice.js)
+  speakWithSystemVoice(text, onEnd);
 }
 
 // The computer's own voice: used for anything that has no recording. `onEnd` runs when it has finished speaking.
