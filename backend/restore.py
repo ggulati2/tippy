@@ -12,7 +12,7 @@ from contextlib import closing
 from datetime import date, datetime
 from pathlib import Path
 
-from backend import bank, db, difficulty, languages, progress
+from backend import bank, db, difficulty, languages, progress, world_moves
 
 MAX_BACKUP_BYTES = 5 * 1024 * 1024
 MAX_ROWS = 20_000
@@ -20,7 +20,8 @@ MAX_ROWS = 20_000
 # What comes back from a backup. Everything else (llm_usage, sessions, the cache, ...) is ignored.
 DATA_TABLES = ("progress", "stickers", "keystroke_stats", "daily_stats", "play_time", "play_days", "cards")
 # Settings that are known but deliberately not restored (internal counters, household secrets): ignored without counting.
-IGNORED_SETTINGS = {"letters_changed_at", "weekly_summary", "pin_hash", "openrouter_model", "layout_mismatch_flag"}
+IGNORED_SETTINGS = {"letters_changed_at", "weekly_summary", "pin_hash", "openrouter_model", "layout_mismatch_flag",
+                    "world_layout"}
 _KEY = re.compile(r"^([A-ZÄÖÜÑ]|[0-9]|SPACE|ENTER|BACKSPACE|SHIFT|UP|DOWN|LEFT|RIGHT|CAPS)$")
 
 
@@ -115,10 +116,24 @@ def prepare(backup) -> dict:
         else:
             plan["rows"][table].append(values)
 
+    rows = []
     for r in tables.get("progress", []):
-        world, level, stars = r.get("world"), r.get("level"), _int(r.get("stars"), 0, 3)
-        ok = world in progress.LEVEL_COUNTS and _int(level, 1, progress.max_level(world)) and stars is not None and r.get("status") == "done"
-        keep("progress", (world, int(level), "done", stars) if ok else None)
+        world, level, stars = r.get("world"), _int(r.get("level"), 1, 99), _int(r.get("stars"), 0, 3)
+        if isinstance(world, str) and level is not None and stars is not None and r.get("status") == "done":
+            rows.append((world, level, stars))
+        else:
+            plan["skipped"] += 1
+    if backup.get("format", 1) < 3:
+        # A backup from before the worlds were regrouped: its levels move to where those lessons are now, and every
+        # world the child could open stays open (the same move as for a database, backend/world_moves.py).
+        manual = plan["settings"].get("unlocked_worlds", "")
+        opened = world_moves.opened_worlds(rows, manual)
+        if opened:
+            plan["settings"]["unlocked_worlds"] = ",".join(sorted(set([w for w in manual.split(",") if w] + opened)))
+        rows = world_moves.move_rows(rows)
+    for world, level, stars in rows:
+        ok = world in progress.LEVEL_COUNTS and level <= progress.max_level(world)
+        keep("progress", (world, level, "done", stars) if ok else None)
     for r in tables.get("stickers", []):
         at = r.get("earned_at")
         keep("stickers", (r["id"], at[:40]) if r.get("id") in ids and isinstance(at, str) else None)

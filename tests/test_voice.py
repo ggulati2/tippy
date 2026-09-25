@@ -13,7 +13,8 @@ import make_voice  # noqa: E402  (a developer tool; Piper itself is only importe
 VOICE_DIR = ROOT / "frontend" / "voice"
 LANGUAGES = sorted(p.name for p in VOICE_DIR.iterdir() if (p / "index.json").exists()) if VOICE_DIR.exists() else []
 
-SAMPLES = ["Play", "Press the glowing key!", "  Hello   World ", "Ärger über Öl", "¡Hola! ¿Qué tal?", "Tippy 🐱", "ß", "0", "A"]
+SAMPLES = ["Play", "Press the glowing key!", "  Hello   World ", "Ärger über Öl", "¡Hola! ¿Qué tal?", "Tippy 🐱", "ß", "0", "A",
+           "Computer\u00adbucht"]
 
 
 def test_python_and_javascript_make_the_same_file_names():
@@ -26,6 +27,7 @@ def test_python_and_javascript_make_the_same_file_names():
 
 def test_text_is_tidied_before_hashing():
     assert make_voice.clip_name("  The   Cat ") == make_voice.clip_name("the cat")
+    assert make_voice.clip_name("Computer\u00adbucht") == make_voice.clip_name("Computerbucht")   # a soft hyphen is not spoken
     assert make_voice.clip_name("cat") != make_voice.clip_name("cat.")          # punctuation matters: it is part of the sentence
 
 

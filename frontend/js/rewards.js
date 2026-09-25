@@ -84,19 +84,17 @@ function albumScreen() {
 // The numbers must match BONUS_LEVELS in backend/progress.py.
 const BONUS = {
   keyboard: [{ level: 6, icon: "🐰" }, { level: 7, icon: "🔠" }],
-  basics: [{ level: 7, icon: "🌐" }, { level: 8, icon: "💾" }, { level: 9, icon: "💛" }, { level: 10, icon: "☝️" },
-    { level: 11, icon: "🚒", langs: ["de"] }, { level: 12, icon: "🚦", langs: ["de"] },
-    { level: 13, icon: "🚩" }, { level: 14, icon: "🪺" }, { level: 15, icon: "🍎" }, { level: 16, icon: "☔" },
-    { level: 17, icon: "🕵️" }, { level: 18, icon: "🎉" }, { level: 19, icon: "🔑" }],
+  basics: [{ level: 7, icon: "☝️" }],
+  safety: [{ level: 7, icon: "🚒", langs: ["de"] }, { level: 8, icon: "🚦", langs: ["de"] }],
   letters: [{ level: 6, icon: "🔝" }, { level: 7, icon: "⬇️" }, { level: 8, icon: "🔠" },
     { level: 9, icon: "Ä", langs: ["de"], when: () => layoutHas("ß") }],          // umlauts and ß need the German keyboard
   words: [{ level: 6, icon: "🐘" }, { level: 7, icon: "🐾" }, { level: 8, icon: "🚀" }, { level: 9, icon: "🦖" }, { level: 10, icon: "🚗" },
     { level: 11, icon: "🥨", langs: ["de"] }, { level: 12, icon: "🎄", langs: ["de"] },
     { level: 13, icon: "🌍" }, { level: 14, icon: "🍕" }, { level: 15, icon: "🦓" },
     { level: 16, icon: "📝", when: () => !!settings.custom_words }],                // the parent's own word list
-  sentences: [{ level: 6, icon: "🦜" }, { level: 7, icon: "❓" }, { level: 8, icon: "💛" },
-    { level: 9, icon: "🏰", langs: ["de"] }, { level: 10, icon: "🎃", langs: ["de"] },
-    { level: 11, icon: "🗺️" }, { level: 12, icon: "🍰" }, { level: 13, icon: "🐪" }],
+  sentences: [{ level: 4, icon: "🦜" }, { level: 5, icon: "❓" }, { level: 6, icon: "💛" },
+    { level: 7, icon: "🏰", langs: ["de"] }, { level: 8, icon: "🎃", langs: ["de"] },
+    { level: 9, icon: "🗺️" }, { level: 10, icon: "🍰" }, { level: 11, icon: "🐪" }],
 };
 const bonusLevels = (world) => (BONUS[world] || []).filter((b) => (!b.langs || b.langs.includes(settings.language)) && (!b.when || b.when()));
 

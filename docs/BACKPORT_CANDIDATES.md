@@ -44,5 +44,5 @@ Format for each entry:
 - Also present on `main` at: `tippy-v1-baseline`
 - What goes wrong and how to see it: games move on with `later(fn, ms)` after a fixed pause (1.8 s after a typed
   sentence, 0.7 s after the last balloon, and about 40 more). A new screen, or the next sentence, silences Tippy, so
-  anything longer than the pause was cut off in the middle, in many worlds. Seen by the owner, first in Sentence Street.
+  anything longer than the pause was cut off in the middle, in many worlds. Seen by the owner, first in Sentence Sky.
 - Suggested fix (one line): in `later()` in `frontend/js/app.js`, when the time is up but a recording or the computer's voice is still playing, wait until it has been quiet for 0.35 s (at most 15 s).

@@ -187,7 +187,8 @@ def export_data(db_path: Path) -> dict:
     # Not part of the backup: the summary is regenerated on demand, and the PIN hash must not travel
     # in a file that may be emailed around (a 4-digit PIN hash is easy to crack).
     data["settings"] = [s for s in data["settings"] if s["key"] not in ("weekly_summary", "pin_hash")]
-    return {"app": "tippy", "format": 2, "exported_at": date.today().isoformat(), "tables": data}
+    # Format 3: the worlds are grouped as in backend/world_moves.py (a format 2 backup is moved on restore).
+    return {"app": "tippy", "format": 3, "exported_at": date.today().isoformat(), "tables": data}
 
 
 def reset_progress(db_path: Path) -> None:

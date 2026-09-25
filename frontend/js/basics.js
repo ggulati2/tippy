@@ -1,16 +1,30 @@
-// Computer Basics Cove: six tiny lessons. Every lesson is pictures plus a spoken
-// sentence. Nothing can be failed: a wrong choice just wobbles, the right
-// answer pulses, and Tippy says "try another one".
+// Computer Cove, Safety Harbour and Quiz Corner: tiny lessons, each pictures plus a spoken sentence. Nothing can be
+// failed: a wrong choice just wobbles, the right answer pulses, and Tippy says "try another one".
+// Computer Cove teaches the computer itself, Safety Harbour staying safe, Quiz Corner is general knowledge for fun.
+// (They were all one world, Computer Cove, before the worlds were regrouped: backend/world_moves.py.)
 
-const BASICS_ICONS = ["🖥️", "🪟", "📁", "⏰", "🙋", "🤐"];
+const BASICS_ICONS = ["🖥️", "🪟", "📁", "🌐", "💾", "⏰"];
+const SAFETY_ICONS = ["🙋", "🤐", "💛", "🕵️", "🎉", "🔑"];
+const QUIZ_ICONS = ["🚩", "🪺", "🍎", "☔"];
 
 function computerCove() {
   levelPicker("basics", "🐚", BASICS_ICONS, (n) => {
-    [lessonParts, lessonWindow, lessonFolders, lessonBreak, lessonAsk, lessonSecrets,
-      lessonInternet, lessonSave, lessonKind, lessonPad, lessonEmergency, lessonTraffic,
-      lessonFlags, lessonAnimalHomes, lessonFood, lessonWeather, lessonStranger, lessonPrizePopup,
-      lessonPasswordAsk][n - 1](
+    [lessonParts, lessonWindow, lessonFolders, lessonInternet, lessonSave, lessonBreak, lessonPad][n - 1](
       () => completeLevel("basics", n, computerCove));
+  });
+}
+
+function safetyHarbour() {
+  levelPicker("safety", "⚓", SAFETY_ICONS, (n) => {
+    [lessonAsk, lessonSecrets, lessonKind, lessonStranger, lessonPrizePopup, lessonPasswordAsk,
+      lessonEmergency, lessonTraffic][n - 1](
+      () => completeLevel("safety", n, safetyHarbour));
+  });
+}
+
+function quizCorner() {
+  levelPicker("quiz", "🧩", QUIZ_ICONS, (n) => {
+    [lessonFlags, lessonAnimalHomes, lessonFood, lessonWeather][n - 1](() => completeLevel("quiz", n, quizCorner));
   });
 }
 
@@ -79,7 +93,7 @@ function chooseSteps(screen, steps, done) {
   show();
 }
 
-// ---------- 1. Screen, mouse, keyboard ----------
+// ---------- Computer Cove 1. Screen, mouse, keyboard ----------
 function lessonParts(done) {
   const options = [{ emoji: "🖥️" }, { emoji: "🖱️" }, { emoji: "⌨️" }];
   chooseSteps("basics-1", [
@@ -89,7 +103,7 @@ function lessonParts(done) {
   ], done);
 }
 
-// ---------- 2. Open and close a window ----------
+// ---------- Computer Cove 2. Open and close a window ----------
 function lessonWindow(done) {
   const total = 2;
   let count = 0;
@@ -125,7 +139,7 @@ function lessonWindow(done) {
   showIcon();
 }
 
-// ---------- 3. Files and folders ----------
+// ---------- Computer Cove 3. Files and folders ----------
 function lessonFolders(done) {
   const folders = [{ emoji: "📁🖼️" }, { emoji: "📁🎵" }, { emoji: "📁📝" }];
   chooseSteps("basics-3", [
@@ -135,7 +149,7 @@ function lessonFolders(done) {
   ], done);
 }
 
-// ---------- 4. Screen breaks ----------
+// ---------- Computer Cove 6. Screen breaks ----------
 function lessonBreak(done) {
   chooseSteps("basics-4", [
     { icon: "⏰", prompt: t("b4.look"), scene: "🌳⛰️☁️", options: [{ emoji: "👀" }], answer: 0 },
@@ -144,14 +158,14 @@ function lessonBreak(done) {
   ], done);
 }
 
-// ---------- 5. Ask a grown-up first ----------
+// ---------- Safety Harbour 1. Ask a grown-up first ----------
 function lessonAsk(done) {
   const options = [{ emoji: "🙋" }, { emoji: "🖱️" }];   // 🙋 = ask a grown-up, 🖱️ = just click
   const step = (scene, fact) => ({ icon: "🙋", prompt: t("b5.ask"), scene, options, answer: 0, fact });
   chooseSteps("basics-5", [step("🎁 ✨ 🎉"), step("🔗 ❓"), step("📦 ⬇️ ❓", t("b5.fact"))], done);
 }
 
-// ---------- 6. Keep private things secret online ----------
+// ---------- Safety Harbour 2. Keep private things secret online ----------
 function lessonSecrets(done) {
   const options = [{ emoji: "🤐" }, { emoji: "💬" }];   // 🤐 = keep it secret, 💬 = tell
   chooseSteps("basics-6", [
@@ -161,7 +175,7 @@ function lessonSecrets(done) {
   ], done);
 }
 
-// ---------- Bonus 7. What is the internet? ----------
+// ---------- Computer Cove 4. What is the internet? ----------
 function lessonInternet(done) {
   chooseSteps("basics-7", [
     { icon: "🌐", prompt: t("b7.wifi"), options: [{ emoji: "📶" }, { emoji: "📺" }, { emoji: "🔦" }], answer: 0, fact: t("b7.wifi.fact") },
@@ -169,7 +183,7 @@ function lessonInternet(done) {
   ], done);
 }
 
-// ---------- Bonus 8. Saving a picture ----------
+// ---------- Computer Cove 5. Saving a picture ----------
 function lessonSave(done) {
   chooseSteps("basics-8", [
     { icon: "💾", prompt: t("b8.save"), scene: "🖼️", options: [{ emoji: "💾" }, { emoji: "🗑️" }, { emoji: "🔦" }], answer: 0, fact: t("b8.save.fact") },
@@ -177,7 +191,7 @@ function lessonSave(done) {
   ], done);
 }
 
-// ---------- Bonus 9. Being kind online ----------
+// ---------- Safety Harbour 3. Being kind online ----------
 function lessonKind(done) {
   chooseSteps("basics-9", [
     { icon: "💛", prompt: t("b9.sad"), scene: "😢", options: [{ emoji: "💛" }, { emoji: "😠" }], answer: 0 },
@@ -185,7 +199,7 @@ function lessonKind(done) {
   ], done);
 }
 
-// ---------- Bonus 10. The touchpad ----------
+// ---------- Computer Cove bonus 7. The touchpad ----------
 function lessonPad(done) {
   chooseSteps("basics-10", [
     { icon: "☝️", prompt: t("b10.move"), scene: "➡️ 🖱️", options: [{ emoji: "☝️" }, { emoji: "🖐️" }, { emoji: "🦶" }], answer: 0, fact: t("b10.move.fact") },
@@ -194,7 +208,7 @@ function lessonPad(done) {
   ], done);
 }
 
-// ---------- Bonus 11 (German). The emergency number ----------
+// ---------- Safety Harbour bonus 7 (German). The emergency number ----------
 // In Germany the fire brigade and the ambulance are reached on 112, the police on 110. A grown-up calls.
 function lessonEmergency(done) {
   const services = [{ emoji: "🚒" }, { emoji: "🚑" }, { emoji: "🚓" }];
@@ -205,7 +219,7 @@ function lessonEmergency(done) {
   ], done);
 }
 
-// ---------- Bonus 12 (German). Traffic lights and the zebra crossing ----------
+// ---------- Safety Harbour bonus 8 (German). Traffic lights and the zebra crossing ----------
 function lessonTraffic(done) {
   chooseSteps("basics-12", [
     { icon: "🔴", prompt: t("de.b12.red"), scene: "🚦 🔴", options: [{ emoji: "✋" }, { emoji: "🚶" }], answer: 0, fact: t("de.b12.red.fact") },
@@ -214,7 +228,7 @@ function lessonTraffic(done) {
   ], done);
 }
 
-// ---------- Bonus 13. Flags of the world ----------
+// ---------- Quiz Corner 1. Flags of the world ----------
 function lessonFlags(done) {
   chooseSteps("basics-13", [
     { icon: "🇯🇵", prompt: t("b13.japan"), options: [{ emoji: "🇯🇵" }, { emoji: "🇧🇷" }, { emoji: "🇮🇹" }], answer: 0, fact: t("b13.japan.fact") },
@@ -223,7 +237,7 @@ function lessonFlags(done) {
   ], done);
 }
 
-// ---------- Bonus 14. Where animals live ----------
+// ---------- Quiz Corner 2. Where animals live ----------
 function lessonAnimalHomes(done) {
   chooseSteps("basics-14", [
     { icon: "🐟", prompt: t("b14.fish"), scene: "🐟", options: [{ emoji: "🌊" }, { emoji: "🏜️" }, { emoji: "❄️" }], answer: 0, fact: t("b14.fish.fact") },
@@ -232,7 +246,7 @@ function lessonAnimalHomes(done) {
   ], done);
 }
 
-// ---------- Bonus 15. Good food ----------
+// ---------- Quiz Corner 3. Good food ----------
 function lessonFood(done) {
   chooseSteps("basics-15", [
     { icon: "🍎", prompt: t("b15.fruit"), options: [{ emoji: "🍎" }, { emoji: "🍰" }, { emoji: "🍟" }], answer: 0, fact: t("b15.fruit.fact") },
@@ -241,7 +255,7 @@ function lessonFood(done) {
   ], done);
 }
 
-// ---------- Bonus 16. Weather ----------
+// ---------- Quiz Corner 4. Weather ----------
 function lessonWeather(done) {
   const gear = [{ emoji: "☔" }, { emoji: "🕶️" }, { emoji: "🧤" }];
   chooseSteps("basics-16", [
@@ -251,10 +265,10 @@ function lessonWeather(done) {
   ], done);
 }
 
-// ---------- Bonus 17-19: Safe & Smart (docs/REVAMP_BRIEF.md section 6.3) ----------
+// ---------- Safety Harbour 4-6: the Safe & Smart stories (docs/REVAMP_BRIEF.md section 6.3) ----------
 // Short, warm, two-choice scenarios. The correct choice is always "tell/ask a grown-up," never a
 // dead end: a wrong tap only wobbles, exactly like every other lesson, so nothing here can scare or
-// punish a child. "When to ask a grown-up" itself is already its own lesson (5, lessonAsk); these
+// punish a child. "When to ask a grown-up" itself is already its own lesson (Safety Harbour 1, lessonAsk); these
 // three cover the brief's other named topics instead of repeating it.
 function lessonStranger(done) {
   const options = [{ emoji: "🙋" }, { emoji: "💬" }];   // 🙋 = tell a grown-up, 💬 = answer them

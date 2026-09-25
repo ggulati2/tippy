@@ -10,30 +10,30 @@ from pathlib import Path
 
 from backend import db, packs
 
-# Worlds in the order they unlock. A world unlocks when the one before it is complete.
-WORLD_ORDER = ["mouse", "keyboard", "letters", "words", "sentences", "basics", "free", "numbers", "paint", "desktop", "internet", "robot",
-               "tenfinger"]
+# Every world, in the order of the stages on the child's map (frontend/js/app.js STAGES), then the extras.
+WORLD_ORDER = ["mouse", "paint", "keyboard", "letters", "numbers", "name", "words", "sentences", "desktop", "internet",
+               "basics", "safety", "free", "robot", "quiz", "tenfinger"]
 
-# How many levels each *built* world has. Add a world here when it is built.
-LEVEL_COUNTS = {"mouse": 4, "keyboard": 5, "letters": 5, "words": 5, "sentences": 5, "basics": 6, "free": 1, "numbers": 6,
-                "paint": 5, "desktop": 7, "internet": 5, "robot": 5, "tenfinger": 5}
+# How many core levels each world has. Add a world here when it is built.
+LEVEL_COUNTS = {"mouse": 4, "paint": 5, "keyboard": 5, "letters": 5, "numbers": 6, "name": 3, "words": 5, "sentences": 3,
+                "desktop": 7, "internet": 5, "basics": 6, "safety": 6, "free": 1, "robot": 5, "quiz": 4, "tenfinger": 5}
 
 # Bonus levels come after the core levels of a world. They give stars and stickers, but they never
 # change whether the world counts as complete, so adding them cannot re-lock anything for a child
 # who has already played. Some bonus levels only appear for one language (decided in the browser).
 # Some numbers are only shown for German (see BONUS in frontend/js/rewards.js): letters 9 (umlauts), words 11 and 12,
-# sentences 9 and 10, basics 11 and 12. Levels added later for every language (words 13 to 15, sentences 11 to 13,
-# basics 13 to 16) simply carry on the numbering, so nothing a child already earned changes.
-BONUS_LEVELS: dict[str, int] = {"keyboard": 2, "letters": 4, "words": 11, "sentences": 8, "basics": 13}
+# sentences 7 and 8, safety 7 and 8. New bonus levels carry on the numbering, so nothing a child earned changes.
+BONUS_LEVELS: dict[str, int] = {"keyboard": 2, "letters": 4, "words": 11, "sentences": 8, "basics": 1, "safety": 2}
 
-# By default a world opens when the one before it in WORLD_ORDER is complete. A world listed here
-# opens after the named world instead. Number Land (added later) opens after Keyboard Kingdom; putting it
-# in the middle of the chain would have re-locked worlds for children who were already further on.
-UNLOCK_AFTER = {"numbers": "keyboard",
-                # The four "everyday computer" worlds open when the skill they need has been learned:
-                # painting needs the mouse, the robot needs the arrow keys (Keyboard Kingdom), the pretend desktop needs
-                # the Computer Cove lessons (windows, folders) and the pretend internet needs typing sentences.
-                "paint": "mouse", "robot": "keyboard", "desktop": "basics", "internet": "sentences"}
+# The world each world opens after (when that one is complete). Each stage opens after the stage before it, and a
+# world that needs a skill opens after the world that teaches it: painting and the quizzes need only the mouse,
+# the robot needs the arrow keys (Key Castle), the pretend desktop needs the Computer Cove lessons (windows,
+# folders) and the pretend internet needs typing sentences (for searching).
+# (A child's progress from the old layout keeps everything it had open: backend/world_moves.py.)
+UNLOCK_AFTER = {"mouse": None, "paint": "mouse", "keyboard": "mouse", "letters": "keyboard", "numbers": "keyboard",
+                "name": "letters", "words": "name", "sentences": "words", "basics": "words", "desktop": "basics",
+                "internet": "sentences", "safety": "basics", "free": "safety", "robot": "keyboard", "quiz": "mouse",
+                "tenfinger": None}
 
 # Worlds that never open by playing, only when a parent opens them (by hand, or with "unlock all").
 # docs/REVAMP_BRIEF.md section 5: the Ten-Finger Path is for 7+ and "locked by default; the parent enables it".
@@ -164,8 +164,8 @@ def get_progress(db_path: Path, today: date | None = None) -> dict:
         return world in LEVEL_COUNTS and len(core) >= LEVEL_COUNTS[world]
 
     worlds = {}
-    for i, world in enumerate(WORLD_ORDER):
-        before = UNLOCK_AFTER.get(world) or (WORLD_ORDER[i - 1] if i else None)
+    for world in WORLD_ORDER:
+        before = UNLOCK_AFTER[world]
         unlocked = world in manual if world in PARENT_ONLY else (before is None or world in manual or complete(before))
         worlds[world] = {"unlocked": unlocked, "complete": complete(world), "built": world in LEVEL_COUNTS,
                          "levels": levels[world]}

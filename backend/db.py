@@ -9,7 +9,7 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from backend import languages
+from backend import languages, world_moves
 
 log = logging.getLogger("tippy.db")
 
@@ -186,6 +186,7 @@ def _init_db(db_path: Path, default_language: str = "en") -> None:
                 "UPDATE settings SET value = ? WHERE key = 'keyboard_layout' AND NOT EXISTS (SELECT 1 FROM sessions)",
                 (languages.default_keyboard(default_language),),
             )
+        world_moves.upgrade(conn, db_path)   # progress from before the worlds were regrouped moves along, once
 
 
 def get_settings(db_path: Path) -> dict:

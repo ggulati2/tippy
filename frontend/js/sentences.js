@@ -1,21 +1,20 @@
-// Sentence Sky: rounds 1 to 3 type short sentences, round 4 the child's own
-// name, round 5 a favourite word. The parent sets the name and the word in the
-// parent area. The name never leaves this computer.
+// Sentence Sky: rounds 1 to 3 type short sentences, shortest first, then bonus levels.
+// (The name and favourite-word rounds moved to Name Nest, name.js.)
 
-const SKY_ICONS = ["🌤️", "⛅", "🌈", "📛", "💛"];
+const SKY_ICONS = ["🌤️", "⛅", "🌈"];
 const SENTENCES_PER_ROUND = 3;
 
 const SENTENCE_BONUS = {
-  6: { kind: "long", text: "sentences.long", icon: "🦜" },
-  7: { kind: "question", text: "sentences.question", icon: "❓" },
-  8: { kind: "themed", text: "sentences.themed", icon: "💛" },
+  4: { kind: "long", text: "sentences.long", icon: "🦜" },
+  5: { kind: "question", text: "sentences.question", icon: "❓" },
+  6: { kind: "themed", text: "sentences.themed", icon: "💛" },
   // German only (content/special.json)
-  9: { special: "culture_sentences", text: "de.sentences.culture", icon: "🏰" },
-  10: { special: "festival_sentences", text: "de.sentences.festivals", icon: "🎃" },
+  7: { special: "culture_sentences", text: "de.sentences.culture", icon: "🏰" },
+  8: { special: "festival_sentences", text: "de.sentences.festivals", icon: "🎃" },
   // For every language (content/special.json)
-  11: { special: "country_sentences", text: "sentences.countries", icon: "🗺️" },
-  12: { special: "food_sentences", text: "sentences.food", icon: "🍰" },
-  13: { special: "wild_sentences", text: "sentences.wild", icon: "🐪" },
+  9: { special: "country_sentences", text: "sentences.countries", icon: "🗺️" },
+  10: { special: "food_sentences", text: "sentences.food", icon: "🍰" },
+  11: { special: "wild_sentences", text: "sentences.wild", icon: "🐪" },
 };
 
 // Three sentences, shortest first, for one of the bonus levels. A tiny story from the online helper keeps its order.
@@ -42,14 +41,6 @@ function typableEntries(sentences) {
 }
 
 async function startSkyRound(round) {
-  if (round === 4) return nameRound(settings.child_name, "sentences.name", window.TIPPY_CONFIG.mascotName);
-  if (round === 5) {
-    // Brief section 6.1: family words (Mama, Papa, Oma, ...) join the favourite word as typing
-    // material here, the highest-motivation content the child sees. Never sent anywhere.
-    const pool = [settings.favorite_word, ...(settings.family_words ? settings.family_words.split(",") : [])].filter(Boolean);
-    return familyRound(pool.length ? pool : [t("defaultFavorite")]);
-  }
-
   // Bonus levels: longer sentences, questions, and sentences about what the child likes.
   const bonus = SENTENCE_BONUS[round];
   const { status, body } = await api(!bonus ? "/api/content/sentences?count=10"
@@ -65,32 +56,5 @@ async function startSkyRound(round) {
     screen: "sentences", icon: "☁️", text: t("sentences.type"),
     items: chosen.map((entry) => ({ text: entry.text.toUpperCase(), speak: entry.original })),
     onDone: () => completeLevel("sentences", round, sentenceSky),
-  });
-}
-
-// The child types their own name (or favourite word) three times.
-function nameRound(value, promptKey, fallback) {
-  let text = foldForKeyboard(typingText(value || ""));
-  if (!isTypable(text)) text = typingText(fallback); // not set yet: use a friendly default
-  typingRound({
-    screen: "sentences", icon: "📛", text: t(promptKey),
-    items: [text, text, text].map((word) => ({ text: word.toUpperCase(), speak: word })),
-    onDone: () => completeLevel("sentences", 4, sentenceSky),
-  });
-}
-
-// The favourite word, plus up to 7 family words the parent added: three rounds' worth of items,
-// cycling through the pool so a short family-words list still fills the round.
-function familyRound(words) {
-  const items = [];
-  for (let i = 0; i < 3; i++) {
-    let text = foldForKeyboard(typingText(words[i % words.length] || ""));
-    if (!isTypable(text)) text = typingText(t("defaultFavorite"));
-    items.push({ text: text.toUpperCase(), speak: text });
-  }
-  typingRound({
-    screen: "sentences", icon: "💛", text: t("sentences.fav"),
-    items,
-    onDone: () => completeLevel("sentences", 5, sentenceSky),
   });
 }

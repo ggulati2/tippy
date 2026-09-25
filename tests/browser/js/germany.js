@@ -10,8 +10,8 @@ T.run(async () => {
   };
   await T.post("/api/parent/unlock", { world: "all" }, H);
   const cards = async (world) => { await loadProgress(); openWorld(world); await T.wait(500); return document.querySelectorAll(".world.level").length; };
-  const core = { letters: 5, words: 5, sentences: 5, basics: 6 };
-  const general = { letters: 8, words: 13, sentences: 11, basics: 17 };      // core plus the bonus levels every language has
+  const core = { letters: 5, words: 5, sentences: 3, basics: 6, safety: 6 };
+  const general = { letters: 8, words: 13, sentences: 9, basics: 7, safety: 6 };   // core plus the bonus levels every language has
 
   // Other languages never see the German levels.
   for (const [language, keyboard] of [["en", "qwerty"], ["es", "qwerty_es"]]) {
@@ -25,7 +25,7 @@ T.run(async () => {
   await setLanguage("de", "qwertz");
   const german = {};
   for (const world of Object.keys(general)) german[world] = await cards(world);
-  T.check("German: letters 9, words 15, sentences 13, lessons 19", german.letters === 9 && german.words === 15 && german.sentences === 13 && german.basics === 19, JSON.stringify(german));
+  T.check("German: letters 9, words 15, sentences 11, computer lessons 7, safety lessons 8", german.letters === 9 && german.words === 15 && german.sentences === 11 && german.basics === 7 && german.safety === 8, JSON.stringify(german));
 
   // The umlaut level needs the German keyboard: with another shape it is not offered.
   await setLanguage("de", "qwerty");
@@ -69,8 +69,8 @@ T.run(async () => {
   await setLanguage("de", "qwertz");
 
   // The German lessons and word sets.
-  await loadProgress(); openWorld("basics"); await T.wait(500);
-  [...document.querySelectorAll(".world.level")][10].click(); await T.wait(600);
+  await loadProgress(); openWorld("safety"); await T.wait(500);
+  [...document.querySelectorAll(".world.level")][6].click(); await T.wait(600);
   T.check("the emergency lesson mentions 112 when solved", true);
   const seen = [];
   for (let step = 0; step < 60 && T.name() !== "celebrate"; step++) {

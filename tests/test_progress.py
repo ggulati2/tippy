@@ -75,12 +75,15 @@ def test_every_sticker_award_key_is_unique():
     assert len(keys) == len(set(keys))
 
 
-def test_basics_and_free_play_chain(db_path):
-    assert not progress.get_progress(db_path, D)["worlds"]["free"]["unlocked"]
+def test_computer_cove_then_safety_harbour_then_free_play(db_path):
+    opened = lambda: {w for w, info in progress.get_progress(db_path, D)["worlds"].items() if info["unlocked"]}
+    assert not opened() & {"safety", "free"}
     for level in range(1, 7):
         result = progress.record_completion(db_path, "basics", level, 3, D)
     assert "octopus" in result["new_stickers"]
-    assert progress.get_progress(db_path, D)["worlds"]["free"]["unlocked"]
+    assert "safety" in opened() and "free" not in opened()
+    finish(db_path, "safety")
+    assert "free" in opened()
     assert "painter" in progress.record_completion(db_path, "free", 1, 3, D)["new_stickers"]
 
 
@@ -102,16 +105,21 @@ def test_number_land_opens_after_keyboard_kingdom_not_at_the_end(tmp_path):
     assert worlds["numbers"]["unlocked"] and worlds["letters"]["unlocked"]
 
 
-def test_adding_a_world_never_relocks_a_child_who_was_further_on(tmp_path):
-    """A child who finished mouse to sentences before Number Land existed keeps everything open."""
+def test_the_stages_open_one_after_the_other(tmp_path):
+    """Each stage of the map opens after the one before it (frontend/js/app.js STAGES)."""
     path = tmp_path / "p.db"
     db.init_db(path)
-    for world in ("mouse", "keyboard", "letters", "words", "sentences"):
-        finish(path, world)
-    worlds = progress.get_progress(path)["worlds"]
-    later = {"numbers", "paint", "desktop", "internet", "robot"}          # worlds added after the first release
-    assert [w for w in progress.WORLD_ORDER if worlds[w]["unlocked"] and w not in later] == ["mouse", "keyboard", "letters", "words", "sentences", "basics"]
-    assert worlds["numbers"]["unlocked"] and not worlds["numbers"]["complete"]
+    opened = lambda: {w for w, info in progress.get_progress(path)["worlds"].items() if info["unlocked"]}
+    assert opened() == {"mouse"}
+    finish(path, "mouse")
+    assert opened() == {"mouse", "paint", "keyboard", "quiz"}
+    finish(path, "keyboard")
+    finish(path, "letters")
+    assert "name" in opened() and "words" not in opened()
+    finish(path, "name")
+    assert "words" in opened() and "sentences" not in opened()
+    finish(path, "words")
+    assert {"sentences", "basics"} <= opened()
 
 
 def test_the_everyday_computer_worlds_open_after_the_skill_they_need(tmp_path):
@@ -181,7 +189,7 @@ def test_bonus_levels_give_rewards_but_never_change_completion(tmp_path, monkeyp
         progress.record_completion(path, "letters", 8, 3)                  # beyond the last bonus level
     finish(path, "letters")                                                # now the five core levels
     after = progress.get_progress(path)
-    assert after["worlds"]["letters"]["complete"] and after["worlds"]["words"]["unlocked"]
+    assert after["worlds"]["letters"]["complete"] and after["worlds"]["name"]["unlocked"]
 
 
 def test_bonus_levels_do_not_award_the_world_done_sticker_early(tmp_path, monkeypatch):
@@ -201,13 +209,11 @@ def test_bonus_levels_are_accepted_up_to_the_last_one_and_award_their_stickers(t
     path = tmp_path / "p.db"
     db.init_db(path)
     # (world, last level, a bonus level with a sticker, that sticker). Some of the numbers in between are German-only.
-    for world, last, level, sticker in (("letters", 9, 8, "fish"), ("words", 16, 10, "flamingo"), ("sentences", 13, 8, "peacock"),
-                                        ("keyboard", 7, 7, "crocodile"), ("basics", 19, 10, "sloth")):
+    for world, last, level, sticker in (("letters", 9, 8, "fish"), ("words", 16, 10, "flamingo"), ("sentences", 11, 6, "peacock"),
+                                        ("keyboard", 7, 7, "crocodile"), ("basics", 7, 7, "sloth"), ("safety", 8, 6, "owl")):
         assert progress.max_level(world) == last
         assert sticker in progress.record_completion(path, world, level, 3)["new_stickers"]
-        last_stickers = progress.record_completion(path, world, last, 3)["new_stickers"]
-        if world == "basics":
-            assert "owl" in last_stickers, "the last Safe & Smart bonus level should award its own sticker"
+        progress.record_completion(path, world, last, 3)
         with pytest.raises(ValueError):
             progress.record_completion(path, world, last + 1, 3)
     state = progress.get_progress(path)["worlds"]

@@ -18,6 +18,7 @@ The "Mein erster Computer" revamp (branch `revamp/erster-computer`, see `docs/RE
 - Feature tiers (core, plus, school) unlocked by an offline, signed licence file; `DEV_UNLOCK_ALL=true` for development.
 - The online helper needs a parent's yes on a plain-language consent screen before anything is sent; `LLM_MODE=openrouter`; tiny stories about the child's interests.
 - The Mac app opens in the Mac's own window instead of Chrome, so Chrome is no longer needed on a Mac.
+- The worlds regrouped so every stage teaches one skill, with unique names: Name Nest (own name, family words), Safety Harbour and Quiz Corner are new worlds, Keyboard Kingdom is now Key Castle and Number Land Number Hill. A child's progress moves along once, and a copy of the old data is kept.
 - A Linux build (`.github/workflows/linux-app.yml`), `docs/BUILD.md`, an offline test proving zero outbound network calls with the online helper off, and CI on the revamp branch.
 
 ### Fixed

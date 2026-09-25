@@ -23,7 +23,8 @@ function cyrb53(text) {
   h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
   return 4294967296 * (2097151 & h2) + (h1 >>> 0);
 }
-const voiceKey = (text) => cyrb53(text.split(/\s+/).filter(Boolean).join(" ").toLowerCase()).toString(36);
+// Soft hyphens (\u00AD, where a long German world name may break on the map) are invisible and never spoken.
+const voiceKey = (text) => cyrb53(text.replace(/\u00AD/g, "").split(/\s+/).filter(Boolean).join(" ").toLowerCase()).toString(36);
 
 // Load the list of recordings for a language (a language without recordings simply has none).
 async function loadVoice(lang) {

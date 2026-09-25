@@ -10,7 +10,7 @@ T.run(async () => {
   // A) Leave every level with Home at three different moments. A game's pending step must never
   //    fire afterwards (it once popped a "level done" screen on top of the home screen).
   let leaks = [];
-  for (const [world, levels] of [["mouse", 4], ["keyboard", 5], ["letters", 5], ["words", 5], ["sentences", 5], ["basics", 6], ["numbers", 6]]) {
+  for (const [world, levels] of [["mouse", 4], ["keyboard", 5], ["letters", 5], ["name", 3], ["words", 5], ["sentences", 3], ["basics", 6], ["safety", 6], ["quiz", 4], ["numbers", 6]]) {
     for (let i = 0; i < levels; i++) for (const delay of [200, 900, 2500]) {
       await loadProgress(); openWorld(world); await T.wait(400);
       [...document.querySelectorAll(".world.level")][i].click();
@@ -25,13 +25,13 @@ T.run(async () => {
 
   // B) Key mashing: junk keys and many letters on every typing screen.
   const junk = ["!", "@", "#", "1", "0", "Tab", "Escape", "F5", "F12", "ArrowLeft", "Delete", "Home", "CapsLock", "Dead", "Unidentified", "Meta", "Control", "Alt", "ContextMenu", "PageDown", "Process"];
-  for (const [world, i] of [["keyboard", 0], ["keyboard", 4], ["letters", 0], ["words", 0], ["sentences", 0]]) {
+  for (const [world, i] of [["keyboard", 0], ["keyboard", 4], ["letters", 0], ["name", 0], ["words", 0], ["sentences", 0]]) {
     await loadProgress(); openWorld(world); await T.wait(400);
     [...document.querySelectorAll(".world.level")][i].click(); await T.wait(300);
     for (let t = 0; t < 400; t++) T.key(junk[t % junk.length]);
     for (let t = 0; t < 200; t++) T.key("abcdefghijklmnopqrstuvwxyz"[t % 26]);
     await T.wait(500);
-    T.check(`mashing keys in ${world} ${i + 1} leaves a sane screen`, ["celebrate", "kb-1", "kb-5", "letters", "words", "sentences"].includes(T.name()), T.name());
+    T.check(`mashing keys in ${world} ${i + 1} leaves a sane screen`, ["celebrate", "kb-1", "kb-5", "letters", "name", "words", "sentences"].includes(T.name()), T.name());
   }
   await loadProgress(); openWorld("free"); await T.wait(500);
   for (let t = 0; t < 300; t++) T.key(junk[t % junk.length]);

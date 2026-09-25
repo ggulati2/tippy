@@ -620,6 +620,31 @@ are in `docs/BUILD.md`.
 | Classroom mode: 30 anonymous profiles, CSV, works from a USB stick | Yes (browser test with 30 and CSV; portable mode checked with the real Mac app). |
 | All tests pass, packs validate, docs complete | Yes: 314 unit/i18n tests, 22 browser tests (also against the packaged Mac app); AUDIT, PRIVACY, BUILD, CHANGELOG. |
 
+## World layout 2 (after the build, on the owner's feedback)
+
+The owner found the worlds poorly named and grouped ("the stage is My Name and has the sentence world in it"). The
+first mapping had kept the old worlds and slotted them into the brief's seven stages, so stage 3 held Sentence Sky,
+sentences came before words, names repeated ("Mouse Meadow" was a stage and a world; "Keyboard Land", "Letter Land",
+"Number Land") and Computer Cove mixed computer basics, safety and general-knowledge quizzes. Approved regrouping:
+
+| Stage | Worlds |
+|---|---|
+| 1 Mouse / Maus | Mouse Meadow, Paint Place |
+| 2 Keyboard / Tastatur | Key Castle (was Keyboard Kingdom), Letter Land, Number Hill (was Number Land) |
+| 3 My Name / Mein Name | Name Nest (new: name, family words, favourite word, from Sentence Sky) |
+| 4 Words & Sentences / Wörter & Sätze | Word Woods, Sentence Sky (sentences only) |
+| 5 Everyday Computer / Computer-Alltag | Desktop Dock, Internet Island, Computer Cove (computer lessons only) |
+| 6 Safe & Smart / Sicher & schlau | Safety Harbour (new: the safety lessons, from Computer Cove) |
+| 7 Create Studio / Malen & Schreiben | Free Play |
+| Extras | Robot Helper, Quiz Corner (new: flags, animal homes, food, weather, from Computer Cove) |
+| Optional 7+ | Ten-Finger Path |
+
+Internal world ids stayed the same (`keyboard`, `numbers`, `basics`, ...); `name`, `safety` and `quiz` are new.
+`backend/world_moves.py` moves a child's progress once, when the database is opened: levels and stars go where their
+lessons are now, sticker award keys moved the same way (stickers already earned keep their identity), every world the
+child could open stays open, and a copy of the old database is kept as `<file>.before-world-layout-2` because an
+older Tippy (0.14.0) cannot read the new worlds. Backups are now format 3; a format 2 backup is moved on restore.
+
 ## Open decisions for the owner
 
 1. **Native window (`pywebview`)**: decided — on for the Mac (done after the build, see `docs/BUILD.md`). Windows and

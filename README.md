@@ -14,22 +14,26 @@ On the very first start, a parent picks a language, sets a **PIN**, the child's 
 
 ## What's inside
 
-Twelve "worlds," each a handful of short, playful levels that never punish a wrong answer — just a friendly hint and another try. A world unlocks once the skill before it is learned; a parent can unlock any of them by hand.
+Seven stages, one skill each, with sixteen "worlds" of short, playful levels that never punish a wrong answer — just a friendly hint and another try. A world opens once the skill before it is learned; a parent can open any of them by hand.
 
-| World | Teaches |
-| --- | --- |
-| 🐭 Mouse Meadow | Click, drag, double-click, scroll |
-| 🖌️ Paint Place | Painting with the mouse |
-| ⌨️ Keyboard Kingdom | Finding keys: Space, Enter, Backspace, Shift, arrows |
-| 🤖 Robot Helper | Simple arrow-card "programs" — a first taste of coding |
-| 🔤 Letter Land | Typing letters, with on-screen finger guidance |
-| 🔢 Number Land | Typing digits, counting, adding |
-| 🌳 Word Woods | Typing short words with a picture |
-| ☁️ Sentence Sky | Typing short sentences, their own name, a favourite word |
-| 🌐 Internet Island | A safe pretend browser: links, search, spotting pop-ups |
-| 🖥️ Computer Cove | What a screen, mouse, keyboard, window and file are; online safety |
-| 🗂️ Desktop Dock | A pretend desktop: open, drag into folders, save, the trash bin |
-| 🎨 Free Play Studio | Typing any word to make a sticker scene |
+| Stage | World | Teaches |
+| --- | --- | --- |
+| 1 Mouse | 🐭 Mouse Meadow | Click, drag, double-click, scroll |
+| | 🖌️ Paint Place | Painting with the mouse |
+| 2 Keyboard | ⌨️ Key Castle | Finding keys: Space, Enter, Backspace, Shift, arrows |
+| | 🔤 Letter Land | Typing letters, with on-screen finger guidance |
+| | 🔢 Number Hill | Typing digits, counting, adding |
+| 3 My Name | 📛 Name Nest | Typing their own name, family words, a favourite word |
+| 4 Words & Sentences | 🌳 Word Woods | Typing short words with a picture |
+| | ☁️ Sentence Sky | Typing short sentences |
+| 5 Everyday Computer | 🗂️ Desktop Dock | A pretend desktop: open, drag into folders, save, the trash bin |
+| | 🌐 Internet Island | A safe pretend browser: links, Back, search |
+| | 🖥️ Computer Cove | What a screen, window, folder, the internet and saving are; taking breaks |
+| 6 Safe & Smart | 🛟 Safety Harbour | Asking a grown-up, secrets, kindness, strangers, prize pop-ups, passwords |
+| 7 Create Studio | 🎨 Free Play | Typing any word to make a sticker scene, and saving it as a card |
+| Extras | 🤖 Robot Helper | Simple arrow-card "programs" — a first taste of coding |
+| | 🧩 Quiz Corner | Flags, animal homes, food and weather |
+| Optional, 7+ | 🖐️ Ten-Finger Path | Home-row touch typing (a parent opens it) |
 
 Progress, stars and a growing sticker album carry the child along; a small daily streak never guilts a missed day. Everything the child types stays on this computer.
 

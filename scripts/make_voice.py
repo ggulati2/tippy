@@ -43,8 +43,8 @@ def cyrb53(text: str) -> int:
 
 
 def normalise(text: str) -> str:
-    """Same tidy-up as `voiceKey` in voice.js: single spaces, no spaces at the ends, lower case."""
-    return " ".join(text.split()).lower()
+    """Same tidy-up as `voiceKey` in voice.js: no soft hyphens, single spaces, no spaces at the ends, lower case."""
+    return " ".join(text.replace("\u00ad", "").split()).lower()
 
 
 def clip_name(text: str) -> str:

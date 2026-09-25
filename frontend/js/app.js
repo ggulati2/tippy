@@ -312,21 +312,21 @@ async function welcomeScreen() {
 const WORLD_ICONS = {
   mouse: "🐭", paint: "🖌️", keyboard: "⌨️", letters: "🔤", numbers: "🔢", words: "🌳",
   sentences: "☁️", internet: "🌐", basics: "🖥️", desktop: "🗂️", free: "🎨", robot: "🤖", tenfinger: "🖐️",
+  name: "📛", safety: "🛟", quiz: "🧩",
 };
-// The child's map groups the twelve worlds into the seven "Mein erster Computer" readiness
-// stages (brief §5); nothing about how a world unlocks or plays changes, only how it is labelled
-// and grouped. Robot Helper teaches sequencing, not typing, so it sits outside the stage path as
-// an optional "logic games" extra rather than pretending to be part of it.
+// The child's map: the seven "Mein erster Computer" readiness stages (brief §5), each teaching one skill, with
+// the worlds that teach it. The same order as WORLD_ORDER in backend/progress.py. Robot Helper (sequencing) and
+// Quiz Corner (general knowledge) are not steps on the path, so they sit apart as extras.
 const STAGES = [
-  { key: "stage.1", worlds: ["mouse"] },
-  { key: "stage.2", worlds: ["keyboard", "letters"] },
-  { key: "stage.3", worlds: ["sentences"] },
-  { key: "stage.4", worlds: ["words", "numbers"] },
-  { key: "stage.5", worlds: ["paint", "desktop"] },
-  { key: "stage.6", worlds: ["basics", "internet"] },
+  { key: "stage.1", worlds: ["mouse", "paint"] },
+  { key: "stage.2", worlds: ["keyboard", "letters", "numbers"] },
+  { key: "stage.3", worlds: ["name"] },
+  { key: "stage.4", worlds: ["words", "sentences"] },
+  { key: "stage.5", worlds: ["desktop", "internet", "basics"] },
+  { key: "stage.6", worlds: ["safety"] },
   { key: "stage.7", worlds: ["free"] },
 ];
-const EXTRA_WORLDS = ["robot"];
+const EXTRA_WORLDS = ["robot", "quiz"];
 // Optional, for 7+: locked until a parent opens it (backend/progress.py PARENT_ONLY).
 const OPTIONAL_WORLDS = ["tenfinger"];
 
@@ -374,6 +374,9 @@ function openWorld(id) {
   else if (id === "words") wordWoods();
   else if (id === "sentences") sentenceSky();
   else if (id === "basics") computerCove();
+  else if (id === "name") nameNest();
+  else if (id === "safety") safetyHarbour();
+  else if (id === "quiz") quizCorner();
   else if (id === "free") freePlay();
   else if (id === "paint") paintPlace();
   else if (id === "desktop") desktopDock();
