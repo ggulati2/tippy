@@ -24,7 +24,7 @@ The "Mein erster Computer" revamp (branch `revamp/erster-computer`, see `docs/RE
 - The computer's own voice could be an online voice, which would send the child's name to a speech server; only voices built into the computer are used now.
 - Text from the online helper could contain a web address; such text is now refused.
 - After an update the app window could keep showing the old screens from its cache; it now always checks for newer files.
-- A typed sentence was cut off before it had been read aloud in full; the next round now waits for it.
+- Tippy was cut off mid-sentence when a game moved on by itself (in many worlds); games now wait until Tippy has finished.
 
 ## [0.14.0] - 2026-09-23
 

@@ -630,7 +630,7 @@ are in `docs/BUILD.md`.
 4. **Licence signing key** is in `~/.config/tippy/licence-signing-key` on this Mac — back it up somewhere safe.
 5. **Content wording** that deserves a native speaker's read: the Safe & Smart stories and all German/Spanish text.
 6. **Four backport candidates** for `main` are listed in `docs/BACKPORT_CANDIDATES.md` (online voice, web addresses,
-   stale screens after an update, a typed sentence cut off before it was read aloud).
+   stale screens after an update, Tippy cut off mid-sentence).
 
 ## Status
 

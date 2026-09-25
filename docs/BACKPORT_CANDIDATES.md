@@ -39,10 +39,10 @@ Format for each entry:
   opening the genuine 0.14.0 app still showed the newer screens until that cache was deleted by hand.
 - Suggested fix (one line): in `protective_headers` in `backend/app.py`, send `Cache-Control: no-cache` for every path outside `/api/`.
 
-## A typed sentence was cut off before it had been read aloud
-- Commit: `ae11aaf` on `revamp/erster-computer`
+## Tippy was cut off mid-sentence when a screen moved on by itself
+- Commit: `8eb361e` on `revamp/erster-computer` (it replaces the first, typing-only fix in `ae11aaf`)
 - Also present on `main` at: `tippy-v1-baseline`
-- What goes wrong and how to see it: after the last letter, `typingRound()` in `frontend/js/typing.js` starts reading
-  the word or sentence aloud and moves to the next one after a fixed 1.8 s. A longer sentence in Sentence Street
-  takes longer than that to say, so the next round (or the end of the level) cut it off. Seen by the owner.
-- Suggested fix (one line): give `speak()` an `onEnd` callback and move on only after both it and the 1.8 s have passed (with a 20 s safety limit).
+- What goes wrong and how to see it: games move on with `later(fn, ms)` after a fixed pause (1.8 s after a typed
+  sentence, 0.7 s after the last balloon, and about 40 more). A new screen, or the next sentence, silences Tippy, so
+  anything longer than the pause was cut off in the middle, in many worlds. Seen by the owner, first in Sentence Street.
+- Suggested fix (one line): in `later()` in `frontend/js/app.js`, when the time is up but a recording or the computer's voice is still playing, wait until it has been quiet for 0.35 s (at most 15 s).
